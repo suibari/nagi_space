@@ -10,14 +10,15 @@ export const e2eEnv = {
 	PUBLIC_ORIGIN: `http://127.0.0.1:${port}`,
 	SESSION_SECRET: 'e2e-session-secret-that-is-long-enough-000',
 	OAUTH_PRIVATE_KEY_JWK: '',
-	// テスト用の発行者（tests/e2e/fixtures/jwks-server.mjs）
+	// 偽の AppView とテスト用の発行者（tests/e2e/fixtures/fake-nagi.mjs）
+	NAGI_APPVIEW_URL: 'http://127.0.0.1:4999',
 	NAGI_PASSPORT_ISSUER: 'http://127.0.0.1:4999'
 };
 
 export default defineConfig({
 	webServer: [
 		{
-			command: 'node tests/e2e/fixtures/jwks-server.mjs',
+			command: 'node tests/e2e/fixtures/fake-nagi.mjs',
 			port: 4999,
 			reuseExistingServer: false
 		},

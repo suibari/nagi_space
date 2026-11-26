@@ -14,7 +14,15 @@ const ja = {
 		}
 	},
 	logout: 'ログアウト',
-	home: { loginLink: 'ログイン', signedInAs: 'ログイン中' }
+	home: {
+		loginLink: 'ログイン',
+		signedInAs: 'ログイン中',
+		unregistered:
+			'Nagi Space は Nagi に登録している人が使えます。Nagi でプロフィールを作るか、投稿してから戻ってきてください。',
+		openNagi: 'Nagi を開く',
+		unknown: 'Nagi の登録を確認できませんでした。少し待ってから再読み込みしてください。',
+		reload: '再読み込み'
+	}
 };
 
 const en: typeof ja = {
@@ -31,7 +39,15 @@ const en: typeof ja = {
 		}
 	},
 	logout: 'Log out',
-	home: { loginLink: 'Log in', signedInAs: 'Logged in' }
+	home: {
+		loginLink: 'Log in',
+		signedInAs: 'Logged in',
+		unregistered:
+			'Nagi Space is for people who use Nagi. Create a profile or post on Nagi, then come back.',
+		openNagi: 'Open Nagi',
+		unknown: 'Could not confirm your Nagi registration. Please wait a moment and reload.',
+		reload: 'Reload'
+	}
 };
 
 export const messages: Record<Locale, typeof ja> = { ja, en };

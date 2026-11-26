@@ -8,6 +8,7 @@ import { createRequestLock, createSessionStore, createStateStore } from './oauth
 import { connectRedis } from './services';
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { SessionManager } from './session';
+import { DEFAULT_NAGI_APPVIEW_URL, createRegistrationChecker, type Registration } from './nagi';
 import type { Verifier } from '@suibari/nagi-passport/verify';
 
 export type Runtime = {
@@ -17,6 +18,7 @@ export type Runtime = {
 	oauthSessions: NodeSavedSessionStore;
 	sessions: SessionManager;
 	sso: Verifier;
+	checkRegistration: (did: string) => Promise<Registration>;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -41,7 +43,11 @@ async function init(): Promise<Runtime> {
 		audience: auth.origin,
 		store: createTicketStore(redis)
 	});
-	return { auth, redis, oauth, oauthSessions, sessions, sso };
+	const checkRegistration = createRegistrationChecker(
+		redis,
+		env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL
+	);
+	return { auth, redis, oauth, oauthSessions, sessions, sso, checkRegistration };
 }
 
 /** サーバーのインスタンスごとに1回だけ初期化する。失敗したら次の要求で作り直す。 */
