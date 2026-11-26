@@ -120,7 +120,7 @@ convo（外部リポジトリ、ブランチ `nagi-space`。詳しくは convo �
 3. **Space ごとの会話**：`POST /v1/sessions` の `key` に Space の ID を入れ、同じ space-agent のログインでも Space ごとに別の会話にする。使い方は `space`（パブリックSpace）と `space_bot`（botたんSpace）。
 4. **ASR の優先**：会話の聞き取りを先にし、字幕の発話が4秒待ったら字幕を一時停止して知らせる（`captions.paused` / `captions.resumed`、TRANS-03）。
 5. **空き状況**：`/v1/health` が会話と字幕のつなぎの上限と数を返す。space-agent がこれを Nagi Space に知らせる（BOT-02）。
-6. **記憶**：convo は記憶を読むだけで書かない。パブリックSpace の会話は記憶に残らない（BOT-07）。botたんSpace の会話を記憶に残す仕組みは未対応（下の「Open Questions」）。
+6. **記憶**：convo は記憶を読むだけで書かない。どの Space の会話も記憶に残らない（BOT-07）。botたんSpace の会話を残す仕組みは、利用者ごとに分けて引く方法とあわせて別のchangeで扱う。
 
 字幕はconvoのASR（現在の設定ではspeech.cpp）を共有する。処理能力の計測は下の「リスク」に記す。
 
@@ -261,6 +261,5 @@ AppViewの認証が要るAPIは、**利用者のPDSを経由したプロキシ**
 
 ## Open Questions
 
-- botたんSpace の会話を botたんの記憶に残す方法（BOT-07）。convo は記憶を読むだけで、Bot Memory API にも会話を書き込む口が無い。また記憶は利用者ごとに分かれていないため、二人きりの会話を入れると、ほかの人がいる場で botたんが話してしまうおそれがある。書き込む口と利用者ごとに引く仕組みを、利用者と決めてから対応する。
 
 - `getProfile` で未登録の利用者を引いたときの応答の形（404か空のプロフィールか）。実装時に確かめる。

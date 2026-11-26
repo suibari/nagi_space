@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Config:
-    space_api_url: str        # Nagi Space（例 https://space.nagi.suibari.com）
+    space_api_url: str        # Nagi Space（例 https://nagi-space.suibari.com）
     agent_secret: str         # Nagi Space の AGENT_SECRET と同じ値
     convo_url: str            # bot-tan-convo（例 http://127.0.0.1:8771）
     convo_login: str          # convo の allowed_logins にある名前（Tailscale-User-Login として送る）

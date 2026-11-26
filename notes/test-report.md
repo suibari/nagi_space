@@ -33,7 +33,7 @@
 | bot-tan-presence    | BOT-04 人間が話し始めたら譲る                     | `tests/e2e/bot.e2e.ts`                                                                                                                              |
 | bot-tan-presence    | BOT-05 3Dモデルの表示                             | `tests/e2e/avatar-nowebgl.e2e.ts`, `tests/e2e/avatar.e2e.ts`, `tests/e2e/integration.e2e.ts`                                                        |
 | bot-tan-presence    | BOT-06 convoの障害                                | `tests/e2e/bot.e2e.ts`                                                                                                                              |
-| bot-tan-presence    | BOT-07 botたんの記憶はbotたんSpaceだけ            | （テストに要件IDの記載なし）                                                                                                                        |
+| bot-tan-presence    | BOT-07 Spaceの会話はbotたんの記憶に残さない       | （テストに要件IDの記載なし）                                                                                                                        |
 | space-access        | ACC-01 AT Protocol OAuthによるログイン            | `tests/e2e/sso.e2e.ts`                                                                                                                              |
 | space-access        | ACC-02 Nagi登録済みの利用者に限る                 | `tests/e2e/registration.e2e.ts`                                                                                                                     |
 | space-access        | ACC-03 ログインしていない閲覧者                   | `tests/e2e/anonymous.e2e.ts`, `tests/e2e/space-create.e2e.ts`                                                                                       |
@@ -76,4 +76,4 @@
 
 要件IDの記載が無いもの：BOT-07
 
-- BOT-07 は、パブリックSpace の会話を記憶に書き込まないこと（convo は記憶を読むだけ）は満たしているが、botたんSpace の会話を残す側は判断待ちで未対応（作業8.7）。
+- BOT-07 は、convo に記憶へ書き込む処理が無く、Space 用の使い方の `memory_sources` が空であることで満たしている（作業8.7。コードの確認で、E2E テストは無い）。

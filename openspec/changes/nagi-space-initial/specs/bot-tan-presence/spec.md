@@ -80,16 +80,16 @@ convoに接続できないか、会話中に接続が切れたときは、botた
 - **WHEN** botたんの参加中にconvoへの接続が切れる
 - **THEN** botたんが退出したと表示し、ホストに再招待の操作を示し、人間の会話は続く
 
-### Requirement: BOT-07 botたんの記憶はbotたんSpaceだけ
+### Requirement: BOT-07 Spaceの会話はbotたんの記憶に残さない
 
-botたんSpaceでの会話は、ホストの利用者に結び付けてbotたんの記憶（convoのBot Memory API）に残し、次のbotたんSpaceで思い出せるようにしなければならない（MUST）。botたんSpaceの画面には、botたんが会話を覚えることを表示する。パブリックSpaceでの会話は、botたんの記憶に書き込んではならない（MUST）。
-
-#### Scenario: botたんSpaceで話した内容を次回に覚えている
-
-- **WHEN** ホストがbotたんSpaceで話した翌日に、再びbotたんSpaceを開く
-- **THEN** botたんは前回の会話の内容を踏まえて話せる
+パブリックSpaceとbotたんSpaceのどちらの会話も、botたんの記憶（convoのBot Memory API）に書き込んではならない（MUST）。botたんSpaceの会話を記憶に残す仕組みは、利用者ごとに分けて引く方法とあわせて別のchangeで扱う（2026-11-27 利用者と決定）。
 
 #### Scenario: パブリックSpaceで話す
 
 - **WHEN** botたんがパブリックSpaceで複数のスピーカーと会話する
 - **THEN** その会話の内容はbotたんの記憶に書き込まれない
+
+#### Scenario: botたんSpaceで話す
+
+- **WHEN** ホストがbotたんSpaceでbotたんと話し、Spaceを終える
+- **THEN** その会話の内容はbotたんの記憶に書き込まれず、次のbotたんSpaceでbotたんは前回の会話を覚えていない
