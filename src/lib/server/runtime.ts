@@ -8,7 +8,13 @@ import { createRequestLock, createSessionStore, createStateStore } from './oauth
 import { connectRedis } from './services';
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { SessionManager } from './session';
-import { DEFAULT_NAGI_APPVIEW_URL, createRegistrationChecker, type Registration } from './nagi';
+import { SpaceRepository } from './spaces/repository';
+import { SpaceRooms } from './spaces/livekit';
+import {
+	DEFAULT_NAGI_APPVIEW_URL,
+	createRegistrationChecker,
+	type RegistrationResult
+} from './nagi';
 import type { Verifier } from '@suibari/nagi-passport/verify';
 
 export type Runtime = {
@@ -18,7 +24,9 @@ export type Runtime = {
 	oauthSessions: NodeSavedSessionStore;
 	sessions: SessionManager;
 	sso: Verifier;
-	checkRegistration: (did: string) => Promise<Registration>;
+	checkRegistration: (did: string) => Promise<RegistrationResult>;
+	spaces: SpaceRepository;
+	rooms: SpaceRooms;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -47,7 +55,9 @@ async function init(): Promise<Runtime> {
 		redis,
 		env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL
 	);
-	return { auth, redis, oauth, oauthSessions, sessions, sso, checkRegistration };
+	const spaces = new SpaceRepository(redis);
+	const rooms = new SpaceRooms(services.livekit);
+	return { auth, redis, oauth, oauthSessions, sessions, sso, checkRegistration, spaces, rooms };
 }
 
 /** サーバーのインスタンスごとに1回だけ初期化する。失敗したら次の要求で作り直す。 */

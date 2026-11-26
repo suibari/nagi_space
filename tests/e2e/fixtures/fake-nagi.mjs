@@ -25,7 +25,14 @@ createServer((req, res) => {
 		const actor = url.searchParams.get('actor') ?? '';
 		if (actor.includes('unreg')) return json(res, 404, { error: 'not_found' });
 		if (actor.includes('down')) return json(res, 503, { error: 'unavailable' });
-		return json(res, 200, { profile: { did: actor, joinedAt: '2026-01-01T00:00:00.000Z' } });
+		return json(res, 200, {
+			profile: {
+				did: actor,
+				handle: `${actor.slice(-6)}.test`,
+				displayName: `テスト${actor.slice(-4)}`,
+				joinedAt: '2026-01-01T00:00:00.000Z'
+			}
+		});
 	}
 	res.writeHead(404).end();
 }).listen(port, '127.0.0.1');

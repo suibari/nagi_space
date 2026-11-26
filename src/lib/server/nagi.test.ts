@@ -12,15 +12,31 @@ const respond =
 
 describe('fetchRegistration', () => {
 	it('joinedAt がある人を登録済みとする', async () => {
-		const fetchImpl = respond(200, { profile: { joinedAt: '2026-01-01T00:00:00Z' } });
-		expect(await fetchRegistration(DID, APPVIEW, fetchImpl)).toBe('registered');
+		const fetchImpl = respond(200, {
+			profile: {
+				joinedAt: '2026-01-01T00:00:00Z',
+				handle: 'alice.example',
+				displayName: 'アリス',
+				avatar: '/api/blob/did/cid'
+			}
+		});
+		expect(await fetchRegistration(DID, APPVIEW, fetchImpl)).toEqual({
+			registration: 'registered',
+			profile: {
+				did: DID,
+				handle: 'alice.example',
+				displayName: 'アリス',
+				avatar: 'https://appview.example/api/blob/did/cid'
+			}
+		});
 	});
 
 	it('AppView が見かけただけの人（joinedAt なし）と 404 は未登録とする', async () => {
-		expect(await fetchRegistration(DID, APPVIEW, respond(200, { profile: { did: DID } }))).toBe(
-			'unregistered'
+		const unregistered = { registration: 'unregistered' };
+		expect(await fetchRegistration(DID, APPVIEW, respond(200, { profile: { did: DID } }))).toEqual(
+			unregistered
 		);
-		expect(await fetchRegistration(DID, APPVIEW, respond(404))).toBe('unregistered');
+		expect(await fetchRegistration(DID, APPVIEW, respond(404))).toEqual(unregistered);
 	});
 
 	it('通信の失敗やサーバーエラーは未登録とみなさない', async () => {

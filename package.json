@@ -19,7 +19,7 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"test:integration": "INTEGRATION=1 vitest --run --project server src/lib/server/*.integration.test.ts"
+		"test:integration": "INTEGRATION=1 vitest --run --project server integration.test"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.65.1",
@@ -44,6 +44,7 @@
 	"dependencies": {
 		"@atproto/oauth-client-node": "^0.5.21",
 		"@suibari/nagi-passport": "^0.1.0",
+		"livekit-client": "^2.25.0",
 		"livekit-server-sdk": "^2.20.1",
 		"redis": "^6.4.0"
 	}

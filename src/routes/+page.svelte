@@ -29,6 +29,9 @@
 			</section>
 		{:else}
 			<p class="mt-4 text-sm" data-testid="signed-in">{t.home.signedInAs}</p>
+			<a href="/spaces/new" class="mt-4 inline-block rounded-full bg-black px-4 py-2 text-white">
+				{t.home.startSpace}
+			</a>
 		{/if}
 		<form method="POST" action="/logout" class="mt-4">
 			<button type="submit" class="rounded-full border px-4 py-2">{t.logout}</button>

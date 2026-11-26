@@ -21,7 +21,8 @@ test('Nagi登録済みならログイン中として表示する', async ({ cont
 	await signIn(context, did);
 	await page.goto('/');
 	await expect(page.getByTestId('signed-in')).toBeVisible();
-	expect(await withRedis((redis) => redis.get(`nagi:registration:${did}`))).toBe('registered');
+	const cached = await withRedis((redis) => redis.get(`nagi:registration:${did}`));
+	expect(JSON.parse(cached ?? '{}').registration).toBe('registered');
 	await revokeOAuthSession(did);
 });
 

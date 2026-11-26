@@ -15,13 +15,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 	if (event.locals.did) {
 		// AppView に確認できなくても未登録とはみなさない（ACC-02）
-		event.locals.nagiUser = await checkRegistration(event.locals.did).catch((cause: unknown) => {
+		const result = await checkRegistration(event.locals.did).catch((cause: unknown) => {
 			console.warn(
 				'[nagi] registration check failed',
 				cause instanceof Error ? cause.message : cause
 			);
-			return 'unknown' as const;
+			return undefined;
 		});
+		event.locals.nagiUser = result?.registration ?? 'unknown';
+		event.locals.profile = result?.profile;
 	}
 	return resolve(event, {
 		transformPageChunk: ({ html }) => html.replace('%lang%', event.locals.locale)
