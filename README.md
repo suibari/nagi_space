@@ -24,7 +24,9 @@ docker compose -f compose.dev.yml up -d
 set -a; . ./.env.local; set +a; npm run test:integration   # 疎通確認
 ```
 
-本番・Preview では、同じ環境変数に LiveKit Cloud（または自前の LiveKit）と Upstash Redis の値を設定します。接続先はこの4つの環境変数だけで切り替わります。
+ローカルでは `http://127.0.0.1:5173` で開いてください（`localhost` は OAuth のループバックとして扱われません）。SvelteKit はビルド時にも環境変数を検証するので、`npm run build` の前にも環境変数を読み込んでください。
+
+本番・Preview では、同じ環境変数に LiveKit Cloud（または自前の LiveKit）と Upstash Redis の値を設定します。接続先は環境変数だけで切り替わります。
 
 | 変数                                     | 内容                                                                     |
 | ---------------------------------------- | ------------------------------------------------------------------------ |
