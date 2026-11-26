@@ -43,6 +43,9 @@ test('ホストの発話が字幕になり、入室者全員に話者の名前�
 	await expect(
 		host.page.locator(`[data-testid="caption-line"][data-speaker="${host.did}"]`).first()
 	).toBeVisible();
+	// TRANS-05 スピーカーが字幕を止める操作は無い
+	await expect(host.page.getByRole('button', { name: /字幕を(止|オフ|切)/ })).toHaveCount(0);
+	await expect(host.page.getByRole('checkbox', { name: /字幕/ })).toHaveCount(0);
 	await cleanup(host.did, listener.did);
 });
 

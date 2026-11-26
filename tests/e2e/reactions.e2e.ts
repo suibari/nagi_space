@@ -149,3 +149,30 @@ test('Nagi のお気に入りの絵文字を、選択の先頭に並べる', asy
 	await db.del(`nagi:emojifav:${host.did}`);
 	await cleanup(host.did);
 });
+
+// PART-10 特定の参加者にだけ送る（送り先を付けても、全員に届く）
+test('絵文字に送り先を付けても、入室者全員に届く', async ({ browser }) => {
+	const host = await openAs(browser);
+	const path = await createSpace(host.page, 'ぜんいんに');
+	await expect(host.page.getByTestId('connection-state')).toHaveText('接続しました', connected);
+	const sender = await openAs(browser);
+	await join(sender.page, path);
+	const other = await openAs(browser);
+	await join(other.page, path);
+	const response = await sender.page.request.post(`${path}/react`, {
+		headers: { origin: new URL(sender.page.url()).origin },
+		data: {
+			choice: { kind: 'unicode', emoji: '👋' },
+			to: host.did,
+			destinationIdentities: [host.did]
+		}
+	});
+	expect(response.status()).toBe(204);
+	for (const page of [host.page, other.page]) {
+		await expect(page.locator(`[data-testid="reaction"][data-from="${sender.did}"]`)).toContainText(
+			'👋',
+			connected
+		);
+	}
+	await cleanup(host.did, sender.did, other.did);
+});

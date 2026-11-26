@@ -8,7 +8,7 @@ const memberDid = () => `did:plc:member${crypto.randomUUID().replace(/-/g, '').s
 
 const endHostSpace = (did: string) => cleanup(did);
 
-// LIFE-01 パブリックSpaceを作成する
+// LIFE-01 パブリックSpaceを作成する / ACC-05（年齢を問わない。年齢による判定はどこにも無い）
 test('パブリックSpaceを作成するとホストとして入室する', async ({ context, page }) => {
 	const did = memberDid();
 	await signIn(context, did);
