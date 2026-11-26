@@ -1,5 +1,5 @@
 // E2E 専用の偽の Nagi AppView。SSO チケット発行者の公開鍵（テスト専用の鍵）と、
-// 登録確認に使う getProfile だけを返す。
+// 登録確認に使う getProfile と、絵文字の検索・取得を返す。
 //   DID に "unreg" を含む → 未登録（404）
 //   DID に "down" を含む  → AppView の障害（503）
 //   それ以外               → 登録済み（joinedAt あり）
@@ -33,6 +33,25 @@ createServer((req, res) => {
 				joinedAt: '2026-01-01T00:00:00.000Z'
 			}
 		});
+	}
+	// カスタム絵文字（REACT-02）。"neko" を含む検索で1つ返し、その URI だけが存在する
+	const neko = {
+		uri: 'at://did:plc:emojiowner/blue.moji.collection.item/neko',
+		cid: 'bafyneko',
+		did: 'did:plc:emojiowner',
+		name: 'neko',
+		alt: 'ねこ',
+		url: '/api/blob/neko.png',
+		mediaType: 'image/png'
+	};
+	if (url.pathname === '/xrpc/com.suibari.nagi.searchEmojis') {
+		const q = url.searchParams.get('q') ?? '';
+		return json(res, 200, { emojis: q.includes('neko') || q.includes('ねこ') ? [neko] : [] });
+	}
+	if (url.pathname === '/xrpc/com.suibari.nagi.getEmoji') {
+		return url.searchParams.get('uri') === neko.uri
+			? json(res, 200, { emoji: neko })
+			: json(res, 404, { error: 'not_found' });
 	}
 	res.writeHead(404).end();
 }).listen(port, '127.0.0.1');

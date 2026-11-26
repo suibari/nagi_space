@@ -90,6 +90,10 @@ export class PostgrestStore implements KeyValueStore {
 		return this.#rpc<Array<{ key: string; value: string }>>('kv_list', { p_prefix: prefix });
 	}
 
+	async incr(key: string, ttlSeconds: number) {
+		return this.#rpc<number>('kv_incr', { p_key: key, p_ttl_seconds: ttlSeconds });
+	}
+
 	async ttl(key: string) {
 		return this.#rpc<number | null>('kv_ttl', { p_key: key });
 	}

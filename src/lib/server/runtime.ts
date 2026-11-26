@@ -13,6 +13,7 @@ import { createOAuthClient } from './oauth/client';
 import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { parseAllowlist } from './allowlist';
+import { createFavoritesLoader } from './emoji';
 import { createMuteChecker } from './mutes';
 import { createStore } from './services';
 import { SessionManager } from './session';
@@ -40,6 +41,8 @@ export type Runtime = {
 	stage: Stage;
 	mutedBy: (did: string) => Promise<Set<string>>;
 	creatorAllowlist: Set<string> | undefined;
+	appviewUrl: string;
+	emojiFavorites: (did: string) => Promise<import('#lib/emoji/types.ts').EmojiChoice[]>;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -58,6 +61,7 @@ async function init(): Promise<Runtime> {
 		sessionStore: oauthSessions,
 		requestLock: createRequestLock(store)
 	});
+	const appviewUrl = env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL;
 	const spaces = new SpaceRepository(store);
 	const presence = new PresenceStore(store);
 	const limits = loadLimits(env);
@@ -74,10 +78,7 @@ async function init(): Promise<Runtime> {
 			audience: auth.origin,
 			store: createTicketStore(store)
 		}),
-		checkRegistration: createRegistrationChecker(
-			store,
-			env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL
-		),
+		checkRegistration: createRegistrationChecker(store, appviewUrl),
 		spaces,
 		rooms,
 		presence,
@@ -85,7 +86,9 @@ async function init(): Promise<Runtime> {
 		lifecycle: new SpaceLifecycle(store, spaces, presence, rooms, limits, stage),
 		stage,
 		mutedBy: createMuteChecker(store, (did) => oauth.restore(did)),
-		creatorAllowlist: parseAllowlist(env.SPACE_CREATOR_ALLOWLIST)
+		creatorAllowlist: parseAllowlist(env.SPACE_CREATOR_ALLOWLIST),
+		appviewUrl,
+		emojiFavorites: createFavoritesLoader(store, (did) => oauth.restore(did), appviewUrl)
 	};
 }
 

@@ -93,6 +93,16 @@ export class SpaceRooms {
 			.catch(() => undefined);
 	}
 
+	/** 入室者全員へ送る（リアクション。REACT-01）。利用者が書いた文章は載せない。 */
+	async broadcast(spaceId: string, topic: string, message: unknown): Promise<void> {
+		await this.rooms.sendData(
+			spaceId,
+			new TextEncoder().encode(JSON.stringify(message)),
+			DataPacket_Kind.RELIABLE,
+			{ topic }
+		);
+	}
+
 	/** 特定の参加者へ制御の通知を送る。 */
 	async notify(spaceId: string, identities: string[], message: ControlMessage): Promise<void> {
 		if (!identities.length) return;

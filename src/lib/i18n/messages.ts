@@ -86,6 +86,17 @@ const ja = {
 		hostAway: 'ホストの再接続を待っています',
 		full: 'この Space は満員です。',
 		removed: 'ホストによって退室させられました。この Space には入り直せません。',
+		emoji: {
+			open: '絵文字',
+			search: '絵文字をさがす',
+			favorites: 'お気に入り',
+			recent: '最近使った絵文字',
+			custom: 'カスタム絵文字',
+			unicode: '絵文字',
+			none: '見つかりませんでした',
+			close: '閉じる',
+			rateLimited: '少し待ってから送ってください。'
+		},
 		report: {
 			space: 'この Space を通報',
 			member: '通報',
@@ -213,6 +224,17 @@ const en: typeof ja = {
 		hostAway: 'Waiting for the host to reconnect',
 		full: 'This Space is full.',
 		removed: 'The host removed you from this Space. You cannot rejoin it.',
+		emoji: {
+			open: 'Emoji',
+			search: 'Search emoji',
+			favorites: 'Favorites',
+			recent: 'Recently used',
+			custom: 'Custom emoji',
+			unicode: 'Emoji',
+			none: 'No results',
+			close: 'Close',
+			rateLimited: 'Please wait a moment before sending more.'
+		},
 		report: {
 			space: 'Report this Space',
 			member: 'Report',

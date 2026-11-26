@@ -5,6 +5,7 @@
 	import { SpaceConnection } from '#lib/space/room.svelte.ts';
 	import StageControls from '#lib/space/StageControls.svelte';
 	import ReportForm from '#lib/space/ReportForm.svelte';
+	import Reactions from '#lib/space/Reactions.svelte';
 	import type { PageProps } from './$types';
 
 	const STATUS_POLL_MS = 20_000;
@@ -208,6 +209,13 @@
 			</div>
 
 			{#if connection?.state === 'connected'}
+				<!-- 絵文字はロールにかかわらず送れる（REACT-01） -->
+				<Reactions
+					spaceId={data.space.id}
+					{connection}
+					locale={data.locale}
+					mutedDids={data.mutedDids}
+				/>
 				<StageControls spaceId={data.space.id} {connection} locale={data.locale} />
 			{/if}
 

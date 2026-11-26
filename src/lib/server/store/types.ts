@@ -18,6 +18,8 @@ export interface KeyValueStore {
 	delIfEquals(key: string, value: string): Promise<boolean>;
 	/** 接頭辞で一覧する（キーの昇順）。 */
 	list(prefix: string): Promise<Array<{ key: string; value: string }>>;
+	/** 期限付きで1つ数え上げ、数えたあとの値を返す。期限が切れていたら1から数え直す。 */
+	incr(key: string, ttlSeconds: number): Promise<number>;
 	/** 残りの期限（秒）。期限なしは null、無いキーは -1。 */
 	ttl(key: string): Promise<number | null>;
 }

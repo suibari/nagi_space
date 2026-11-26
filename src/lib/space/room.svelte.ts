@@ -10,6 +10,7 @@ import {
 export type Role = 'host' | 'speaker' | 'listener';
 
 const CONTROL_TOPIC = 'nagi-space.control';
+const REACTION_TOPIC = 'nagi-space.reaction';
 export type ConnectionState =
 	'connecting' | 'reconnecting' | 'connected' | 'disconnected' | 'ended' | 'removed';
 
@@ -42,6 +43,8 @@ export class SpaceConnection {
 	localRole = $state<Role>('listener');
 	/** サーバーからの制御の通知（発話のリクエストの変化など）を受けたときに呼ぶ */
 	onControl?: (message: { type: string; reason?: string }) => void;
+	/** リアクションを受けたときに呼ぶ（REACT-01） */
+	onReaction?: (message: unknown) => void;
 
 	readonly #room = new Room({ adaptiveStream: true, dynacast: true });
 	readonly #audio = new Map<string, HTMLMediaElement>();
@@ -55,9 +58,11 @@ export class SpaceConnection {
 			.on(RoomEvent.ParticipantPermissionsChanged, refresh)
 			.on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
 				// サーバーからの通知だけを受け付ける（利用者はデータを送れない。design.md D3）
-				if (participant || topic !== CONTROL_TOPIC) return;
+				if (participant) return;
 				try {
-					this.onControl?.(JSON.parse(new TextDecoder().decode(payload)));
+					const message = JSON.parse(new TextDecoder().decode(payload));
+					if (topic === CONTROL_TOPIC) this.onControl?.(message);
+					else if (topic === REACTION_TOPIC) this.onReaction?.(message);
 				} catch {
 					/* 壊れた通知は無視する */
 				}

@@ -15,6 +15,7 @@ function memoryStore(): KeyValueStore {
 		del: async (...keys) => keys.forEach((key) => map.delete(key)),
 		delIfEquals: async () => false,
 		list: async () => [],
+		incr: async () => 1,
 		ttl: async () => null
 	};
 }

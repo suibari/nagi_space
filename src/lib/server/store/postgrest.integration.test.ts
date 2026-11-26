@@ -75,4 +75,15 @@ describe.runIf(process.env.INTEGRATION === '1')('PostgrestStore', () => {
 		expect(await s.list(`${base.slice(0, -1)}%`)).toEqual([]);
 		await s.del(`${base}:1`, `${base}:2`, `${base}_x`);
 	});
+
+	it('期限付きで数え上げ、期限が切れたら1から数え直す', async () => {
+		const s = store();
+		const k = key('incr');
+		expect(await Promise.all([s.incr(k, 0.5), s.incr(k, 0.5), s.incr(k, 0.5)])).toEqual(
+			expect.arrayContaining([1, 2, 3])
+		);
+		await new Promise((resolve) => setTimeout(resolve, 700));
+		expect(await s.incr(k, 0.5)).toBe(1);
+		await s.del(k);
+	});
 });

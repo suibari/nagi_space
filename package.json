@@ -44,6 +44,7 @@
 	"dependencies": {
 		"@atproto/oauth-client-node": "^0.5.21",
 		"@suibari/nagi-passport": "^0.1.0",
+		"emoji-picker-element-data": "^1.8.0",
 		"livekit-client": "^2.25.0",
 		"livekit-server-sdk": "^2.20.1"
 	}
