@@ -13,7 +13,8 @@ const ja = {
 			callback: 'ログインを完了できませんでした。もう一度お試しください。'
 		}
 	},
-	logout: 'ログアウト'
+	logout: 'ログアウト',
+	home: { loginLink: 'ログイン', signedInAs: 'ログイン中' }
 };
 
 const en: typeof ja = {
@@ -29,7 +30,8 @@ const en: typeof ja = {
 			callback: 'Could not finish logging in. Please try again.'
 		}
 	},
-	logout: 'Log out'
+	logout: 'Log out',
+	home: { loginLink: 'Log in', signedInAs: 'Logged in' }
 };
 
 export const messages: Record<Locale, typeof ja> = { ja, en };

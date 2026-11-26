@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.use({ locale: 'ja-JP', extraHTTPHeaders: { 'accept-language': 'ja-JP,ja;q=0.9' } });
+test.use({ locale: 'ja-JP' });
 
 test('ログイン画面を表示できる', async ({ page }) => {
 	await page.goto('/login');
