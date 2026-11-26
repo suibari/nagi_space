@@ -22,8 +22,12 @@ export async function createSpace(
 	await page.getByLabel('タイトル').fill(title);
 	if (kind === 'bot') await page.getByLabel('botたんSpace').check();
 	await page.getByRole('button', { name: '開始する' }).click();
-	// room の作成を待つ
-	await expect(page).toHaveURL(/\/s\/[a-z2-9]{12}$/, { timeout: 15000 });
+	// room の作成を待つ。失敗したら画面のエラー表示を添えて落とす
+	const alert = page.getByRole('alert');
+	await expect(async () => {
+		if (await alert.isVisible()) throw new Error(`作成に失敗: ${await alert.textContent()}`);
+		expect(page.url()).toMatch(/\/s\/[a-z2-9]{12}$/);
+	}).toPass({ timeout: 15000 });
 	return new URL(page.url()).pathname;
 }
 

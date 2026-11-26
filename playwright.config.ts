@@ -29,6 +29,8 @@ export default defineConfig({
 			reuseExistingServer: false
 		}
 	],
+	// botたんの空き状況など Redis の共有の状態を書き換えるテストがあるので、順番に実行する
+	workers: 1,
 	use: { baseURL: `http://127.0.0.1:${port}` },
 	testMatch: '**/*.e2e.{ts,js}'
 });
