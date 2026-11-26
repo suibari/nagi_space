@@ -86,6 +86,20 @@ const ja = {
 		hostAway: 'ホストの再接続を待っています',
 		full: 'この Space は満員です。',
 		removed: 'ホストによって退室させられました。この Space には入り直せません。',
+		bot: 'botたん',
+		botControls: {
+			invite: 'botたんを呼ぶ',
+			remove: 'botたんに抜けてもらう',
+			busy: 'botたんは今いっぱいです。空いたら呼べます。',
+			joining: 'botたんを呼んでいます…',
+			left: 'botたんとの接続が切れたため、botたんは退出しました。もう一度呼べます。'
+		},
+		captions: {
+			title: '字幕',
+			notice: 'ホストとスピーカーの発話は、字幕として入室者全員に表示されます。',
+			paused: '字幕は一時停止中です。',
+			empty: 'まだ字幕はありません。'
+		},
 		emoji: {
 			open: '絵文字',
 			search: '絵文字をさがす',
@@ -224,6 +238,20 @@ const en: typeof ja = {
 		hostAway: 'Waiting for the host to reconnect',
 		full: 'This Space is full.',
 		removed: 'The host removed you from this Space. You cannot rejoin it.',
+		bot: 'bot-tan',
+		botControls: {
+			invite: 'Invite bot-tan',
+			remove: 'Ask bot-tan to leave',
+			busy: 'bot-tan is busy right now. You can invite them when they are free.',
+			joining: 'Inviting bot-tan…',
+			left: 'bot-tan left because the connection was lost. You can invite them again.'
+		},
+		captions: {
+			title: 'Captions',
+			notice: 'What the host and speakers say is shown to everyone as captions.',
+			paused: 'Captions are paused.',
+			empty: 'No captions yet.'
+		},
 		emoji: {
 			open: 'Emoji',
 			search: 'Search emoji',

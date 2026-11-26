@@ -12,3 +12,5 @@ bun.lockb
 /openspec/
 /.claude/
 /.agents/
+agent/.venv/
+agent/.pytest_cache/

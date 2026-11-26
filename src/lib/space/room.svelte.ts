@@ -7,10 +7,15 @@ import {
 	type RemoteTrack
 } from 'livekit-client';
 
-export type Role = 'host' | 'speaker' | 'listener';
+export type Role = 'host' | 'speaker' | 'listener' | 'bot';
 
 const CONTROL_TOPIC = 'nagi-space.control';
 const REACTION_TOPIC = 'nagi-space.reaction';
+const CAPTION_TOPIC = 'nagi-space.caption';
+const BOT_TOPIC = 'nagi-space.bot';
+/** 自宅の space-agent の参加者。サーバーが発行したトークンでしか名乗れない（design.md D5） */
+const BOT_IDENTITY = 'bot:bot-tan';
+const AGENT_IDENTITIES = new Set(['agent:captions', BOT_IDENTITY]);
 export type ConnectionState =
 	'connecting' | 'reconnecting' | 'connected' | 'disconnected' | 'ended' | 'removed';
 
@@ -26,7 +31,7 @@ export type ParticipantView = {
 function roleOf(participant: Participant): Role {
 	try {
 		const role = JSON.parse(participant.metadata ?? '{}').role;
-		return role === 'host' || role === 'speaker' ? role : 'listener';
+		return role === 'host' || role === 'speaker' || role === 'bot' ? role : 'listener';
 	} catch {
 		return 'listener';
 	}
@@ -41,10 +46,15 @@ export class SpaceConnection {
 	micOn = $state(false);
 	/** 自分のロール。サーバーが変えると更新される（PART-03・04・06） */
 	localRole = $state<Role>('listener');
+	/** botたんが参加しているか（BOT-01） */
+	botPresent = $state(false);
 	/** サーバーからの制御の通知（発話のリクエストの変化など）を受けたときに呼ぶ */
 	onControl?: (message: { type: string; reason?: string }) => void;
 	/** リアクションを受けたときに呼ぶ（REACT-01） */
 	onReaction?: (message: unknown) => void;
+	/** 字幕（TRANS-01・03）と botたんの動き（BOT-05）を受けたときに呼ぶ */
+	onCaption?: (message: unknown) => void;
+	onBot?: (message: unknown) => void;
 
 	readonly #room = new Room({ adaptiveStream: true, dynacast: true });
 	readonly #audio = new Map<string, HTMLMediaElement>();
@@ -57,12 +67,17 @@ export class SpaceConnection {
 			.on(RoomEvent.ParticipantMetadataChanged, refresh)
 			.on(RoomEvent.ParticipantPermissionsChanged, refresh)
 			.on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
-				// サーバーからの通知だけを受け付ける（利用者はデータを送れない。design.md D3）
-				if (participant) return;
+				// サーバーと space-agent からの通知だけを受け付ける（利用者はデータを送れない。design.md D3）。
+				// 字幕の space-agent は見えない参加者なので、送り主が分からない（サーバーと同じ）形で届く
+				const fromServer = !participant;
+				const fromAgent = !participant || AGENT_IDENTITIES.has(participant.identity);
+				if (!fromServer && !fromAgent) return;
 				try {
 					const message = JSON.parse(new TextDecoder().decode(payload));
-					if (topic === CONTROL_TOPIC) this.onControl?.(message);
-					else if (topic === REACTION_TOPIC) this.onReaction?.(message);
+					if (fromServer && topic === CONTROL_TOPIC) this.onControl?.(message);
+					else if (fromServer && topic === REACTION_TOPIC) this.onReaction?.(message);
+					else if (fromAgent && topic === CAPTION_TOPIC) this.onCaption?.(message);
+					else if (fromAgent && topic === BOT_TOPIC) this.onBot?.(message);
 				} catch {
 					/* 壊れた通知は無視する */
 				}
@@ -145,6 +160,7 @@ export class SpaceConnection {
 			this.#room.localParticipant,
 			...this.#room.remoteParticipants.values()
 		];
+		this.botPresent = all.some((p) => p.identity === BOT_IDENTITY);
 		this.participants = all.map((participant) => ({
 			identity: participant.identity,
 			name: participant.name || participant.identity,

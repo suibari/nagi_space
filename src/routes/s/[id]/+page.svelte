@@ -6,6 +6,8 @@
 	import StageControls from '#lib/space/StageControls.svelte';
 	import ReportForm from '#lib/space/ReportForm.svelte';
 	import Reactions from '#lib/space/Reactions.svelte';
+	import Captions from '#lib/space/Captions.svelte';
+	import BotControls from '#lib/space/BotControls.svelte';
 	import type { PageProps } from './$types';
 
 	const STATUS_POLL_MS = 20_000;
@@ -109,7 +111,7 @@
 		await goto('/');
 	}
 
-	const roleLabel = (role: 'host' | 'speaker' | 'listener') => t[role];
+	const roleLabel = (role: 'host' | 'speaker' | 'listener' | 'bot') => t[role];
 	// ロールは入室後にサーバーが変える（PART-03）ので、接続から読む
 	const canSpeak = $derived(
 		connection?.localRole === 'host' || connection?.localRole === 'speaker'
@@ -216,7 +218,11 @@
 					locale={data.locale}
 					mutedDids={data.mutedDids}
 				/>
+				{#if data.role === 'host'}
+					<BotControls spaceId={data.space.id} {connection} locale={data.locale} />
+				{/if}
 				<StageControls spaceId={data.space.id} {connection} locale={data.locale} />
+				<Captions {connection} locale={data.locale} />
 			{/if}
 
 			{#if data.role !== 'host'}
@@ -239,7 +245,7 @@
 						<span class:font-bold={participant.speaking}>{participant.name}</span>
 						<span class="text-xs">{roleLabel(participant.role)}</span>
 						{#if participant.speaking}<span class="text-xs">{t.speaking}</span>{/if}
-						{#if !participant.isLocal}
+						{#if !participant.isLocal && participant.role !== 'bot'}
 							<button
 								type="button"
 								class="text-xs underline"

@@ -5,6 +5,9 @@ const spaceKey = (id: string) => `space:${id}`;
 const hostKey = (did: string) => `space:host:${did}`;
 const liveKey = (id: string) => `space:live:${id}`;
 const LIVE_PREFIX = 'space:live:';
+/** 種別を問わず開催中の Space（space-agent が字幕と botたんを受け持つのに使う） */
+const openKey = (id: string) => `space:open:${id}`;
+const OPEN_PREFIX = 'space:open:';
 /** 終了後に開催情報を残す期間（design.md D9） */
 export const ENDED_RETENTION_SECONDS = 60 * 60 * 24 * 30;
 
@@ -26,6 +29,7 @@ export class SpaceRepository {
 			return { ok: false, activeSpaceId: (await this.store.get(hostKey(space.hostDid))) ?? '' };
 		}
 		if (space.kind === 'public') await this.store.set(liveKey(space.id), space.startedAt);
+		await this.store.set(openKey(space.id), space.startedAt);
 		return { ok: true, space };
 	}
 
@@ -70,6 +74,21 @@ export class SpaceRepository {
 			.filter((space) => !space.endedAt);
 	}
 
+	/** 種別を問わず開催中の Space（古い順）。 */
+	async listLive(): Promise<Space[]> {
+		const rows = (await this.store.list(OPEN_PREFIX)).sort((a, b) =>
+			a.value.localeCompare(b.value)
+		);
+		const ids = rows.map((row) => row.key.slice(OPEN_PREFIX.length));
+		if (!ids.length) return [];
+		const found = await this.store.getMany(ids.map(spaceKey));
+		return ids
+			.map((id) => found.get(spaceKey(id)))
+			.filter((raw): raw is string => !!raw)
+			.map((raw) => JSON.parse(raw) as Space)
+			.filter((space) => !space.endedAt);
+	}
+
 	/** 終了する。開催情報だけを期限付きで残し、一覧とホストの枠から外す。 */
 	async end(id: string, endedAt = new Date()): Promise<Space | undefined> {
 		const space = await this.getLive(id);
@@ -78,7 +97,7 @@ export class SpaceRepository {
 		await this.store.set(spaceKey(id), JSON.stringify(ended), {
 			ttlSeconds: ENDED_RETENTION_SECONDS
 		});
-		await this.store.del(liveKey(id));
+		await this.store.del(liveKey(id), openKey(id));
 		await this.store.delIfEquals(hostKey(space.hostDid), id);
 		return ended;
 	}

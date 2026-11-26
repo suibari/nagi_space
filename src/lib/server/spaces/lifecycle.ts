@@ -8,6 +8,7 @@ import type { Stage } from './stage';
 
 const hostGoneKey = (id: string) => `space:hostgone:${id}`;
 const shareDraftKey = (id: string) => `space:sharedraft:${id}`;
+const botKey = (id: string) => `space:bot:${id}`;
 
 /**
  * Space の終了と期限の確認。常駐するタイマーが無いので（Vercel）、Space に触れる処理
@@ -30,7 +31,7 @@ export class SpaceLifecycle {
 		const ended = await this.spaces.end(id, this.now());
 		await this.presence.clear(id);
 		await this.stage?.clear(id);
-		await this.store.del(hostGoneKey(id), shareDraftKey(id));
+		await this.store.del(hostGoneKey(id), shareDraftKey(id), botKey(id));
 		await this.rooms.deleteRoom(id);
 		return ended;
 	}

@@ -1,5 +1,6 @@
 import { expect, type Browser } from '@playwright/test';
 import { db, revokeOAuthSession, signIn } from './session.ts';
+import { FAKE_CONVO_URL } from '../../../playwright.config.ts';
 
 export const memberDid = (tag = 'member') =>
 	`did:plc:${tag}${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
@@ -48,15 +49,28 @@ export async function cleanup(...dids: string[]) {
 	}
 }
 
-/** botたんの空き状況を設定する（space-agent の通知の代わり）。 */
-export async function setBotCapacity(freeSessions: number | undefined) {
-	if (freeSessions === undefined) await db.del('bot:capacity');
-	else
-		await db.set(
-			'bot:capacity',
-			JSON.stringify({ freeSessions, updatedAt: new Date().toISOString() }),
-			{
-				ttlSeconds: 30
-			}
-		);
+/**
+ * botたんの空きを変える。E2E では本物の space-agent が偽の convo の空きを1秒ごとに Nagi Space へ
+ * 知らせるので、偽の convo の空きを変えて、知らせが届くまで待つ。
+ */
+export async function setBotCapacity(freeSessions: number) {
+	await fetch(`${FAKE_CONVO_URL}/test/capacity`, {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({ bot: freeSessions })
+	});
+	const free = () =>
+		db
+			.get('bot:capacity')
+			.then((raw) => JSON.parse(raw ?? '{"freeSessions":-1}').freeSessions as number);
+	await expect.poll(free, { timeout: 10000 }).toBe(freeSessions);
+}
+
+/** テストの終わりに、botたんの空きを既定（2）に戻す（待たない）。 */
+export async function resetBotCapacity() {
+	await fetch(`${FAKE_CONVO_URL}/test/capacity`, {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({ bot: 2 })
+	});
 }

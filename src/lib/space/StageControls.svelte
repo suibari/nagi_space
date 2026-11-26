@@ -64,8 +64,12 @@
 
 	onMount(() => {
 		void refresh();
-		connection.onControl = () => void refresh();
-		return () => (connection.onControl = undefined);
+		const previous = connection.onControl;
+		connection.onControl = (message) => {
+			previous?.(message);
+			void refresh();
+		};
+		return () => (connection.onControl = previous);
 	});
 
 	// サーバーがロールを変えたら状態を取り直す
@@ -74,7 +78,10 @@
 		void refresh();
 	});
 
-	const participants = $derived(connection.participants.filter((p) => !p.isLocal));
+	// botたんはモデレーションの対象にしない（招待・除外は botたんの操作で行う）
+	const participants = $derived(
+		connection.participants.filter((p) => !p.isLocal && p.role !== 'bot')
+	);
 	const showMicStep = $derived(
 		stageState?.offer === 'approved' || (stageState?.offer === 'invited' && inviteAccepted)
 	);

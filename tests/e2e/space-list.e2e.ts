@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createSpace, openAs, setBotCapacity } from './fixtures/space.ts';
+import {
+	cleanup,
+	createSpace,
+	openAs,
+	resetBotCapacity,
+	setBotCapacity
+} from './fixtures/space.ts';
 import { db } from './fixtures/session.ts';
 
 // LIFE-03 一覧を開く
@@ -42,7 +48,7 @@ test('開催中のパブリックSpaceを人数とともに一覧に出し、bot
 		});
 	}).toPass({ timeout: 15000 });
 
-	await setBotCapacity(undefined);
+	await resetBotCapacity();
 	await cleanup(host.did, botHost.did, viewer.did, third.did);
 });
 

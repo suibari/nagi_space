@@ -50,7 +50,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const { spaces, rooms, store, oauth, auth } = await getRuntime();
+		const { spaces, rooms, store, oauth, auth, botRequests } = await getRuntime();
 		// botたんSpace は botたんに空きが無ければ作らない（LIFE-02）
 		if (kind === 'bot' && !(await isBotAvailable(store))) {
 			return fail(409, { ...echo, error: 'botBusy' as const });
@@ -73,6 +73,9 @@ export const actions: Actions = {
 			await spaces.end(space.id);
 			return fail(502, { ...echo, error: 'roomFailed' as const });
 		}
+
+		// botたんSpace は作成と同時に botたんを招待する（LIFE-02）
+		if (space.kind === 'bot') await botRequests.request(space.id);
 
 		// シェアに失敗しても Space は止めない。本文を覚えておき、Space の画面から再試行できるようにする（LIFE-04）
 		if (shareText?.ok) {

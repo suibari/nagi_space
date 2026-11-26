@@ -19,8 +19,13 @@ export const e2eEnv = {
 	SPACE_MAX_SPEAKERS: '2',
 	// 偽の AppView とテスト用の発行者（tests/e2e/fixtures/fake-nagi.mjs）
 	NAGI_APPVIEW_URL: 'http://127.0.0.1:4999',
-	NAGI_PASSPORT_ISSUER: 'http://127.0.0.1:4999'
+	NAGI_PASSPORT_ISSUER: 'http://127.0.0.1:4999',
+	// 自宅の space-agent（E2E では偽の convo とつなぐ）との共有の秘密
+	AGENT_SECRET: 'e2e-agent-secret-0123456789abcdef'
 };
+
+/** 偽の convo（tests/e2e/fixtures/fake_convo.py）の URL */
+export const FAKE_CONVO_URL = 'http://127.0.0.1:8799';
 
 export default defineConfig({
 	webServer: [
@@ -33,6 +38,27 @@ export default defineConfig({
 			command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${port} --strictPort`,
 			port,
 			env: e2eEnv,
+			reuseExistingServer: false
+		},
+		{
+			command: 'agent/.venv/bin/python tests/e2e/fixtures/fake_convo.py',
+			port: 8799,
+			reuseExistingServer: false
+		},
+		{
+			// 本物の space-agent を、偽の convo とつないで動かす（agent/ の README）
+			command: 'agent/.venv/bin/python -m space_agent',
+			stdout: 'pipe',
+			url: 'http://127.0.0.1:8798/health',
+			env: {
+				PYTHONPATH: 'agent',
+				SPACE_API_URL: `http://127.0.0.1:${port}`,
+				AGENT_SECRET: 'e2e-agent-secret-0123456789abcdef',
+				CONVO_URL: 'http://127.0.0.1:8799',
+				CONVO_LOGIN: 'e2e',
+				SYNC_INTERVAL_S: '1',
+				AGENT_HEALTH_PORT: '8798'
+			},
 			reuseExistingServer: false
 		}
 	],

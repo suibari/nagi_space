@@ -98,12 +98,15 @@ Spaceごとに1つのroomを作る。入室時にSpace APIがLiveKitのアクセ
 
 ### D5. botたんと字幕は自宅の space-agent が担う
 
-convoを公開しないために、自宅マシンで **space-agent**（Python、LiveKit Agents SDK）を動かす。space-agentはLiveKitへ外向きに接続するだけで、自宅側でポートを開ける必要は無い。
+convoを公開しないために、自宅マシンで **space-agent**（Python、LiveKit Python SDK。このリポジトリの `agent/`）を動かす。space-agentは外へ向かう通信（LiveKit と Nagi Space）だけを使い、自宅側でポートを開ける必要は無い。
 
-- **字幕用の参加者**：パブリックSpaceが始まると、Space APIがLiveKitのagent dispatchでspace-agentを呼ぶ。space-agentは他の参加者から見えない参加者（hidden）として入り、各スピーカーの音声トラックを別々に受け取る。トラックが話者ごとに分かれているので、話者の区別（話者分離）は不要になる。
-- **botたん**：招待されると、同じroomに表示される参加者「botたん」として入り、convoの返事の音声を送る。除外されたら退出し、convoのセッションを閉じる。
-- **字幕とイベントの配信**：確定した字幕、botたんの返事のテキスト、口や体の動きのイベントを、データメッセージでroomへ配る。
-- **空き状況**：space-agentは、convoの空きセッション数とASRの混雑状況を数秒ごとに署名付きでSpace APIへ通知する。Space APIはこれを使って招待の操作を出し分ける（BOT-02）。通知が途絶えたら、botたんは使えないとみなす（BOT-06）。
+- **同期**：space-agent は数秒ごとに `POST /agent/sync`（共有の秘密 `AGENT_SECRET`）を呼び、convo の空き（botたんの会話・字幕のつなぎ）を知らせて、開催中の Space の一覧（字幕と botたんの参加者のトークン付き）を受け取る。LiveKit の agent dispatch は使わない（LiveKit Cloud でもセルフホストでも同じに動き、自宅から外への通信だけで済むため。2026-11-27 に変更）。
+- **字幕用の参加者**（`agent:captions`、見えない参加者）：開催中の Space に入り、ホストとスピーカーの音声トラックを別々に受け取って、convo の字幕だけのつなぎへ送る（D6）。トラックが話者ごとに分かれているので、話者分離は要らない。確定した字幕を `nagi-space.caption` のデータメッセージで配る。
+- **botたん**（`bot:bot-tan`、見える参加者）：ホストが招待すると（`space:bot:<id>`）、次の同期で入り、convo の会話を作って、字幕で聞き取った発話を名前付きの文字で渡し、返事の声を流す。返事の字幕・動き・状態を `nagi-space.caption` / `nagi-space.bot` で配る。除外されたら退出し、convo の会話を閉じる。
+- **画面の信頼**：画面は、サーバー（送り主なし）と space-agent の参加者（`agent:captions`・`bot:bot-tan`）からのデータだけを受け付ける。字幕の参加者は見えない参加者なので、送り主なしで届く。利用者のトークンはDIDを参加者IDにし、データの送信も許さないので、これらを名乗れない。
+- **空き状況**：同期のたびに convo の空きを保存先に書く（期限15秒）。途絶えたら botたんは使えないとみなす（BOT-02・BOT-06）。
+- **障害**：botたんと convo の接続が切れたら、space-agent は botたんを退出させる。ホストが除外していないのに botたんが抜けたら、Webhook で招待を取り消してホストに知らせ、再招待できるようにする（BOT-06）。失敗した Space には30秒は入り直さない。
+- **止めない作り**：Space ごとのタスクが望む状態（botたんの有無）に合わせて裏で動き、同期の流れは接続を待たない（ある Space の接続が遅くても、空きの知らせが古くならない）。
 
 botたんSpaceでも、同じ参加者が字幕とbotたんを兼ねる。
 

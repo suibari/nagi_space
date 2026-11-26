@@ -13,6 +13,8 @@ import { createOAuthClient } from './oauth/client';
 import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { parseAllowlist } from './allowlist';
+import { BotRequests } from './bot/agent';
+import type { ServiceConfig } from './config';
 import { createFavoritesLoader } from './emoji';
 import { createMuteChecker } from './mutes';
 import { createStore } from './services';
@@ -42,6 +44,9 @@ export type Runtime = {
 	mutedBy: (did: string) => Promise<Set<string>>;
 	creatorAllowlist: Set<string> | undefined;
 	appviewUrl: string;
+	agentSecret: string | undefined;
+	botRequests: BotRequests;
+	livekit: ServiceConfig['livekit'];
 	emojiFavorites: (did: string) => Promise<import('#lib/emoji/types.ts').EmojiChoice[]>;
 };
 
@@ -88,6 +93,9 @@ async function init(): Promise<Runtime> {
 		mutedBy: createMuteChecker(store, (did) => oauth.restore(did)),
 		creatorAllowlist: parseAllowlist(env.SPACE_CREATOR_ALLOWLIST),
 		appviewUrl,
+		agentSecret: env.AGENT_SECRET || undefined,
+		botRequests: new BotRequests(store),
+		livekit: services.livekit,
 		emojiFavorites: createFavoritesLoader(store, (did) => oauth.restore(did), appviewUrl)
 	};
 }

@@ -1,12 +1,12 @@
 import { error } from '@sveltejs/kit';
 import { getRuntime } from '#lib/server/runtime.ts';
 import { isSpaceId } from '#lib/server/spaces/model.ts';
-import { parseRole } from '#lib/server/spaces/presence.ts';
+import { BOT_IDENTITY, parseRole } from '#lib/server/spaces/presence.ts';
 import type { RequestHandler } from './$types';
 
 /** LiveKit の Webhook。署名を確かめてから、入退室と room の終了を反映する（design.md D3）。 */
 export const POST: RequestHandler = async ({ request }) => {
-	const { webhooks, presence, lifecycle } = await getRuntime();
+	const { webhooks, presence, lifecycle, botRequests, rooms } = await getRuntime();
 	let event;
 	try {
 		event = await webhooks.receive(
@@ -37,6 +37,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		await presence.left(spaceId, participant.identity);
 		// ホストの切断は3分待つ（LIFE-06）。自分で退室したときは終了の操作で先に終わっている
 		if (isHost) await lifecycle.hostLeft(spaceId);
+		// ホストが除外していないのに botたんが抜けた（space-agent や convo の障害）。退出扱いにして
+		// ホストに知らせ、再招待できるようにする（BOT-06）
+		if (participant.identity === BOT_IDENTITY && (await botRequests.cancel(spaceId))) {
+			await rooms.notify(spaceId, [space.hostDid], { type: 'bot.left' }).catch(() => undefined);
+		}
 	}
 	return new Response(null, { status: 204 });
 };

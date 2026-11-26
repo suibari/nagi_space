@@ -41,6 +41,11 @@ export const variables = defineEnvVars({
 		description: 'ホストの再接続を待つ時間（秒）。既定 180',
 		schema: optional
 	},
+	AGENT_SECRET: {
+		description:
+			'自宅の space-agent との共有の秘密（32文字以上の乱数）。空なら space-agent を受け付けない',
+		schema: optional
+	},
 	SPACE_CREATOR_ALLOWLIST: {
 		description:
 			'Space を作れる人の DID（カンマ区切り）。空なら誰でも作れる。一般公開前の制限に使う',

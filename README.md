@@ -51,3 +51,29 @@ set -a; . ./.env.local; set +a; npm run test:integration   # 疎通確認
 2. PostgREST の `db-schemas` に `nagi_space` を加える
 3. PostgREST が使うロールに `nagi_space_api` を与える（anon ロールに与えるか、`role=nagi_space_api` の JWT を `POSTGREST_JWT` に設定する）
 4. Cloudflare Access のサービストークンを `CF_ACCESS_CLIENT_ID_DB` / `CF_ACCESS_CLIENT_SECRET_DB` に設定する
+
+## space-agent（自宅側の botたんと字幕）
+
+`agent/` は、自宅のマシンで動かす Python のプロセスです。Nagi Space と数秒ごとに同期し、開催中の Space に字幕用の参加者として入り、頼まれたら botたんとしても入ります（design.md D5）。bot-tan-convo（Nagi Space 向けの変更を入れたもの）と同じマシンで動かします。
+
+```sh
+cd agent
+uv venv .venv && uv pip install -p .venv/bin/python -e '.[dev]'
+SPACE_API_URL=https://<Nagi Space の origin> \
+AGENT_SECRET=<Nagi Space と同じ値> \
+CONVO_URL=http://127.0.0.1:8771 \
+CONVO_LOGIN=<convo の allowed_logins にある名前> \
+AGENT_HEALTH_PORT=8798 \
+.venv/bin/python -m space_agent
+```
+
+| 変数                | 内容                                                                    |
+| ------------------- | ----------------------------------------------------------------------- |
+| `SPACE_API_URL`     | Nagi Space の URL                                                       |
+| `AGENT_SECRET`      | Nagi Space の `AGENT_SECRET` と同じ値                                   |
+| `CONVO_URL`         | bot-tan-convo の URL（同じマシンの `http://127.0.0.1:8771`）            |
+| `CONVO_LOGIN`       | convo の `allowed_logins` にある名前。`Tailscale-User-Login` として送る |
+| `SYNC_INTERVAL_S`   | 同期の間隔（秒）。既定 3                                                |
+| `AGENT_HEALTH_PORT` | 死活確認（`GET /health`）の口。0 なら開かない                           |
+
+テストは `cd agent && .venv/bin/python -m pytest`。E2E（`npm run test:e2e`）は、本物の space-agent を偽の convo（`tests/e2e/fixtures/fake_convo.py`）とつないで動かします。

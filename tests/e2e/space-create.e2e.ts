@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { db, revokeOAuthSession, signIn } from './fixtures/session.ts';
-import { cleanup, setBotCapacity } from './fixtures/space.ts';
+import { cleanup, resetBotCapacity, setBotCapacity } from './fixtures/space.ts';
 
 test.use({ locale: 'ja-JP' });
 
@@ -63,7 +63,7 @@ test('空白だけのタイトルでは作成しない', async ({ context, page 
 test('botたんに空きが無ければbotたんSpaceを作らない', async ({ context, page }) => {
 	const did = memberDid();
 	await signIn(context, did);
-	await setBotCapacity(undefined);
+	await setBotCapacity(0);
 	await page.goto('/spaces/new');
 	await page.getByLabel('タイトル').fill('botたんとおしゃべり');
 	await page.getByLabel('botたんSpace').check();
@@ -104,7 +104,7 @@ test('botたんSpaceはホスト以外には存在しないのと同じに見え
 	await expect(anonymousPage.getByTestId('not-found')).toBeVisible();
 	await expect(anonymousPage.getByText('ないしょ')).toHaveCount(0);
 
-	await setBotCapacity(undefined);
+	await resetBotCapacity();
 	await endHostSpace(hostDid);
 	await revokeOAuthSession(hostDid);
 	await revokeOAuthSession(otherDid);

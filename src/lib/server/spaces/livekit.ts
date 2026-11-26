@@ -26,7 +26,9 @@ export function grantsFor(role: Role, room: string) {
 export const CONTROL_TOPIC = 'nagi-space.control';
 
 export type ControlMessage =
-	{ type: 'stage.changed' } | { type: 'stage.offer'; reason: 'approved' | 'invited' };
+	| { type: 'stage.changed' }
+	| { type: 'stage.offer'; reason: 'approved' | 'invited' }
+	| { type: 'bot.left' };
 
 export class SpaceRooms {
 	readonly rooms: RoomServiceClient;
