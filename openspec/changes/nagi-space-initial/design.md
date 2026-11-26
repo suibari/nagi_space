@@ -62,7 +62,7 @@ flowchart LR
 
 Nagiと同じSvelteKit・Tailwindにして、テーマ・絵文字ピッカーなどの部品とノウハウを流用する。Space APIは同じアプリのサーバールート（Node Functions）に置く。リアルタイムの通信はLiveKitが担うので、サーバーに常時接続は要らない。
 
-状態の保存はUpstash Redisにする。Spaceの状態は短命でTTLと相性が良く、nagi-passportの `TicketStore` も `SET NX EX` で不可分に実装できる。
+状態の保存はUpstash Redisにする。接続はRESTではなくRedisプロトコル（`REDIS_URL`、Upstashは `rediss://`）にし、ローカルではDockerのRedisをそのまま使えるようにする。Spaceの状態は短命でTTLと相性が良く、nagi-passportの `TicketStore` も `SET NX EX` で不可分に実装できる。
 
 - 代替案：Cloudflare Workers + Durable Objects。Space単位の状態・連投制限・時間切れの処理には最適だが、`@atproto/oauth-client-node` がworkerdで動くかが未確認。サーバー側OAuth（D2）を優先した。
 

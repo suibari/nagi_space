@@ -1,0 +1,15 @@
+# ローカル開発用の LiveKit サーバーと Redis。
+# 本番は LiveKit Cloud（または自前の LiveKit）と Upstash Redis を環境変数で指定する（design.md D10）。
+services:
+  livekit:
+    image: livekit/livekit-server:v1.9.0
+    # --dev は API キー devkey / シークレット secret で起動する開発モード
+    command: --dev --bind 0.0.0.0
+    ports:
+      - '127.0.0.1:7880:7880'
+      - '127.0.0.1:7881:7881'
+      - '127.0.0.1:7882:7882/udp'
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - '127.0.0.1:6379:6379'
