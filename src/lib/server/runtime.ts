@@ -19,6 +19,7 @@ import { loadLimits } from './spaces/limits';
 import { SpaceRooms } from './spaces/livekit';
 import { PresenceStore } from './spaces/presence';
 import { SpaceRepository } from './spaces/repository';
+import { Stage } from './spaces/stage';
 import type { KeyValueStore } from './store/types';
 
 export type Runtime = {
@@ -34,6 +35,7 @@ export type Runtime = {
 	presence: PresenceStore;
 	webhooks: WebhookReceiver;
 	lifecycle: SpaceLifecycle;
+	stage: Stage;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -56,6 +58,7 @@ async function init(): Promise<Runtime> {
 	const presence = new PresenceStore(store);
 	const limits = loadLimits(env);
 	const rooms = new SpaceRooms(services.livekit, limits);
+	const stage = new Stage(store, rooms, presence, limits);
 	return {
 		auth,
 		store,
@@ -75,7 +78,8 @@ async function init(): Promise<Runtime> {
 		rooms,
 		presence,
 		webhooks: new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret),
-		lifecycle: new SpaceLifecycle(store, spaces, presence, rooms, limits)
+		lifecycle: new SpaceLifecycle(store, spaces, presence, rooms, limits, stage),
+		stage
 	};
 }
 

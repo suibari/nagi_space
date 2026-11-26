@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { messages } from '#lib/i18n/messages.ts';
 	import { SpaceConnection } from '#lib/space/room.svelte.ts';
+	import StageControls from '#lib/space/StageControls.svelte';
 	import type { PageProps } from './$types';
 
 	const STATUS_POLL_MS = 20_000;
@@ -100,7 +101,10 @@
 	}
 
 	const roleLabel = (role: 'host' | 'speaker' | 'listener') => t[role];
-	const canSpeak = $derived(data.state === 'live' && data.role !== 'listener');
+	// ロールは入室後にサーバーが変える（PART-03）ので、接続から読む
+	const canSpeak = $derived(
+		connection?.localRole === 'host' || connection?.localRole === 'speaker'
+	);
 </script>
 
 <svelte:head>
@@ -190,6 +194,10 @@
 					</button>
 				{/if}
 			</div>
+
+			{#if connection?.state === 'connected'}
+				<StageControls spaceId={data.space.id} {connection} locale={data.locale} />
+			{/if}
 
 			<h2 class="mt-8 font-bold">{t.participants}</h2>
 			<ul class="mt-2 flex flex-col gap-2" data-testid="participants">

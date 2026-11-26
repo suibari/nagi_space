@@ -8,6 +8,8 @@ import {
 } from 'livekit-client';
 
 export type Role = 'host' | 'speaker' | 'listener';
+
+const CONTROL_TOPIC = 'nagi-space.control';
 export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'ended';
 
 export type ParticipantView = {
@@ -35,6 +37,10 @@ export class SpaceConnection {
 	/** ブラウザの自動再生の制限で音声を再生できないとき false（PART-02） */
 	canPlayAudio = $state(true);
 	micOn = $state(false);
+	/** 自分のロール。サーバーが変えると更新される（PART-03・04・06） */
+	localRole = $state<Role>('listener');
+	/** サーバーからの制御の通知（発話のリクエストの変化など）を受けたときに呼ぶ */
+	onControl?: (message: { type: string; reason?: string }) => void;
 
 	readonly #room = new Room({ adaptiveStream: true, dynacast: true });
 	readonly #audio = new Map<string, HTMLMediaElement>();
@@ -45,6 +51,16 @@ export class SpaceConnection {
 			.on(RoomEvent.ParticipantConnected, refresh)
 			.on(RoomEvent.ParticipantDisconnected, refresh)
 			.on(RoomEvent.ParticipantMetadataChanged, refresh)
+			.on(RoomEvent.ParticipantPermissionsChanged, refresh)
+			.on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+				// サーバーからの通知だけを受け付ける（利用者はデータを送れない。design.md D3）
+				if (participant || topic !== CONTROL_TOPIC) return;
+				try {
+					this.onControl?.(JSON.parse(new TextDecoder().decode(payload)));
+				} catch {
+					/* 壊れた通知は無視する */
+				}
+			})
 			.on(RoomEvent.ActiveSpeakersChanged, refresh)
 			.on(RoomEvent.TrackMuted, refresh)
 			.on(RoomEvent.TrackUnmuted, refresh)
@@ -101,6 +117,13 @@ export class SpaceConnection {
 	}
 
 	#refresh() {
+		const role = roleOf(this.#room.localParticipant);
+		if (role === 'listener' && this.micOn) {
+			// 聴衆に戻ったらマイクを止める
+			void this.#room.localParticipant.setMicrophoneEnabled(false);
+			this.micOn = false;
+		}
+		this.localRole = role;
 		const all: Participant[] = [
 			this.#room.localParticipant,
 			...this.#room.remoteParticipants.values()

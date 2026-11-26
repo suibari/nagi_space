@@ -1,4 +1,4 @@
-import { AccessToken, RoomServiceClient, TrackSource } from 'livekit-server-sdk';
+import { AccessToken, DataPacket_Kind, RoomServiceClient, TrackSource } from 'livekit-server-sdk';
 import type { ServiceConfig } from '../config';
 import { livekitHttpUrl } from '../services';
 import type { SpaceLimits } from './limits';
@@ -21,6 +21,12 @@ export function grantsFor(role: Role, room: string) {
 		canUpdateOwnMetadata: false
 	};
 }
+
+/** サーバーから画面へ送る制御の通知の topic。利用者が書いた内容は載せない（design.md D8）。 */
+export const CONTROL_TOPIC = 'nagi-space.control';
+
+export type ControlMessage =
+	{ type: 'stage.changed' } | { type: 'stage.offer'; reason: 'approved' | 'invited' };
 
 export class SpaceRooms {
 	readonly rooms: RoomServiceClient;
@@ -49,6 +55,36 @@ export class SpaceRooms {
 
 	async deleteRoom(id: string): Promise<void> {
 		await this.rooms.deleteRoom(id).catch(() => undefined);
+	}
+
+	/** ロールを変える。権限は丸ごと置き換わるので、ロールの権限をすべて渡す（design.md D3）。 */
+	async setRole(spaceId: string, identity: string, role: Role): Promise<void> {
+		const { canPublish, canPublishSources, canSubscribe, canPublishData, canUpdateOwnMetadata } =
+			grantsFor(role, spaceId);
+		await this.rooms.updateParticipant(spaceId, identity, {
+			metadata: JSON.stringify({ role }),
+			permission: {
+				canPublish,
+				canPublishSources,
+				canSubscribe,
+				canPublishData,
+				canUpdateMetadata: canUpdateOwnMetadata
+			}
+		});
+	}
+
+	/** 特定の参加者へ制御の通知を送る。 */
+	async notify(spaceId: string, identities: string[], message: ControlMessage): Promise<void> {
+		if (!identities.length) return;
+		await this.rooms.sendData(
+			spaceId,
+			new TextEncoder().encode(JSON.stringify(message)),
+			DataPacket_Kind.RELIABLE,
+			{
+				destinationIdentities: identities,
+				topic: CONTROL_TOPIC
+			}
+		);
 	}
 
 	async issueToken(input: {

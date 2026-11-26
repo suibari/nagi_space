@@ -31,7 +31,7 @@ test('ホストが切断すると待ちの表示になり、戻れば続き、�
 	await cleanup(host.did, listener.did);
 });
 
-// LIFE-08 入室者の上限に達している（E2E では上限を2人にしている）
+// LIFE-08 入室者の上限に達している（E2E では上限を3人にしている）
 test('入室者が上限に達していると満員と表示して入れない', async ({ browser }) => {
 	const host = await openAs(browser);
 	const path = await createSpace(host.page, 'まんいん');
@@ -39,9 +39,12 @@ test('入室者が上限に達していると満員と表示して入れない',
 	const first = await openAs(browser);
 	await first.page.goto(path);
 	await expect(first.page.getByTestId('connection-state')).toHaveText('接続しました', connected);
+	const third = await openAs(browser);
+	await third.page.goto(path);
+	await expect(third.page.getByTestId('connection-state')).toHaveText('接続しました', connected);
 	const id = path.split('/').pop()!;
 	await expect(async () => {
-		expect(await db.list(`space:presence:${id}:`)).toHaveLength(2);
+		expect(await db.list(`space:presence:${id}:`)).toHaveLength(3);
 	}).toPass(connected);
 
 	const second = await openAs(browser);
@@ -50,7 +53,7 @@ test('入室者が上限に達していると満員と表示して入れない',
 	// すでに入っている人の再接続は通す
 	await first.page.reload();
 	await expect(first.page.getByTestId('connection-state')).toHaveText('接続しました', connected);
-	await cleanup(host.did, first.did, second.did);
+	await cleanup(host.did, first.did, third.did, second.did);
 });
 
 // LIFE-09 4時間たつ

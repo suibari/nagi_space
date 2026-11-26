@@ -13,9 +13,10 @@ export const e2eEnv = {
 	PUBLIC_ORIGIN: `http://127.0.0.1:${port}`,
 	SESSION_SECRET: 'e2e-session-secret-that-is-long-enough-000',
 	OAUTH_PRIVATE_KEY_JWK: '',
-	// E2E で待てるよう、ホストの待ち時間を短く、入室者の上限を小さくする
+	// E2E で待てるよう、ホストの待ち時間を短く、入室者とスピーカーの上限を小さくする
 	SPACE_HOST_GRACE_SECONDS: '8',
-	SPACE_MAX_ENTRANTS: '2',
+	SPACE_MAX_ENTRANTS: '3',
+	SPACE_MAX_SPEAKERS: '2',
 	// 偽の AppView とテスト用の発行者（tests/e2e/fixtures/fake-nagi.mjs）
 	NAGI_APPVIEW_URL: 'http://127.0.0.1:4999',
 	NAGI_PASSPORT_ISSUER: 'http://127.0.0.1:4999'

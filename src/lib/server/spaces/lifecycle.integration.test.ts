@@ -21,6 +21,7 @@ describe.runIf(process.env.INTEGRATION === '1')('SpaceLifecycle', () => {
 			presence,
 			rooms,
 			DEFAULT_LIMITS,
+			undefined,
 			() => now.value
 		);
 		return { spaces, presence, lifecycle, deleted };

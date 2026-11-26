@@ -4,6 +4,7 @@ import type { SpaceRooms } from './livekit';
 import type { Space } from './model';
 import type { PresenceStore } from './presence';
 import type { SpaceRepository } from './repository';
+import type { Stage } from './stage';
 
 const hostGoneKey = (id: string) => `space:hostgone:${id}`;
 const shareDraftKey = (id: string) => `space:sharedraft:${id}`;
@@ -20,6 +21,7 @@ export class SpaceLifecycle {
 		private readonly presence: PresenceStore,
 		private readonly rooms: SpaceRooms,
 		readonly limits: SpaceLimits,
+		private readonly stage?: Pick<Stage, 'clear'>,
 		private readonly now: () => Date = () => new Date()
 	) {}
 
@@ -27,6 +29,7 @@ export class SpaceLifecycle {
 	async end(id: string): Promise<Space | undefined> {
 		const ended = await this.spaces.end(id, this.now());
 		await this.presence.clear(id);
+		await this.stage?.clear(id);
 		await this.store.del(hostGoneKey(id), shareDraftKey(id));
 		await this.rooms.deleteRoom(id);
 		return ended;
