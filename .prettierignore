@@ -14,3 +14,4 @@ bun.lockb
 /.agents/
 agent/.venv/
 agent/.pytest_cache/
+*.egg-info/
