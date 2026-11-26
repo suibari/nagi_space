@@ -12,6 +12,7 @@ import {
 import { createOAuthClient } from './oauth/client';
 import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
+import { createMuteChecker } from './mutes';
 import { createStore } from './services';
 import { SessionManager } from './session';
 import { SpaceLifecycle } from './spaces/lifecycle';
@@ -36,6 +37,7 @@ export type Runtime = {
 	webhooks: WebhookReceiver;
 	lifecycle: SpaceLifecycle;
 	stage: Stage;
+	mutedBy: (did: string) => Promise<Set<string>>;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -79,7 +81,8 @@ async function init(): Promise<Runtime> {
 		presence,
 		webhooks: new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret),
 		lifecycle: new SpaceLifecycle(store, spaces, presence, rooms, limits, stage),
-		stage
+		stage,
+		mutedBy: createMuteChecker(store, (did) => oauth.restore(did))
 	};
 }
 
