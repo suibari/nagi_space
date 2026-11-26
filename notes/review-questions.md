@@ -57,3 +57,11 @@
 - **Nagi Space の本番ドメインを仮に `https://space.nagi.suibari.com` とした**（要決定）。
 - nagi_client は「振る舞いを変える前に change で合意」の規約なので、**提案（OpenSpec change `add-nagi-space-sibling`）だけ**を作り、実装はしていない。ユーザーの作業中の変更（main の未コミット）を避けるため、別の作業ディレクトリ `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`、未push）に置いた。
 - Nagi AppView 側はコードの変更が無く、環境変数 `PASSPORT_AUDIENCES` に Nagi Space の origin を加えるだけ（チケットの導線を使うときに必要）。
+
+### 作業7（bot-tan-convo）
+
+- **bot-tan-convo のブランチ `nagi-space`（別の作業ディレクトリ `../bot-tan-convo-nagi-space`、未push）**に変更を置いた。main にあった作業中の変更（`ardy/serve.py`）には触れていない。説明は convo の `docs/nagi-space.md`。
+- **設計を変えた（design.md D6）**：botたんの会話には話者付きの音声ではなく、字幕のつなぎで聞き取った「表示名: 発話」の文字を送る。聞き取りが1回で済み、convo の会話の部分をほとんど変えずに済むため。
+- 字幕のつなぎの同時数の上限を6、一時停止を「字幕の発話が4秒待ったら」にした（speech.cpp で計測。結果は design.md のリスク欄）。
+- Space 用の使い方 `space` / `space_bot` の人物設定の文面を書いた（convo の `config.toml`）。返事は50字以内、「さん」付けで呼ぶ、公開の場なので人の秘密やその場にいない人の話をしない、など。**文面の確認をお願いしたい**。
+- **【要決定】botたんSpace の会話を記憶に残す（BOT-07）は未対応**。convo は記憶を読むだけで、Bot Memory API に会話を書き込む口が無い。記憶は利用者ごとに分かれていないため、二人きりの会話を入れると、パブリックSpace で botたんが話してしまうおそれがある。選択肢：(a) 記憶に残さない（BOT-07 を変更）、(b) Bot Memory API に「Nagi Space の会話」を利用者ごとに分けて書き込み、botたんSpace でだけ引く口を作る、(c) 要約だけを残す。推奨は、まず (a) で公開し、(b) を別の change で設計すること。
