@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import faulthandler
+import signal
 import time
 
 import aiohttp
@@ -97,6 +99,8 @@ async def serve_health(agent: Agent, port: int) -> web.AppRunner:
 
 
 async def main() -> None:
+    # 止まったように見えたら kill -USR1 で全スレッドの状態を出す（運用の調べ物用）
+    faulthandler.register(signal.SIGUSR1, all_threads=True)
     cfg = Config.from_env()
     async with aiohttp.ClientSession() as http:
         agent = Agent(cfg, http, ConvoClient(http, cfg.convo_url, cfg.convo_login))

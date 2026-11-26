@@ -6,7 +6,7 @@ import { initialRole, visibleTo } from './access.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const { spaces, lifecycle, store, mutedBy } = await getRuntime();
+	const { spaces, lifecycle, store, mutedBy, botAssetsBase } = await getRuntime();
 	const found = visibleTo(
 		isSpaceId(params.id) ? await spaces.get(params.id) : undefined,
 		locals.did
@@ -46,6 +46,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		space: summary,
 		role,
 		shareDraft,
+		botAssetsBase,
 		// 自分がミュートしている人の絵文字を自分の画面で隠すのに使う（PART-09）。本人にだけ返す
 		mutedDids: [...(await mutedBy(locals.did))],
 		maxDurationSeconds: lifecycle.limits.maxDurationSeconds

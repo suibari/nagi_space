@@ -21,13 +21,17 @@ export const e2eEnv = {
 	NAGI_APPVIEW_URL: 'http://127.0.0.1:4999',
 	NAGI_PASSPORT_ISSUER: 'http://127.0.0.1:4999',
 	// 自宅の space-agent（E2E では偽の convo とつなぐ）との共有の秘密
-	AGENT_SECRET: 'e2e-agent-secret-0123456789abcdef'
+	AGENT_SECRET: 'e2e-agent-secret-0123456789abcdef',
+	// botたんの3Dモデルと動き。リポジトリに置かないので、あるときだけ E2E_BOT_ASSETS_DIR で渡す
+	// （scripts/build-bot-assets.mjs で作ったフォルダ）。無ければ読み込みに失敗してアイコンになる
+	BOT_ASSETS_DIR: process.env.E2E_BOT_ASSETS_DIR ?? 'tests/e2e/fixtures/no-bot-assets'
 };
 
 /** 偽の convo（tests/e2e/fixtures/fake_convo.py）の URL */
 export const FAKE_CONVO_URL = 'http://127.0.0.1:8799';
 
 export default defineConfig({
+	globalSetup: './tests/e2e/global-setup.ts',
 	webServer: [
 		{
 			command: 'node tests/e2e/fixtures/fake-nagi.mjs',

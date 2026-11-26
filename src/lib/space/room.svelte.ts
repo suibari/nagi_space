@@ -48,6 +48,8 @@ export class SpaceConnection {
 	localRole = $state<Role>('listener');
 	/** botたんが参加しているか（BOT-01） */
 	botPresent = $state(false);
+	/** botたんの声のトラック（口の動きに使う。BOT-05） */
+	botAudio = $state<MediaStreamTrack>();
 	/** サーバーからの制御の通知（発話のリクエストの変化など）を受けたときに呼ぶ */
 	onControl?: (message: { type: string; reason?: string }) => void;
 	/** リアクションを受けたときに呼ぶ（REACT-01） */
@@ -86,11 +88,15 @@ export class SpaceConnection {
 			.on(RoomEvent.TrackMuted, refresh)
 			.on(RoomEvent.TrackUnmuted, refresh)
 			.on(RoomEvent.LocalTrackPublished, refresh)
-			.on(RoomEvent.TrackSubscribed, (track) => {
+			.on(RoomEvent.TrackSubscribed, (track, _publication, participant) => {
 				this.#attach(track);
+				if (participant.identity === BOT_IDENTITY && track.kind === Track.Kind.Audio) {
+					this.botAudio = track.mediaStreamTrack;
+				}
 				refresh();
 			})
-			.on(RoomEvent.TrackUnsubscribed, (track) => {
+			.on(RoomEvent.TrackUnsubscribed, (track, _publication, participant) => {
+				if (participant.identity === BOT_IDENTITY) this.botAudio = undefined;
 				track.detach().forEach((element) => element.remove());
 				refresh();
 			})

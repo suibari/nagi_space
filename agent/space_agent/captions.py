@@ -13,6 +13,7 @@ from livekit import rtc
 
 from . import protocol
 from .convo import ConvoClient
+from .rtc import connect_safely
 
 ASR_RATE = 16000
 SPEAKING_ROLES = ("host", "speaker")
@@ -38,7 +39,7 @@ class CaptionsWorker:
         self.room.on("track_subscribed", self._on_subscribed)
         self.room.on("participant_metadata_changed", self._on_metadata)
         self.room.on("participant_disconnected", lambda p: self._spawn(self._leave(p.identity)))
-        await self.room.connect(self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
+        await connect_safely(self.room, self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
         for participant in self.room.remote_participants.values():
             for publication in participant.track_publications.values():
                 self._on_published(publication, participant)

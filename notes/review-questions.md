@@ -74,3 +74,15 @@
 - botたんの招待のボタンは「botたんを呼ぶ」「botたんに抜けてもらう」の文言にした。空きの確認は5秒ごと。
 - **【未対応】作業8.7（botたんSpace の会話を記憶に残す）**は、作業7の記録のとおり判断待ち。
 - E2E は本物の space-agent を偽の convo とつないで動かしている（本物の convo・GPU は使わない）。本物の convo とつないだ確認は、自宅で一度行う必要がある。
+
+### 作業9.1（3Dモデル）
+
+- **botたんの VRM と動きはリポジトリに置かない**ことにした（VRM 約13MB・動き約16MB。bot-tan-room も非公開の R2 から配っている）。本番は `BOT_ASSETS_BASE_URL` の置き場から読む。**置き場への配置と CORS の設定は利用者の作業（作業2.6として追加）**。
+- 使う動きのカテゴリは neutral・happy・greeting・encouraging・surprised・thinking・dance と待機（idle）。各6本まで。pat・custom は使わない。
+- botたんのアイコン（WebGL が使えないとき）は nagi_client の `static/bot_icon_trans.png` を `static/bot-tan-icon.png` として写した。
+- カメラの位置は、スマホ幅で上半身から膝くらいまでが入るようにした（スクリーンショットで確認）。
+
+### space-agent の不具合の修正
+
+- **Space が始まってすぐ終わると、space-agent のプロセスごと落ちる不具合**を見つけて直した。LiveKit の Python SDK は、room への接続の途中で待ちを取り消すと中の部品が時間切れになりプロセスを止める。接続の途中では取り消さず、つなぎ終えてから抜けるようにした。本番でも systemd などで space-agent を自動で再起動する設定を推奨。
+- 止まったときの調べ物のため、`kill -USR1 <pid>` で全スレッドの状態を出せるようにした。

@@ -8,6 +8,7 @@
 	import Reactions from '#lib/space/Reactions.svelte';
 	import Captions from '#lib/space/Captions.svelte';
 	import BotControls from '#lib/space/BotControls.svelte';
+	import BotAvatar from '#lib/space/BotAvatar.svelte';
 	import type { PageProps } from './$types';
 
 	const STATUS_POLL_MS = 20_000;
@@ -211,6 +212,7 @@
 			</div>
 
 			{#if connection?.state === 'connected'}
+				<BotAvatar {connection} base={data.botAssetsBase} locale={data.locale} />
 				<!-- 絵文字はロールにかかわらず送れる（REACT-01） -->
 				<Reactions
 					spaceId={data.space.id}

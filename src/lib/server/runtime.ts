@@ -45,6 +45,9 @@ export type Runtime = {
 	creatorAllowlist: Set<string> | undefined;
 	appviewUrl: string;
 	agentSecret: string | undefined;
+	/** botたんの3Dモデルと動きの置き場（BOT-05）。無ければ3Dを出さずアイコンにする */
+	botAssetsBase: string | undefined;
+	botAssetsDir: string | undefined;
 	botRequests: BotRequests;
 	livekit: ServiceConfig['livekit'];
 	emojiFavorites: (did: string) => Promise<import('#lib/emoji/types.ts').EmojiChoice[]>;
@@ -94,6 +97,8 @@ async function init(): Promise<Runtime> {
 		creatorAllowlist: parseAllowlist(env.SPACE_CREATOR_ALLOWLIST),
 		appviewUrl,
 		agentSecret: env.AGENT_SECRET || undefined,
+		botAssetsBase: env.BOT_ASSETS_BASE_URL || (env.BOT_ASSETS_DIR ? '/bot-assets' : undefined),
+		botAssetsDir: env.BOT_ASSETS_DIR || undefined,
 		botRequests: new BotRequests(store),
 		livekit: services.livekit,
 		emojiFavorites: createFavoritesLoader(store, (did) => oauth.restore(did), appviewUrl)

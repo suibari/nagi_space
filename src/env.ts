@@ -41,6 +41,15 @@ export const variables = defineEnvVars({
 		description: 'ホストの再接続を待つ時間（秒）。既定 180',
 		schema: optional
 	},
+	BOT_ASSETS_BASE_URL: {
+		description:
+			'botたんの3Dモデルと動きの置き場の URL（本番。scripts/build-bot-assets.mjs で作ったものを置く）',
+		schema: optional
+	},
+	BOT_ASSETS_DIR: {
+		description: '開発用：botたんの3Dモデルと動きのフォルダ。/bot-assets/ から配る',
+		schema: optional
+	},
 	AGENT_SECRET: {
 		description:
 			'自宅の space-agent との共有の秘密（32文字以上の乱数）。空なら space-agent を受け付けない',

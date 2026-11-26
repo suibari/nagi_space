@@ -10,6 +10,7 @@ from livekit import rtc
 
 from . import protocol
 from .convo import ConvoClient
+from .rtc import connect_safely
 
 TTS_RATE = 24000
 FRAME_SAMPLES = TTS_RATE // 50  # 20ms
@@ -32,7 +33,7 @@ class BotWorker:
         # パブリックSpace は何人かで話す場、botたんSpace は二人きりの場（convo の使い方）
         self.sid = await self.convo.create_session("space_bot" if self.kind == "bot" else "space", self.space_id)
         self.ws = await self.convo.conversation(self.sid)
-        await self.room.connect(self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
+        await connect_safely(self.room, self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
         track = rtc.LocalAudioTrack.create_audio_track("bot-tan", self.source)
         await self.room.local_participant.publish_track(
             track, rtc.TrackPublishOptions(source=rtc.TrackSource.SOURCE_MICROPHONE))

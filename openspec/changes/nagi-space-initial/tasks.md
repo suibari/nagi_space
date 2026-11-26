@@ -14,6 +14,7 @@
 - [ ] 2.3 【利用者】LiveKit Cloud のプロジェクトを作り、鍵を Vercel の環境変数に設定する（完了の確認：Cloud の値で `npm run test:integration` が通る）
 - [x] 2.4 保存先を自宅DB（PostgREST）に切り替える：`nagi_space` スキーマのマイグレーション、キー・値ストアのインターフェースとPostgREST実装、ローカルのDocker（PostgreSQL・PostgREST）、既存の保存処理とテストの置き換え（完了の確認：Redisへの依存が無くなり、ユニット・統合・E2Eの全テストがローカルのPostgRESTで通る）
 - [ ] 2.5 【利用者】自宅のPostgreSQLに `db/migrations/` を適用し、PostgRESTの公開スキーマに `nagi_space` を加え、Nagi Space用のCloudflare Accessサービストークンを発行して Vercel の環境変数に設定する（完了の確認：本番の値で `npm run test:integration` が通る）
+- [ ] 2.6 【利用者】`scripts/build-bot-assets.mjs` で botたんの3Dモデルと動きをまとめて外部の置き場（R2 など）に置き、Nagi Space の origin からの CORS を許可して、`BOT_ASSETS_BASE_URL` を Vercel の環境変数に設定する（完了の確認：本番の Space で botたんを呼ぶと3Dモデルが表示される）
 
 ## 3. 認証（space-access）
 
@@ -72,7 +73,7 @@
 
 ## 9. 3Dモデル（bot-tan-presence）
 
-- [ ] 9.1 three-vrmでbotたんのVRMを表示し、作り置きのVRMAによる待機と動きのカテゴリに応じた再生、音声トラックの音量による口の動きを実装する。WebGLが使えないときはアイコンにする（完了の確認：BOT-05のシナリオのテストが通る）
+- [x] 9.1 three-vrmでbotたんのVRMを表示し、作り置きのVRMAによる待機と動きのカテゴリに応じた再生、音声トラックの音量による口の動きを実装する。WebGLが使えないときはアイコンにする（完了の確認：BOT-05のシナリオのテストが通る）
 
 ## 10. 見た目（space-appearance）
 
