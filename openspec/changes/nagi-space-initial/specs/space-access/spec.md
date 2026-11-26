@@ -8,7 +8,7 @@ Nagi Spaceを使えるのをNagiに登録済みの利用者に限り、AT Protoc
 
 ### Requirement: ACC-01 AT Protocol OAuthによるログイン
 
-Nagi Spaceは、利用者のPDSの認可サーバーとAT Protocol OAuthでログインさせなければならない（MUST）。OAuthクライアントは本アプリ独自のclient_idと正規originを持つ。Nagiから移動してきた場合は、Nagiの姉妹アプリ連携（短期SSOチケットとDIDヒント）を使って入力を省けなければならない（MUST）。チケットが使えない場合は、通常のOAuthに戻す。
+Nagi Spaceは、利用者のPDSの認可サーバーとAT Protocol OAuthでログインさせなければならない（MUST）。OAuthクライアントは本アプリ独自のclient_idと正規originを持つ。すべての利用者は本アプリのOAuth認可を通ってログインし、SSOチケットだけのセッションを作ってはならない（MUST）。Nagiから移動してきた場合は、Nagiの姉妹アプリ連携（短期SSOチケットとDIDヒント）で利用者を特定し、ハンドルの入力を省いて認可へ進めなければならない（MUST）。チケットが使えない場合は、DIDヒントだけで認可へ進む。
 
 #### Scenario: ハンドルを入力してログインする
 
@@ -18,7 +18,7 @@ Nagi Spaceは、利用者のPDSの認可サーバーとAT Protocol OAuthでロ�
 #### Scenario: NagiからSSOで移動する
 
 - **WHEN** Nagiでログイン済みの利用者が、Nagi上のSpaceへのリンクを開く
-- **THEN** ハンドルを入力せずにNagi Spaceへログインし、リンク先のSpaceを表示する
+- **THEN** ハンドルを入力せずに利用者のPDSの認可へ進み（認可済みなら確認だけで）、ログイン後にリンク先のSpaceを表示する
 
 #### Scenario: SSOチケットの取得に失敗する
 

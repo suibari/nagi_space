@@ -70,8 +70,9 @@ Nagiと同じSvelteKit・Tailwindにして、テーマ・絵文字ピッカー�
 
 権限をサーバーで強制するには、サーバーが利用者のDIDを確実に知る必要がある。ブラウザのOAuthトークンはDPoP鍵に束縛されていて、サーバーへ渡して検証させることができない。そこで `@atproto/oauth-client-node` で本アプリ自身がOAuthクライアントになり、HttpOnlyのcookieでセッションを持つ。
 
-- **Nagiからの移動**：nagi-passportのチケットを検証して、DIDだけのセッションを作る（ACC-01）。このセッションで入室・発話・リアクションができる。
-- **Nagiへのシェア**：PDSへの書き込みが要るので、シェアを選んだときにOAuth認可がまだ無ければ認可へ進める（LIFE-04）。要求するスコープはNagiの投稿の書き込みに限る。
+- **全員がOAuth認可を通る**：AppViewの認証付きAPI（ミュート一覧・通報・設定）は本人のPDS経由でしか呼べない（「外部契約の調査結果」）。そのため、チケットだけのセッションは作らない。
+- **Nagiからの移動**：nagi-passportのチケットを検証してDIDを確かめ、そのDIDをOAuthの `login_hint` にしてハンドルの入力を省く（ACC-01）。チケットはDIDの特定にだけ使い、セッションの根拠にはしない。
+- **スコープ**：ログイン時にまとめて要求する。`atproto`、`rpc:com.suibari.nagi.getMutes?aud=*`、`rpc:com.suibari.nagi.getPreferences?aud=*`、`rpc:com.suibari.nagi.createReport?aud=*`、`rpc:com.suibari.nagi.ensureRecord?aud=*`、`repo:com.suibari.nagi.post?action=create`、`blob:image/*`。シェアのために後から認可し直す導線は作らない。
 - **Nagi登録状態と本人のミュート一覧**はサーバーからAppViewに問い合わせる（ACC-02、PART-09）。ミュート一覧は本人だけの情報なので、本人へのレスポンスと本人の一覧の絞り込みにだけ使い、他の参加者やホストには渡さない。結果は短時間キャッシュする。年齢による制限はしないので（ACC-05）、年齢は問い合わせない。
 
 ### D3. Space＝LiveKitのroom。ロールはトークンの権限で強制する
@@ -174,7 +175,42 @@ LiveKit Cloudだけの機能（Cloud上へのagentのデプロイ、LiveKit Infe
 3. LiveKitの運用（セルフホスト・有料）を決めて本番へ
 4. 問題があれば、パブリックSpaceの作成を許可リストに戻して止める（設定の切り替えだけで行える）
 
+## 外部契約の調査結果（2026-11-26、作業1.1・1.2）
+
+調べた範囲：nagi_client（`src/lib/api/appview.ts`・`src/lib/oauth/client.ts`）、Nagi AppViewとlexicon（`bsky-affirmative-bot` の `apps/nagi_appview`・`packages/nagi-lexicon`、コミット a9559121）。本番環境での疎通は未確認。
+
+### AppViewの認証方式
+
+AppViewの認証が要るAPIは、**利用者のPDSを経由したプロキシ**（`atproto-proxy: did:web:nagi-api.suibari.com#nagi_appview`）でだけ呼べる。AppViewはPDSが発行したservice authで利用者を確かめる（`requiredServiceAuth` / `optionalServiceAuth`）。他のサーバーが利用者の代わりに呼ぶ専用の経路は無い。したがって、本アプリのサーバーが利用者として呼ぶには、その利用者の**本アプリ自身のOAuthセッション**（該当する `rpc:` スコープ付き）が要る。
+
+### APIごとの対応
+
+| 用途 | API | 認証 | 本アプリからの使い方 |
+|---|---|---|---|
+| Nagi登録の確認（ACC-02） | `com.suibari.nagi.getProfile?actor=<did>` | 任意 | 認証なしで直接呼べる。Nagiプロフィール（`com.suibari.nagi.profile`、AppViewの `nagi.profiles`）がある利用者を「Nagi登録済み」とみなす。未登録時の応答の形は実装時に確かめる |
+| 本人のミュート一覧（PART-09） | `com.suibari.nagi.getMutes` | **必須** | 本人のOAuthセッションでPDS経由。スコープ `rpc:com.suibari.nagi.getMutes?aud=*` |
+| カスタム絵文字の検索・取得（REACT-02） | `searchEmojis` / `getEmoji` | 不要 | 直接呼べる |
+| 絵文字のお気に入り | `getPreferences` | 必須 | 本人のOAuthセッションでPDS経由 |
+| 運営への通報（PART-07） | `com.suibari.nagi.createReport` | **必須** | `subject.uri` が **Nagi投稿のat-uriに限られる**。→ lexiconに「Space（ID・タイトル・ホストDID）と対象の参加者DID」の対象を足し、AppViewが既存と同じDiscordへ送るよう改修する（2026-11-26決定） |
+| SSOチケット（ACC-01） | `com.suibari.nagi.createSsoTicket` | 必須（Nagi側で呼ぶ） | 発行先は **AppViewの環境変数 `PASSPORT_AUDIENCES`** の許可リストで決まる。Nagi SpaceのoriginをAppViewに追加し、nagi_client側のリンクの許可リスト（`src/lib/sso/links.ts`）にも追加する必要がある |
+
+### シェア投稿のレコード（作業1.2）
+
+シェア投稿は `com.suibari.nagi.post` レコードとしてホストのPDSに作る。リンクカードは `linkCards`（最大4件、`uri`・`title`・`description`・`thumb`）に入れる。
+
+```json
+{
+  "$type": "com.suibari.nagi.post",
+  "text": "Spaceを始めました！",
+  "langs": ["ja"],
+  "createdAt": "2026-11-26T12:00:00.000Z",
+  "linkCards": [{ "uri": "https://<Nagi Spaceのorigin>/s/<id>", "title": "<タイトル>", "description": "<ホスト名>のSpace" }]
+}
+```
+
+- 必要なスコープ：`repo:com.suibari.nagi.post?action=create`（編集・削除は使わないので作成だけに絞る）。サムネイルを付ける場合は `blob:image/*` も要る。
+- 作成後、Nagiと同じように `com.suibari.nagi.ensureRecord`（PDS経由、`rpc:com.suibari.nagi.ensureRecord?aud=*`）でAppViewへすぐ取り込ませる。
+
 ## Open Questions
 
-- AppViewに、Nagi登録状態・本人のミュート一覧・カスタム絵文字の検索・通報の受け付けを他のoriginのサーバーから呼べるAPIがあるか。無ければAppView側の改修タスクを足す（タスク1.x で確認する）。
-- Nagiの投稿のレコード形式（lexicon）と、シェア投稿のリンクカードの埋め込み形式。
+- `getProfile` で未登録の利用者を引いたときの応答の形（404か空のプロフィールか）。実装時に確かめる。
