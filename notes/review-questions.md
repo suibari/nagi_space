@@ -51,3 +51,9 @@
 - お気に入りの絵文字が取れなかったときは空にする（送信はできる）。
 - Unicode 絵文字は「絵文字1つ」だけを受け付け、任意の文章を流せないようにした。カスタム絵文字は AppView で今も存在するものだけを受け付け、表示用のURLは AppView の値を使う。
 - 連投制限の数え上げのため、**マイグレーション `db/migrations/0002_nagi_space_kv_incr.sql` を追加**した（自宅DBにも適用が必要）。
+
+### 作業3.3（SSOの許可先）
+
+- **Nagi Space の本番ドメインを仮に `https://space.nagi.suibari.com` とした**（要決定）。
+- nagi_client は「振る舞いを変える前に change で合意」の規約なので、**提案（OpenSpec change `add-nagi-space-sibling`）だけ**を作り、実装はしていない。ユーザーの作業中の変更（main の未コミット）を避けるため、別の作業ディレクトリ `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`、未push）に置いた。
+- Nagi AppView 側はコードの変更が無く、環境変数 `PASSPORT_AUDIENCES` に Nagi Space の origin を加えるだけ（チケットの導線を使うときに必要）。
