@@ -6,7 +6,9 @@ import { SecretBox } from './crypto';
 import { createOAuthClient } from './oauth/client';
 import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
 import { connectRedis } from './services';
+import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { SessionManager } from './session';
+import type { Verifier } from '@suibari/nagi-passport/verify';
 
 export type Runtime = {
 	auth: AuthConfig;
@@ -14,6 +16,7 @@ export type Runtime = {
 	oauth: NodeOAuthClient;
 	oauthSessions: NodeSavedSessionStore;
 	sessions: SessionManager;
+	sso: Verifier;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -33,7 +36,12 @@ async function init(): Promise<Runtime> {
 		requestLock: createRequestLock(redis)
 	});
 	const sessions = new SessionManager(redis, auth.origin.startsWith('https:'));
-	return { auth, redis, oauth, oauthSessions, sessions };
+	const sso = createSsoVerifier({
+		issuer: env.NAGI_PASSPORT_ISSUER || DEFAULT_PASSPORT_ISSUER,
+		audience: auth.origin,
+		store: createTicketStore(redis)
+	});
+	return { auth, redis, oauth, oauthSessions, sessions, sso };
 }
 
 /** サーバーのインスタンスごとに1回だけ初期化する。失敗したら次の要求で作り直す。 */

@@ -10,6 +10,10 @@ export const variables = defineEnvVars({
 	REDIS_URL: { description: 'Redis の URL（Upstash は rediss://…）' },
 	PUBLIC_ORIGIN: { description: 'OAuth の基準にする正規 origin' },
 	SESSION_SECRET: { description: 'セッションと保存トークンの暗号化に使う32文字以上の乱数' },
+	NAGI_PASSPORT_ISSUER: {
+		description: 'SSOチケットの発行者（Nagi AppView）の origin。省略時は本番の AppView',
+		schema: optional
+	},
 	OAUTH_PRIVATE_KEY_JWK: {
 		description: '本番の confidential client の秘密鍵（ES256 の JWK を1行のJSONで）',
 		schema: optional

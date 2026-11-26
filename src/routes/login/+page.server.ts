@@ -1,11 +1,23 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { getRuntime } from '#lib/server/runtime.ts';
+import { isDidHint } from '#lib/server/passport.ts';
 import { safeReturnTo } from '#lib/server/session.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const returnTo = safeReturnTo(url.searchParams.get('returnTo'));
 	if (locals.did) redirect(303, returnTo);
+
+	// Nagi のリンクに付く ?did= のヒント（署名なし）。入力を省いて認可へ進めるだけで、
+	// 認証は認可サーバーが行う（ACC-01）。失敗したら通常のハンドル入力に戻す。
+	const hint = url.searchParams.get('did');
+	if (isDidHint(hint)) {
+		const { oauth } = await getRuntime();
+		const authorizeUrl = await oauth
+			.authorize(hint, { state: JSON.stringify({ returnTo }) })
+			.catch(() => undefined);
+		if (authorizeUrl) redirect(303, authorizeUrl.href, { external: true });
+	}
 	const error: 'callback' | undefined =
 		url.searchParams.get('error') === 'callback' ? 'callback' : undefined;
 	return { returnTo, error };

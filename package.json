@@ -43,6 +43,7 @@
 	},
 	"dependencies": {
 		"@atproto/oauth-client-node": "^0.5.21",
+		"@suibari/nagi-passport": "^0.1.0",
 		"livekit-server-sdk": "^2.20.1",
 		"redis": "^6.4.0"
 	}

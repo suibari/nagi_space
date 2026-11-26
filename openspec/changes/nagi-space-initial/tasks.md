@@ -16,7 +16,7 @@
 ## 3. 認証（space-access）
 
 - [x] 3.1 `@atproto/oauth-client-node` で本アプリのOAuthクライアント（client metadata・callback・cookieセッション・Redisでの暗号化保存）を実装する（完了の確認：PDSの認可画面への移動と失敗時の表示、およびRedisに作ったログイン済みセッションでのACC-04（再訪・認可の取り消し・ログアウト）のE2Eテストが通る。実際のPDSでのログイン成功は自動化せず、3.7で手動確認する）
-- [ ] 3.2 nagi-passportのチケット検証とRedisの`TicketStore`を実装し、確かめたDIDを `login_hint` にしてOAuth認可へ進める。チケットだけのセッションは作らない（完了の確認：チケットの再提示・期限切れ・audience違いを拒否する単体テストと、ACC-01の「NagiからSSOで移動する」のテストが通る）
+- [x] 3.2 nagi-passportのチケット検証とRedisの`TicketStore`を実装し、確かめたDIDを `login_hint` にしてOAuth認可へ進める。チケットだけのセッションは作らない（完了の確認：チケットの再提示・期限切れ・audience違いを拒否する単体テストと、ACC-01の「NagiからSSOで移動する」のテストが通る）
 - [ ] 3.3 【外部：AppView・nagi_client】AppViewの `PASSPORT_AUDIENCES` と、nagi_clientのSSOリンクの許可リスト（`src/lib/sso/links.ts`）にNagi Spaceのoriginを加える変更を、それぞれのリポジトリに提案する（完了の確認：両リポジトリに変更の提案（change または PR）がある）
 - [ ] 3.4 AppViewでNagi登録状態を確かめ、未登録なら案内を出してAPIを拒否するサーバー側のガードを実装する（完了の確認：ACC-02の2つのシナリオのテストが通る）
 - [ ] 3.5 未ログインの閲覧者向けの表示と、botたんSpaceを存在しないSpaceと同じに見せる処理を実装する（完了の確認：ACC-03のシナリオのテストが通る）
