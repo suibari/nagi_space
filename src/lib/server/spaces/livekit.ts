@@ -73,6 +73,26 @@ export class SpaceRooms {
 		});
 	}
 
+	/** スピーカーのマイクをミュートする。本人は自分で解除できる（PART-06）。 */
+	async muteMicrophone(spaceId: string, identity: string): Promise<boolean> {
+		const participant = (await this.rooms.listParticipants(spaceId)).find(
+			(p) => p.identity === identity
+		);
+		const track = participant?.tracks.find((t) => t.source === TrackSource.MICROPHONE && !t.muted);
+		if (!track) return false;
+		await this.rooms.mutePublishedTrack(spaceId, identity, track.sid, true);
+		return true;
+	}
+
+	/** 退室させる。持っているトークンでの再接続もできないようにする（PART-06）。 */
+	async removeParticipant(spaceId: string, identity: string): Promise<void> {
+		await this.rooms
+			.removeParticipant(spaceId, identity, {
+				revokeTokenTs: BigInt(Math.floor(Date.now() / 1000))
+			})
+			.catch(() => undefined);
+	}
+
 	/** 特定の参加者へ制御の通知を送る。 */
 	async notify(spaceId: string, identities: string[], message: ControlMessage): Promise<void> {
 		if (!identities.length) return;

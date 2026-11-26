@@ -22,6 +22,7 @@
 	let micDenied = $state(false);
 	let error = $state<string>();
 	let busy = $state(false);
+	let confirmKick = $state<string>();
 
 	async function refresh() {
 		const response = await fetch(`/s/${spaceId}/stage`);
@@ -170,6 +171,16 @@
 								{t.invite}
 							</button>
 						{:else if participant.role === 'speaker'}
+							{#if participant.micOn}
+								<button
+									type="button"
+									class="ml-2 underline"
+									disabled={busy}
+									onclick={() => act('mute', participant.identity)}
+								>
+									{t.mute}
+								</button>
+							{/if}
 							<button
 								type="button"
 								class="ml-2 underline"
@@ -177,6 +188,37 @@
 								onclick={() => act('revoke', participant.identity)}
 							>
 								{t.revoke}
+							</button>
+						{/if}
+						{#if confirmKick === participant.identity}
+							<span class="ml-2" data-testid="kick-confirm">
+								{t.kickConfirm}
+								<button
+									type="button"
+									class="ml-1 underline"
+									disabled={busy}
+									onclick={async () => {
+										await act('kick', participant.identity);
+										confirmKick = undefined;
+									}}
+								>
+									{t.kick}
+								</button>
+								<button
+									type="button"
+									class="ml-1 underline"
+									onclick={() => (confirmKick = undefined)}
+								>
+									{t.kickCancel}
+								</button>
+							</span>
+						{:else}
+							<button
+								type="button"
+								class="ml-2 underline"
+								onclick={() => (confirmKick = participant.identity)}
+							>
+								{t.kick}
 							</button>
 						{/if}
 					</li>

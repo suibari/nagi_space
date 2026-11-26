@@ -7,8 +7,10 @@ import type { PresenceStore } from './presence';
 const requestPrefix = (id: string) => `space:req:${id}:`;
 const offerKey = (id: string, did: string) => `space:offer:${id}:${did}`;
 const roleKey = (id: string, did: string) => `space:role:${id}:${did}`;
+const banKey = (id: string, did: string) => `space:ban:${id}:${did}`;
 
-export type StageError = 'notListener' | 'noRequest' | 'noOffer' | 'speakersFull' | 'notPresent';
+export type StageError =
+	'notListener' | 'noRequest' | 'noOffer' | 'speakersFull' | 'notPresent' | 'notSpeaking';
 export type StageResult = { ok: true } | { ok: false; error: StageError };
 export type Offer = 'approved' | 'invited';
 
@@ -119,6 +121,27 @@ export class Stage {
 		await this.#notifyHost(space);
 	}
 
+	/** ホストがスピーカーのマイクをミュートする（PART-06）。 */
+	async mute(space: Space, target: string): Promise<StageResult> {
+		if (!(await this.rooms.muteMicrophone(space.id, target)))
+			return { ok: false, error: 'notSpeaking' };
+		return { ok: true };
+	}
+
+	/** ホストが退室させ、この Space への再入室を禁止する（PART-06）。禁止は Space の間だけ。 */
+	async kick(space: Space, target: string): Promise<StageResult> {
+		await this.store.set(banKey(space.id, target), '1');
+		await this.forget(space, target);
+		await this.rooms.removeParticipant(space.id, target);
+		await this.presence.left(space.id, target);
+		await this.#notifyHost(space);
+		return { ok: true };
+	}
+
+	async isBanned(space: Space, did: string): Promise<boolean> {
+		return (await this.store.get(banKey(space.id, did))) !== undefined;
+	}
+
 	/** 退室させた人の申し出や記録を消す。 */
 	async forget(space: Space, did: string): Promise<void> {
 		await this.store.del(
@@ -128,12 +151,13 @@ export class Stage {
 		);
 	}
 
-	/** Space の終了で、発話に関わる記録をすべて消す（LIFE-07）。 */
+	/** Space の終了で、発話に関わる記録と再入室の禁止をすべて消す（LIFE-07）。 */
 	async clear(spaceId: string): Promise<void> {
 		const rows = [
 			...(await this.store.list(requestPrefix(spaceId))),
 			...(await this.store.list(`space:offer:${spaceId}:`)),
-			...(await this.store.list(`space:role:${spaceId}:`))
+			...(await this.store.list(`space:role:${spaceId}:`)),
+			...(await this.store.list(`space:ban:${spaceId}:`))
 		];
 		await this.store.del(...rows.map((row) => row.key));
 	}

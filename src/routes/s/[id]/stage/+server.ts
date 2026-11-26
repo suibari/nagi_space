@@ -31,10 +31,19 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 };
 
 type Action =
-	'request' | 'cancel' | 'accept' | 'decline' | 'leave' | 'approve' | 'invite' | 'revoke';
-const HOST_ACTIONS: Action[] = ['approve', 'invite', 'revoke'];
+	| 'request'
+	| 'cancel'
+	| 'accept'
+	| 'decline'
+	| 'leave'
+	| 'approve'
+	| 'invite'
+	| 'revoke'
+	| 'mute'
+	| 'kick';
+const HOST_ACTIONS: Action[] = ['approve', 'invite', 'revoke', 'mute', 'kick'];
 
-/** 発話のリクエスト・承認・招待・受け入れ・聴衆へ戻る・発話権の取り消し（PART-03・04・06）。 */
+/** 発話のリクエスト・承認・招待・受け入れ・聴衆へ戻る・ホストのモデレーション（PART-03・04・06）。 */
 export const POST: RequestHandler = async ({ params, locals, request }) => {
 	const did = requireNagiUser(locals);
 	const space = await liveSpaceFor(params.id, did);
@@ -58,7 +67,9 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		leave: () => stage.demote(space, did),
 		approve: () => stage.approve(space, target),
 		invite: () => stage.invite(space, target),
-		revoke: () => stage.demote(space, target)
+		revoke: () => stage.demote(space, target),
+		mute: () => stage.mute(space, target),
+		kick: () => stage.kick(space, target)
 	};
 	if (!run[action]) error(400, 'Unknown action');
 	const result = await run[action]();

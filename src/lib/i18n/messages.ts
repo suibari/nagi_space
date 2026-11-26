@@ -71,6 +71,10 @@ const ja = {
 			invite: '招待する',
 			revoke: '聴衆に戻す',
 			speakersFull: 'スピーカーが上限に達しています。',
+			mute: 'ミュートする',
+			kick: '退室させる',
+			kickConfirm: 'この Space から退室させ、再入室も禁止します。',
+			kickCancel: 'やめる',
 			failed: '操作できませんでした。もう一度お試しください。'
 		},
 		shareRetry: 'もう一度シェアする',
@@ -78,6 +82,8 @@ const ja = {
 		leave: '退室する',
 		hostAway: 'ホストの再接続を待っています',
 		full: 'この Space は満員です。',
+		removed: 'ホストによって退室させられました。この Space には入り直せません。',
+		banned: 'この Space には入れません。',
 		endedTimeLimit: '開催時間の上限に達したため、この Space は終了しました。',
 		speaking: '話しています'
 	},
@@ -169,6 +175,10 @@ const en: typeof ja = {
 			invite: 'Invite',
 			revoke: 'Move to listeners',
 			speakersFull: 'The speaker limit has been reached.',
+			mute: 'Mute',
+			kick: 'Remove',
+			kickConfirm: 'Remove from this Space and block them from rejoining.',
+			kickCancel: 'Cancel',
 			failed: 'Something went wrong. Please try again.'
 		},
 		shareRetry: 'Try sharing again',
@@ -176,6 +186,8 @@ const en: typeof ja = {
 		leave: 'Leave',
 		hostAway: 'Waiting for the host to reconnect',
 		full: 'This Space is full.',
+		removed: 'The host removed you from this Space. You cannot rejoin it.',
+		banned: 'You cannot join this Space.',
 		endedTimeLimit: 'This Space ended because it reached the time limit.',
 		speaking: 'Speaking'
 	},

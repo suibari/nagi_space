@@ -10,7 +10,7 @@ import {
 export type Role = 'host' | 'speaker' | 'listener';
 
 const CONTROL_TOPIC = 'nagi-space.control';
-export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'ended';
+export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'ended' | 'removed';
 
 export type ParticipantView = {
 	identity: string;
@@ -80,7 +80,13 @@ export class SpaceConnection {
 			.on(RoomEvent.Reconnected, () => (this.state = 'connected'))
 			.on(RoomEvent.Disconnected, (reason) => {
 				// ホストが終了すると room が消える（LIFE-05）
-				this.state = reason === DisconnectReason.ROOM_DELETED ? 'ended' : 'disconnected';
+				// ホストに退室させられると PARTICIPANT_REMOVED になる（PART-06）
+				this.state =
+					reason === DisconnectReason.ROOM_DELETED
+						? 'ended'
+						: reason === DisconnectReason.PARTICIPANT_REMOVED
+							? 'removed'
+							: 'disconnected';
 			});
 	}
 
@@ -124,6 +130,8 @@ export class SpaceConnection {
 			this.micOn = false;
 		}
 		this.localRole = role;
+		// ホストにミュートされたときも表示を合わせる（本人は解除できる。PART-06）
+		this.micOn = this.#room.localParticipant.isMicrophoneEnabled;
 		const all: Participant[] = [
 			this.#room.localParticipant,
 			...this.#room.remoteParticipants.values()

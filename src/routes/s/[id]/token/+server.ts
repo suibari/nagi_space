@@ -15,6 +15,8 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 	if (!space) error(404, 'Space not found');
 
 	// 満員なら入れない。ホストと、すでに入っている人の再接続は通す（LIFE-08）
+	// 退室させられた人は、この Space に入り直せない（PART-06）
+	if (await stage.isBanned(space, did)) return json({ error: 'banned' }, { status: 403 });
 	// スピーカーの記録があれば、再接続してもスピーカーのまま（PART-08）
 	const role = await stage.roleOf(space, did);
 	const inside = role !== 'listener' || (await presence.roleOf(space.id, did)) !== undefined;

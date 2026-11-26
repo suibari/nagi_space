@@ -14,6 +14,7 @@
 	let connection = $state<SpaceConnection>();
 	let failed = $state(false);
 	let full = $state(false);
+	let banned = $state(false);
 	let endedByTimeLimit = $state(false);
 	let shareState = $state<'failed' | 'retrying' | 'done' | undefined>(
 		untrack(() => (data.state === 'live' && data.shareDraft ? 'failed' : undefined))
@@ -50,6 +51,10 @@
 			const response = await fetch(`/s/${live.space.id}/token`, { method: 'POST' });
 			if (response.status === 409) {
 				full = true;
+				return;
+			}
+			if (response.status === 403) {
+				banned = true;
 				return;
 			}
 			if (!response.ok) throw new Error(`token ${response.status}`);
@@ -136,6 +141,10 @@
 			</a>
 		{:else if data.state === 'unregistered'}
 			<p class="mt-6">{t.unregistered}</p>
+		{:else if banned}
+			<p class="mt-6" role="alert" data-testid="banned">{t.banned}</p>
+		{:else if connection?.state === 'removed'}
+			<p class="mt-6" role="alert" data-testid="removed">{t.removed}</p>
 		{:else if full}
 			<p class="mt-6" role="alert" data-testid="full">{t.full}</p>
 		{:else if connection?.state === 'ended'}
