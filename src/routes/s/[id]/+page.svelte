@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { messages } from '#lib/i18n/messages.ts';
 	import { SpaceConnection } from '#lib/space/room.svelte.ts';
@@ -14,6 +14,20 @@
 	let failed = $state(false);
 	let full = $state(false);
 	let endedByTimeLimit = $state(false);
+	let shareState = $state<'failed' | 'retrying' | 'done' | undefined>(
+		untrack(() => (data.state === 'live' && data.shareDraft ? 'failed' : undefined))
+	);
+
+	async function retryShare() {
+		if (data.state !== 'live' || !data.shareDraft) return;
+		shareState = 'retrying';
+		const response = await fetch(`/s/${data.space.id}/share`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ text: data.shareDraft })
+		});
+		shareState = response.ok ? 'done' : 'failed';
+	}
 
 	type Status = { state: 'live'; hostAway: boolean } | { state: 'ended'; timeLimit: boolean };
 
@@ -126,6 +140,21 @@
 			<p class="mt-4 text-sm" data-testid="connection-state">
 				{failed ? t.disconnected : t[connection?.state ?? 'connecting']}
 			</p>
+			{#if shareState === 'failed' || shareState === 'retrying'}
+				<div class="mt-2 text-sm" role="alert" data-testid="share-failed">
+					<p>{t.shareFailed}</p>
+					<button
+						type="button"
+						class="mt-1 underline"
+						disabled={shareState === 'retrying'}
+						onclick={retryShare}
+					>
+						{t.shareRetry}
+					</button>
+				</div>
+			{:else if shareState === 'done'}
+				<p class="mt-2 text-sm" role="status" data-testid="share-done">{t.shareDone}</p>
+			{/if}
 			{#if hostAway}
 				<p class="mt-2 text-sm" role="status" data-testid="host-away">{t.hostAway}</p>
 			{/if}

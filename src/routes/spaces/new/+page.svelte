@@ -1,9 +1,33 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { messages } from '#lib/i18n/messages.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 	const t = $derived(messages[data.locale].newSpace);
+
+	// 送信に失敗したときにサーバーが返した入力値で初期化する（その後は入力欄が持つ）
+	const initial = untrack(() => ({
+		title: typeof form?.title === 'string' ? form.title : '',
+		kind: form?.kind === 'bot' ? 'bot' : 'public',
+		share: form?.share === true,
+		shareText: typeof form?.shareText === 'string' ? form.shareText : ''
+	}));
+	let title = $state(initial.title);
+	let kind = $state(initial.kind);
+	let share = $state(initial.share);
+	let shareText = $state(initial.shareText);
+	let shareTextEdited = $state(initial.shareText !== '');
+
+	// 本文を編集するまでは、タイトルに合わせた初期値にする（編集できる。LIFE-04）
+	const defaultShareText = $derived(
+		data.locale === 'ja'
+			? `「${title.trim()}」の Space を始めました！`
+			: `I started a Space: "${title.trim()}"`
+	);
+	$effect(() => {
+		if (!shareTextEdited) shareText = defaultShareText;
+	});
 </script>
 
 <svelte:head>
@@ -26,25 +50,49 @@
 					name="title"
 					type="text"
 					required
-					value={typeof form?.title === 'string' ? form.title : ''}
+					bind:value={title}
 					class="rounded-lg border px-3 py-2"
 				/>
 			</label>
 			<fieldset class="flex flex-col gap-2">
 				<legend class="text-sm font-medium">{t.kindLabel}</legend>
 				<label class="flex gap-2">
-					<input type="radio" name="kind" value="public" checked={form?.kind !== 'bot'} />
+					<input type="radio" name="kind" value="public" bind:group={kind} />
 					<span>
 						<span class="font-medium">{t.kindPublic}</span><br /><small>{t.kindPublicHint}</small>
 					</span>
 				</label>
 				<label class="flex gap-2">
-					<input type="radio" name="kind" value="bot" checked={form?.kind === 'bot'} />
+					<input type="radio" name="kind" value="bot" bind:group={kind} />
 					<span>
 						<span class="font-medium">{t.kindBot}</span><br /><small>{t.kindBotHint}</small>
 					</span>
 				</label>
 			</fieldset>
+
+			<!-- botたんSpace はシェアしない（LIFE-02） -->
+			{#if kind === 'public'}
+				<fieldset class="flex flex-col gap-2">
+					<label class="flex gap-2">
+						<input type="checkbox" name="share" bind:checked={share} />
+						<span>
+							<span class="font-medium">{t.share}</span><br /><small>{t.shareHint}</small>
+						</span>
+					</label>
+					{#if share}
+						<label class="flex flex-col gap-1">
+							<span class="text-sm font-medium">{t.shareTextLabel}</span>
+							<textarea
+								name="shareText"
+								rows="3"
+								bind:value={shareText}
+								oninput={() => (shareTextEdited = true)}
+								class="rounded-lg border px-3 py-2"></textarea>
+						</label>
+					{/if}
+				</fieldset>
+			{/if}
+
 			{#if form?.error}
 				<p role="alert" class="text-sm text-red-700">{t.errors[form.error]}</p>
 			{/if}

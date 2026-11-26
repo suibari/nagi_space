@@ -1,11 +1,12 @@
 import { getRuntime } from '#lib/server/runtime.ts';
 import { endedByTimeLimit } from '#lib/server/spaces/limits.ts';
 import { isSpaceId } from '#lib/server/spaces/model.ts';
+import { shareDraftKey } from '#lib/server/share.ts';
 import { initialRole, visibleTo } from './access.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const { spaces, lifecycle } = await getRuntime();
+	const { spaces, lifecycle, store } = await getRuntime();
 	const found = visibleTo(
 		isSpaceId(params.id) ? await spaces.get(params.id) : undefined,
 		locals.did
@@ -37,10 +38,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	// 未ログイン・未登録の閲覧者にはタイトルとホストだけを見せる（ACC-03）
 	if (!locals.did) return { state: 'anonymous' as const, space: summary };
 	if (locals.nagiUser !== 'registered') return { state: 'unregistered' as const, space: summary };
+	const role = initialRole(space, locals.did);
+	// 開始時のシェアに失敗していたら、ホストに再試行を出す（LIFE-04）
+	const shareDraft = role === 'host' ? await store.get(shareDraftKey(space.id)) : undefined;
 	return {
 		state: 'live' as const,
 		space: summary,
-		role: initialRole(space, locals.did),
+		role,
+		shareDraft,
 		maxDurationSeconds: lifecycle.limits.maxDurationSeconds
 	};
 };

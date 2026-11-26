@@ -23,12 +23,17 @@ const ja = {
 		kindBot: 'botたんSpace',
 		kindBotHint: 'あなたと botたんだけで話します。ほかの人には見えません。',
 		submit: '開始する',
+		share: 'Nagi にシェアする',
+		shareHint: 'あなたの Nagi に、この Space のリンクカード付きで投稿します。',
+		shareTextLabel: '投稿する文章',
 		errors: {
 			empty: 'タイトルを入力してください。',
 			tooLong: 'タイトルが長すぎます。',
 			kind: '種類を選んでください。',
 			botBusy: 'botたんは今いっぱいです。少し待ってからお試しください。',
-			roomFailed: 'Space を開始できませんでした。もう一度お試しください。'
+			roomFailed: 'Space を開始できませんでした。もう一度お試しください。',
+			shareEmpty: '投稿する文章を入力してください。',
+			shareTooLong: '投稿する文章が長すぎます。'
 		},
 		active: '開催中の Space があります。',
 		backToActive: '開催中の Space に戻る'
@@ -49,6 +54,9 @@ const ja = {
 		unregistered: 'Nagi に登録すると、この Space に入れます。',
 		startAudio: 'タップして音声を聞く',
 		end: 'Space を終了する',
+		shareFailed: 'Nagi へのシェアに失敗しました。Space は続いています。',
+		shareRetry: 'もう一度シェアする',
+		shareDone: 'Nagi にシェアしました。',
 		leave: '退室する',
 		hostAway: 'ホストの再接続を待っています',
 		full: 'この Space は満員です。',
@@ -95,12 +103,17 @@ const en: typeof ja = {
 		kindBot: 'bot-tan Space',
 		kindBotHint: 'Just you and bot-tan. Nobody else can see it.',
 		submit: 'Start',
+		share: 'Share to Nagi',
+		shareHint: 'Posts to your Nagi with a link card to this Space.',
+		shareTextLabel: 'Post text',
 		errors: {
 			empty: 'Enter a title.',
 			tooLong: 'The title is too long.',
 			kind: 'Choose a type.',
 			botBusy: 'bot-tan is busy right now. Please try again in a moment.',
-			roomFailed: 'Could not start the Space. Please try again.'
+			roomFailed: 'Could not start the Space. Please try again.',
+			shareEmpty: 'Enter the text to post.',
+			shareTooLong: 'The post text is too long.'
 		},
 		active: 'You already have a live Space.',
 		backToActive: 'Back to your Space'
@@ -121,6 +134,9 @@ const en: typeof ja = {
 		unregistered: 'Join Nagi to enter this Space.',
 		startAudio: 'Tap to hear audio',
 		end: 'End Space',
+		shareFailed: 'Could not share to Nagi. Your Space is still live.',
+		shareRetry: 'Try sharing again',
+		shareDone: 'Shared to Nagi.',
 		leave: 'Leave',
 		hostAway: 'Waiting for the host to reconnect',
 		full: 'This Space is full.',
