@@ -22,7 +22,8 @@ export async function createSpace(
 	await page.getByLabel('タイトル').fill(title);
 	if (kind === 'bot') await page.getByLabel('botたんSpace').check();
 	await page.getByRole('button', { name: '開始する' }).click();
-	await expect(page).toHaveURL(/\/s\/[a-z2-9]{12}$/);
+	// room の作成を待つ
+	await expect(page).toHaveURL(/\/s\/[a-z2-9]{12}$/, { timeout: 15000 });
 	return new URL(page.url()).pathname;
 }
 

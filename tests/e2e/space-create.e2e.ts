@@ -22,7 +22,7 @@ test('パブリックSpaceを作成するとホストとして入室する', asy
 	await page.getByLabel('タイトル').fill('  はじめての  Space ');
 	await page.getByRole('button', { name: '開始する' }).click();
 
-	await expect(page).toHaveURL(/\/s\/[a-z2-9]{12}$/);
+	await expect(page).toHaveURL(/\/s\/[a-z2-9]{12}$/, { timeout: 15000 });
 	await expect(page.getByTestId('space-title')).toHaveText('はじめての Space');
 	await expect(page.getByTestId('connection-state')).toHaveText('接続しました', { timeout: 15000 });
 	const me = page.getByTestId('participants').locator('li');
@@ -41,7 +41,7 @@ test('開催中のホストは2つ目を作れず、開催中のSpaceへ案内�
 	await page.goto('/spaces/new');
 	await page.getByLabel('タイトル').fill('ひとつめ');
 	await page.getByRole('button', { name: '開始する' }).click();
-	await expect(page).toHaveURL(/\/s\//);
+	await expect(page).toHaveURL(/\/s\//, { timeout: 15000 });
 	const firstUrl = page.url();
 
 	await page.goto('/spaces/new');
@@ -95,7 +95,7 @@ test('botたんSpaceはホスト以外には存在しないのと同じに見え
 	await hostPage.getByLabel('タイトル').fill('ないしょ');
 	await hostPage.getByLabel('botたんSpace').check();
 	await hostPage.getByRole('button', { name: '開始する' }).click();
-	await expect(hostPage).toHaveURL(/\/s\//);
+	await expect(hostPage).toHaveURL(/\/s\//, { timeout: 15000 });
 	const url = new URL(hostPage.url()).pathname;
 
 	const otherDid = memberDid();

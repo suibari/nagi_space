@@ -12,7 +12,10 @@ test('存在しないハンドルではエラーを表示する', async ({ page 
 	await page.goto('/login');
 	await page.getByLabel('ハンドル').fill('no-such-handle.invalid');
 	await page.getByRole('button', { name: 'ログイン' }).click();
-	await expect(page.getByRole('alert')).toContainText('ログインを始められませんでした');
+	// ハンドルの名前解決はネットワークに依存するので長めに待つ
+	await expect(page.getByRole('alert')).toContainText('ログインを始められませんでした', {
+		timeout: 20000
+	});
 });
 
 test('callback の失敗はログイン画面に戻してエラーを表示する', async ({ page }) => {

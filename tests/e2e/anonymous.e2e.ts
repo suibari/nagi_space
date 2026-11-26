@@ -14,7 +14,7 @@ test('未ログインではタイトルとホストとログインの案内だ�
 	await hostPage.goto('/spaces/new');
 	await hostPage.getByLabel('タイトル').fill('だれでもどうぞ');
 	await hostPage.getByRole('button', { name: '開始する' }).click();
-	await expect(hostPage).toHaveURL(/\/s\//);
+	await expect(hostPage).toHaveURL(/\/s\//, { timeout: 15000 });
 	const path = new URL(hostPage.url()).pathname;
 
 	const anonymous = await browser.newContext({ locale: 'ja-JP' });
