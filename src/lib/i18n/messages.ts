@@ -83,6 +83,26 @@ const ja = {
 		hostAway: 'ホストの再接続を待っています',
 		full: 'この Space は満員です。',
 		removed: 'ホストによって退室させられました。この Space には入り直せません。',
+		report: {
+			space: 'この Space を通報',
+			member: '通報',
+			title: '運営に通報する',
+			lead: '通報は運営にだけ届き、相手には知らされません。音声や字幕は送られません。',
+			reason: '理由',
+			reasons: {
+				spam: 'スパム・宣伝',
+				harassment: '攻撃的・いやがらせ',
+				sensitive: '不適切・センシティブ',
+				botResponse: 'botたんの返答へのフィードバック',
+				other: 'その他'
+			},
+			comment: 'くわしい内容（任意）',
+			submit: '送信する',
+			cancel: 'やめる',
+			sent: '通報を送りました。',
+			failed: '通報を送れませんでした。もう一度お試しください。',
+			rateLimited: '短い時間に送りすぎました。しばらくしてからお試しください。'
+		},
 		banned: 'この Space には入れません。',
 		endedTimeLimit: '開催時間の上限に達したため、この Space は終了しました。',
 		speaking: '話しています'
@@ -187,6 +207,26 @@ const en: typeof ja = {
 		hostAway: 'Waiting for the host to reconnect',
 		full: 'This Space is full.',
 		removed: 'The host removed you from this Space. You cannot rejoin it.',
+		report: {
+			space: 'Report this Space',
+			member: 'Report',
+			title: 'Report to the Nagi team',
+			lead: 'Reports go only to the team and are not shared with the other person. No audio or captions are sent.',
+			reason: 'Reason',
+			reasons: {
+				spam: 'Spam or advertising',
+				harassment: 'Abusive or harassing',
+				sensitive: 'Inappropriate or sensitive',
+				botResponse: 'Feedback on bot-tan',
+				other: 'Other'
+			},
+			comment: 'Details (optional)',
+			submit: 'Send',
+			cancel: 'Cancel',
+			sent: 'Report sent.',
+			failed: 'Could not send the report. Please try again.',
+			rateLimited: 'Too many reports. Please try again later.'
+		},
 		banned: 'You cannot join this Space.',
 		endedTimeLimit: 'This Space ended because it reached the time limit.',
 		speaking: 'Speaking'

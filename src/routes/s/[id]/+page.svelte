@@ -4,6 +4,7 @@
 	import { messages } from '#lib/i18n/messages.ts';
 	import { SpaceConnection } from '#lib/space/room.svelte.ts';
 	import StageControls from '#lib/space/StageControls.svelte';
+	import ReportForm from '#lib/space/ReportForm.svelte';
 	import type { PageProps } from './$types';
 
 	const STATUS_POLL_MS = 20_000;
@@ -15,6 +16,8 @@
 	let failed = $state(false);
 	let full = $state(false);
 	let banned = $state(false);
+	/** 開いている通報の対象（'space' か参加者のDID） */
+	let reporting = $state<string>();
 	let endedByTimeLimit = $state(false);
 	let shareState = $state<'failed' | 'retrying' | 'done' | undefined>(
 		untrack(() => (data.state === 'live' && data.shareDraft ? 'failed' : undefined))
@@ -208,13 +211,43 @@
 				<StageControls spaceId={data.space.id} {connection} locale={data.locale} />
 			{/if}
 
+			{#if data.role !== 'host'}
+				<button type="button" class="mt-4 text-xs underline" onclick={() => (reporting = 'space')}>
+					{t.report.space}
+				</button>
+				{#if reporting === 'space'}
+					<ReportForm
+						spaceId={data.space.id}
+						locale={data.locale}
+						onclose={() => (reporting = undefined)}
+					/>
+				{/if}
+			{/if}
+
 			<h2 class="mt-8 font-bold">{t.participants}</h2>
 			<ul class="mt-2 flex flex-col gap-2" data-testid="participants">
 				{#each connection?.participants ?? [] as participant (participant.identity)}
-					<li class="flex items-center gap-2" data-role={participant.role}>
+					<li class="flex flex-wrap items-center gap-2" data-role={participant.role}>
 						<span class:font-bold={participant.speaking}>{participant.name}</span>
 						<span class="text-xs">{roleLabel(participant.role)}</span>
 						{#if participant.speaking}<span class="text-xs">{t.speaking}</span>{/if}
+						{#if !participant.isLocal}
+							<button
+								type="button"
+								class="text-xs underline"
+								onclick={() => (reporting = participant.identity)}
+							>
+								{t.report.member}
+							</button>
+						{/if}
+						{#if reporting === participant.identity}
+							<ReportForm
+								spaceId={data.space.id}
+								member={participant.identity}
+								locale={data.locale}
+								onclose={() => (reporting = undefined)}
+							/>
+						{/if}
 					</li>
 				{/each}
 			</ul>
