@@ -5,6 +5,8 @@ import adapter from '@sveltejs/adapter-vercel';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
+	// @resvg/resvg-js は各OS向けのネイティブの部品を読むので、サーバーの束ね込みから外す
+	ssr: { external: ['@resvg/resvg-js'] },
 	plugins: [
 		tailwindcss(),
 		sveltekit({

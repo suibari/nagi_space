@@ -39,7 +39,7 @@
 			</section>
 		{:else}
 			<p class="mt-4 text-sm" data-testid="signed-in">{t.home.signedInAs}</p>
-			<a href="/spaces/new" class="mt-4 inline-block rounded-full bg-black px-4 py-2 text-white">
+			<a href="/spaces/new" class="btn-primary mt-4 inline-block">
 				{t.home.startSpace}
 			</a>
 			<section class="mt-8">
@@ -50,11 +50,7 @@
 					<ul class="mt-2 flex flex-col gap-3" data-testid="live-spaces">
 						{#each data.spaces as space (space.id)}
 							<li>
-								<a
-									href="/s/{space.id}"
-									class="block rounded-xl border p-3"
-									data-space-id={space.id}
-								>
+								<a href="/s/{space.id}" class="card block p-3" data-space-id={space.id}>
 									<span class="block font-medium">{space.title}</span>
 									<span class="block text-sm">{space.host.displayName ?? space.host.handle}</span>
 									<span class="mt-1 flex flex-wrap gap-3 text-xs">
@@ -70,10 +66,10 @@
 			</section>
 		{/if}
 		<form method="POST" action="/logout" class="mt-4">
-			<button type="submit" class="rounded-full border px-4 py-2">{t.logout}</button>
+			<button type="submit" class="btn">{t.logout}</button>
 		</form>
 	{:else}
-		<a href="/login" class="mt-4 inline-block rounded-full bg-black px-4 py-2 text-white">
+		<a href="/login" class="btn-primary mt-4 inline-block">
 			{t.home.loginLink}
 		</a>
 	{/if}

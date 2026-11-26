@@ -29,7 +29,7 @@
 	}
 </script>
 
-<section class="mt-2 rounded-xl border p-3 text-sm" data-testid="report-form">
+<section class="card mt-2 p-3 text-sm" data-testid="report-form">
 	{#if result === 'sent'}
 		<p role="status">{t.sent}</p>
 		<button type="button" class="mt-1 underline" onclick={onclose}>{t.cancel}</button>
@@ -39,7 +39,7 @@
 		<form class="mt-2 flex flex-col gap-2" onsubmit={submit}>
 			<label class="flex flex-col gap-1">
 				<span>{t.reason}</span>
-				<select bind:value={reason} class="rounded border px-2 py-1">
+				<select bind:value={reason} class="rounded-sm border border-line-strong px-2 py-1">
 					{#each REASONS as value (value)}
 						<option {value}>{t.reasons[value]}</option>
 					{/each}
@@ -47,12 +47,15 @@
 			</label>
 			<label class="flex flex-col gap-1">
 				<span>{t.comment}</span>
-				<textarea bind:value={comment} rows="2" maxlength="1000" class="rounded border px-2 py-1"
-				></textarea>
+				<textarea
+					bind:value={comment}
+					rows="2"
+					maxlength="1000"
+					class="rounded-sm border border-line-strong px-2 py-1"></textarea>
 			</label>
-			{#if result}<p role="alert" class="text-red-700">{t[result]}</p>{/if}
+			{#if result}<p role="alert" class="text-danger">{t[result]}</p>{/if}
 			<div class="flex gap-2">
-				<button type="submit" class="rounded-full bg-black px-3 py-1 text-white" disabled={busy}>
+				<button type="submit" class="btn-primary px-3 py-1" disabled={busy}>
 					{t.submit}
 				</button>
 				<button type="button" class="underline" onclick={onclose}>{t.cancel}</button>

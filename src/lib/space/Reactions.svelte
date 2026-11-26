@@ -57,7 +57,7 @@
 >
 	{#each shown as item (item.id)}
 		<div
-			class="flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 shadow"
+			class="flex items-center gap-1 rounded-full bg-overlay px-2 py-1 shadow"
 			data-testid="reaction"
 			data-from={item.from.did}
 		>
@@ -80,7 +80,7 @@
 </div>
 
 <div class="mt-4">
-	<button type="button" class="rounded-full border px-4 py-2" onclick={() => (open = !open)}>
+	<button type="button" class="btn" onclick={() => (open = !open)}>
 		{open ? t.close : t.open}
 	</button>
 	{#if limited}<p role="alert" class="mt-1 text-sm">{t.rateLimited}</p>{/if}

@@ -20,11 +20,7 @@
 	let shareTextEdited = $state(initial.shareText !== '');
 
 	// 本文を編集するまでは、タイトルに合わせた初期値にする（編集できる。LIFE-04）
-	const defaultShareText = $derived(
-		data.locale === 'ja'
-			? `「${title.trim()}」の Space を始めました！`
-			: `I started a Space: "${title.trim()}"`
-	);
+	const defaultShareText = $derived(t.shareDefault(title.trim()));
 	$effect(() => {
 		if (!shareTextEdited) shareText = defaultShareText;
 	});
@@ -53,7 +49,7 @@
 					type="text"
 					required
 					bind:value={title}
-					class="rounded-lg border px-3 py-2"
+					class="rounded-md border border-line-strong px-3 py-2"
 				/>
 			</label>
 			<fieldset class="flex flex-col gap-2">
@@ -89,16 +85,16 @@
 								rows="3"
 								bind:value={shareText}
 								oninput={() => (shareTextEdited = true)}
-								class="rounded-lg border px-3 py-2"></textarea>
+								class="rounded-md border border-line-strong px-3 py-2"></textarea>
 						</label>
 					{/if}
 				</fieldset>
 			{/if}
 
 			{#if form?.error}
-				<p role="alert" class="text-sm text-red-700">{t.errors[form.error]}</p>
+				<p role="alert" class="text-sm text-danger">{t.errors[form.error]}</p>
 			{/if}
-			<button type="submit" class="rounded-full bg-black px-4 py-2 font-medium text-white">
+			<button type="submit" class="btn-primary">
 				{t.submit}
 			</button>
 		</form>

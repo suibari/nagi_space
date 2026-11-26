@@ -95,13 +95,13 @@
 					<p>{t.transcriptionNotice}</p>
 					<button
 						type="button"
-						class="mt-1 rounded-full bg-black px-4 py-2 text-white"
+						class="btn-primary mt-1"
 						disabled={busy}
 						onclick={allowMicAndAccept}
 					>
 						{t.allowMic}
 					</button>
-					{#if micDenied}<p role="alert" class="mt-1 text-red-700">{t.micDenied}</p>{/if}
+					{#if micDenied}<p role="alert" class="mt-1 text-danger">{t.micDenied}</p>{/if}
 				</div>
 			{:else if stageState.offer === 'invited'}
 				<div data-testid="invited">
@@ -129,22 +129,12 @@
 					{t.cancel}
 				</button>
 			{:else}
-				<button
-					type="button"
-					class="self-start rounded-full border px-4 py-2"
-					disabled={busy}
-					onclick={() => act('request')}
-				>
+				<button type="button" class="btn self-start" disabled={busy} onclick={() => act('request')}>
 					{t.request}
 				</button>
 			{/if}
 		{:else if stageState.role === 'speaker'}
-			<button
-				type="button"
-				class="self-start rounded-full border px-4 py-2"
-				disabled={busy}
-				onclick={() => act('leave')}
-			>
+			<button type="button" class="btn self-start" disabled={busy} onclick={() => act('leave')}>
 				{t.leave}
 			</button>
 		{:else}
@@ -232,6 +222,6 @@
 				{/each}
 			</ul>
 		{/if}
-		{#if error}<p role="alert" class="text-red-700" data-testid="stage-error">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-danger" data-testid="stage-error">{error}</p>{/if}
 	</section>
 {/if}

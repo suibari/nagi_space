@@ -1,11 +1,15 @@
 import type { Handle } from '@sveltejs/kit/hooks';
-import { detectLocale } from '#lib/i18n/messages.ts';
+import { LOCALE_COOKIE, detectLocale, isLocale } from '#lib/i18n/messages.ts';
 import { REGISTRATION_PREFIX } from '#lib/server/nagi.ts';
 import { OAUTH_SESSION_PREFIX } from '#lib/server/oauth/stores.ts';
 import { getRuntime } from '#lib/server/runtime.ts';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.locale = detectLocale(event.request.headers.get('accept-language'));
+	// 利用者が選んだ言語（この端末の cookie）を優先し、無ければブラウザの言語に合わせる（LOOK-06）
+	const chosen = event.cookies.get(LOCALE_COOKIE);
+	event.locals.locale = isLocale(chosen)
+		? chosen
+		: detectLocale(event.request.headers.get('accept-language'));
 	event.locals.nagiUser = 'anonymous';
 	const { sessions, store, checkRegistration } = await getRuntime();
 

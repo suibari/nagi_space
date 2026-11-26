@@ -91,8 +91,3 @@ export async function shareToNagi(
 /** 失敗したときの再試行用に、ホストが書いた本文を1時間だけ覚えておく（Space の終了でも消す）。 */
 export const shareDraftKey = (spaceId: string) => `space:sharedraft:${spaceId}`;
 export const SHARE_DRAFT_TTL_SECONDS = 60 * 60;
-
-/** 開始画面の本文の初期値（利用者が編集できる）。 */
-export function defaultShareText(title: string, locale: 'ja' | 'en'): string {
-	return locale === 'ja' ? `「${title}」の Space を始めました！` : `I started a Space: "${title}"`;
-}

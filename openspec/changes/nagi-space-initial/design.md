@@ -177,6 +177,14 @@ LiveKit Cloudだけの機能（Cloud上へのagentのデプロイ、LiveKit Infe
 - ホストの切断の時刻は保存先に期限付きで置き、戻ったら消す。終了の理由は保存せず、時間の上限で終わったかは開始と終了の時刻から判断する（LIFE-07 の保存してよい項目を増やさない）。
 - 自宅の space-agent（D5）が常駐するようになったら、タイマー役を任せることもできる。
 
+### D12. 見た目・アイコン・OGP
+
+- **色**：Nagi の bot-mint（nagi_client の `tokens.css`）と同じ値を `src/routes/layout.css` の CSS 変数に置き、Tailwind の `@theme inline` で `bg-surface`・`text-muted`・`bg-accent` などにする。色の生の値はこのファイルだけに書く。
+- **テーマ**：「端末に合わせる」「ライト」「ダーク」をこの端末（localStorage）に保存し、`static/theme-init.js`（外部ファイル。Nagi と同じく CSP の script-src 'self' のまま配れる）で最初の描画の前に当てる。
+- **表示言語**：選んだ言語は cookie に保存し、サーバーが最初からその言語で描く。無ければブラウザの言語（日本語以外は英語）。画面の文言は `messages.ts` にまとめ、画面に日本語を直接書いていないことをテストで確かめる。
+- **アイコン**：Nagi のアイコンと同じ淡いミントの地に、吹き出しと音の波を描いた SVG（`static/icons/icon.svg`）。PNG は `scripts/build-icons.mjs` で作る。
+- **OGP**：satori（HTML→SVG）と resvg（SVG→PNG）で描く。`@vercel/og` は SvelteKit（ESM）の中で読み込めない（中で fs を require する）ため使わない。文字は Nagi と同じく Noto Sans JP を Google Fonts から必要な文字だけ取る。リンクカードを作る側（Nagi など）は言語を送らないので、OGP の画像と文は日本語で描く。
+
 ## Risks / Trade-offs
 
 - [LiveKit無料枠を早く使い切る] 字幕用のhidden参加者が全Spaceに常に1つ加わり、10人のSpaceで1時間あたり約660分を使う → 開発中は利用者を限る。月の使用量を監視し、上限が近づいたら新しいSpaceの作成を止めて理由を表示する。公開前にセルフホストか有料プランかを決める。

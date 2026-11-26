@@ -1,6 +1,15 @@
 export type Locale = 'ja' | 'en';
 
 const ja = {
+	settings: {
+		open: '表示の設定',
+		theme: 'テーマ',
+		system: '端末の設定に合わせる',
+		light: 'ライト',
+		dark: 'ダーク',
+		language: '表示言語',
+		close: '閉じる'
+	},
 	login: {
 		title: 'ログイン',
 		lead: 'Nagi のアカウント（AT Protocol のハンドル）でログインします。',
@@ -26,6 +35,7 @@ const ja = {
 		share: 'Nagi にシェアする',
 		shareHint: 'あなたの Nagi に、この Space のリンクカード付きで投稿します。',
 		shareTextLabel: '投稿する文章',
+		shareDefault: (title: string) => `「${title}」の Space を始めました！`,
 		errors: {
 			empty: 'タイトルを入力してください。',
 			tooLong: 'タイトルが長すぎます。',
@@ -98,7 +108,8 @@ const ja = {
 			title: '字幕',
 			notice: 'ホストとスピーカーの発話は、字幕として入室者全員に表示されます。',
 			paused: '字幕は一時停止中です。',
-			empty: 'まだ字幕はありません。'
+			empty: 'まだ字幕はありません。',
+			separator: '：'
 		},
 		emoji: {
 			open: '絵文字',
@@ -153,6 +164,15 @@ const ja = {
 };
 
 const en: typeof ja = {
+	settings: {
+		open: 'Display settings',
+		theme: 'Theme',
+		system: 'Match device',
+		light: 'Light',
+		dark: 'Dark',
+		language: 'Language',
+		close: 'Close'
+	},
 	login: {
 		title: 'Log in',
 		lead: 'Log in with your Nagi account (AT Protocol handle).',
@@ -178,6 +198,7 @@ const en: typeof ja = {
 		share: 'Share to Nagi',
 		shareHint: 'Posts to your Nagi with a link card to this Space.',
 		shareTextLabel: 'Post text',
+		shareDefault: (title: string) => `I started a Space: "${title}"`,
 		errors: {
 			empty: 'Enter a title.',
 			tooLong: 'The title is too long.',
@@ -250,7 +271,8 @@ const en: typeof ja = {
 			title: 'Captions',
 			notice: 'What the host and speakers say is shown to everyone as captions.',
 			paused: 'Captions are paused.',
-			empty: 'No captions yet.'
+			empty: 'No captions yet.',
+			separator: ': '
 		},
 		emoji: {
 			open: 'Emoji',
@@ -305,6 +327,12 @@ const en: typeof ja = {
 };
 
 export const messages: Record<Locale, typeof ja> = { ja, en };
+
+export const LOCALE_COOKIE = 'ns_locale';
+
+export function isLocale(value: unknown): value is Locale {
+	return value === 'ja' || value === 'en';
+}
 
 /** Accept-Language から表示言語を決める。日本語以外は英語（LOOK-06）。 */
 export function detectLocale(acceptLanguage: string | null): Locale {

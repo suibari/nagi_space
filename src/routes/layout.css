@@ -1,1 +1,131 @@
 @import 'tailwindcss';
+
+/*
+ * Nagi のデフォルトテーマ（bot-mint）に合わせた色（LOOK-01）。値は nagi_client の
+ * src/routes/styles/tokens.css の bot-mint と同じ。色の生の値はこのファイルだけに書く。
+ * data-theme が無ければ端末の設定に合わせ、light / dark が付いていればそれに従う（LOOK-02）。
+ */
+:root,
+:root[data-theme='light'] {
+	color-scheme: light;
+	--bg: #f7f9f9;
+	--surface-1: #ffffff;
+	--surface-2: #eef2f2;
+	--surface-3: #e2e8e8;
+	--text: #2f3542;
+	--text-strong: #202632;
+	--text-muted: #747d8c;
+	--line: #dbe3e3;
+	--line-strong: #c2cece;
+	--focus-ring: rgba(0, 113, 116, 0.5);
+	--accent: #00ced1;
+	--accent-strong: #007b7e;
+	--accent-soft: #c9f7f7;
+	--text-on-accent: #14383d;
+	--danger: #b4233c;
+	--danger-soft: #fde8ec;
+	--overlay: rgba(255, 255, 255, 0.92);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--bg: #090d0c;
+		--surface-1: #111617;
+		--surface-2: #192122;
+		--surface-3: #242e2f;
+		--text: #e8f4f3;
+		--text-strong: #e8f4f3;
+		--text-muted: #a8bfc0;
+		--line: #253032;
+		--line-strong: #364446;
+		--focus-ring: rgba(0, 229, 255, 0.55);
+		--accent: #3fc8da;
+		--accent-strong: #67d9e7;
+		--accent-soft: #173d42;
+		--text-on-accent: #04211f;
+		--danger: #ff9baa;
+		--danger-soft: #4a2931;
+		--overlay: rgba(17, 22, 23, 0.92);
+	}
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--bg: #090d0c;
+	--surface-1: #111617;
+	--surface-2: #192122;
+	--surface-3: #242e2f;
+	--text: #e8f4f3;
+	--text-strong: #e8f4f3;
+	--text-muted: #a8bfc0;
+	--line: #253032;
+	--line-strong: #364446;
+	--focus-ring: rgba(0, 229, 255, 0.55);
+	--accent: #3fc8da;
+	--accent-strong: #67d9e7;
+	--accent-soft: #173d42;
+	--text-on-accent: #04211f;
+	--danger: #ff9baa;
+	--danger-soft: #4a2931;
+	--overlay: rgba(17, 22, 23, 0.92);
+}
+
+@theme inline {
+	--color-bg: var(--bg);
+	--color-surface: var(--surface-1);
+	--color-surface-2: var(--surface-2);
+	--color-surface-3: var(--surface-3);
+	--color-fg: var(--text);
+	--color-strong: var(--text-strong);
+	--color-muted: var(--text-muted);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-accent: var(--accent);
+	--color-accent-strong: var(--accent-strong);
+	--color-accent-soft: var(--accent-soft);
+	--color-on-accent: var(--text-on-accent);
+	--color-danger: var(--danger);
+	--color-danger-soft: var(--danger-soft);
+	--color-overlay: var(--overlay);
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-bubble: 14px;
+	--font-sans: system-ui, 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', sans-serif;
+}
+
+@layer base {
+	html {
+		background: var(--bg);
+		color: var(--text);
+		font-family: var(--font-sans);
+		-webkit-text-size-adjust: 100%;
+	}
+	body {
+		background: var(--bg);
+		min-height: 100dvh;
+	}
+	:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+	input,
+	textarea,
+	select {
+		background: var(--surface-1);
+		color: var(--text);
+		border-color: var(--line-strong);
+	}
+}
+
+@layer components {
+	.btn-primary {
+		@apply rounded-full bg-accent px-4 py-2 font-medium text-on-accent hover:opacity-90 disabled:opacity-50;
+	}
+	.btn {
+		@apply rounded-full border border-line-strong bg-surface px-4 py-2 hover:bg-surface-2 disabled:opacity-50;
+	}
+	.card {
+		@apply rounded-bubble border border-line bg-surface;
+	}
+}

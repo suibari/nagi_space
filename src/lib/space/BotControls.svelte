@@ -61,18 +61,13 @@
 		{#if left}<p role="alert" data-testid="bot-left">{t.left}</p>{/if}
 		{#if inRoom || botState.requested}
 			{#if !inRoom}<p data-testid="bot-joining">{t.joining}</p>{/if}
-			<button
-				type="button"
-				class="rounded-full border px-4 py-2"
-				disabled={busy}
-				onclick={() => act('remove')}
-			>
+			<button type="button" class="btn" disabled={busy} onclick={() => act('remove')}>
 				{t.remove}
 			</button>
 		{:else}
 			<button
 				type="button"
-				class="rounded-full border px-4 py-2"
+				class="btn"
 				disabled={busy || !botState.available}
 				onclick={() => act('invite')}
 			>

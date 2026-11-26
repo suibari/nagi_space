@@ -54,7 +54,7 @@
 {#snippet emojiButton(choice: EmojiChoice, label: string)}
 	<button
 		type="button"
-		class="flex h-10 w-10 items-center justify-center rounded-lg text-2xl hover:bg-black/5"
+		class="flex h-10 w-10 items-center justify-center rounded-md text-2xl hover:bg-surface-2"
 		title={label}
 		aria-label={label}
 		data-emoji={choiceKey(choice)}
@@ -82,13 +82,13 @@
 	{/if}
 {/snippet}
 
-<section class="w-full max-w-sm rounded-xl border p-2" data-testid="emoji-picker">
+<section class="card w-full max-w-sm p-2" data-testid="emoji-picker">
 	<input
 		type="search"
 		bind:value={query}
 		placeholder={t.search}
 		aria-label={t.search}
-		class="w-full rounded-lg border px-2 py-1"
+		class="w-full rounded-md border border-line-strong px-2 py-1"
 	/>
 	<div class="mt-1 max-h-60 overflow-y-auto">
 		{#if query.trim()}

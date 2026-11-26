@@ -48,10 +48,15 @@ test('聴衆がリクエストしてホストが承認すると、字幕の案�
 	// PART-04 マイクのオン・オフ、話している人の表示、自分で聴衆に戻る
 	await listener.page.getByRole('button', { name: 'マイクをオンにする' }).click();
 	await expect(listener.page.getByRole('button', { name: 'ミュートする' })).toBeVisible(connected);
-	// 偽のマイクは音を出し続けるので、ホストの画面で「話しています」になる
-	await expect(
-		host.page.locator('[data-testid="participants"] li[data-role="speaker"]')
-	).toContainText('話しています', connected);
+	// 偽のマイクは1秒ごとに短く鳴るだけなので、「話しています」は一瞬だけ出る。毎フレーム見張る
+	await host.page.waitForFunction(
+		() =>
+			document
+				.querySelector('[data-testid="participants"] li[data-role="speaker"]')
+				?.textContent?.includes('話しています'),
+		undefined,
+		{ polling: 'raf', timeout: 20000 }
+	);
 	await listener.page.getByRole('button', { name: '聴衆に戻る' }).click();
 	await expect(listener.page.getByRole('button', { name: '発話をリクエスト' })).toBeVisible(
 		connected

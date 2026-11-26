@@ -142,7 +142,7 @@
 		{#if data.state === 'anonymous'}
 			<a
 				href="/login?returnTo={encodeURIComponent(`/s/${data.space.id}`)}"
-				class="mt-6 inline-block rounded-full bg-black px-4 py-2 text-white"
+				class="btn-primary mt-6 inline-block"
 			>
 				{t.loginToJoin}
 			</a>
@@ -180,11 +180,7 @@
 			{/if}
 
 			{#if connection && !connection.canPlayAudio}
-				<button
-					type="button"
-					class="mt-4 rounded-full border px-4 py-2"
-					onclick={() => connection?.startAudio()}
-				>
+				<button type="button" class="btn mt-4" onclick={() => connection?.startAudio()}>
 					{t.startAudio}
 				</button>
 			{/if}
@@ -193,7 +189,7 @@
 				{#if canSpeak && connection?.state === 'connected'}
 					<button
 						type="button"
-						class="rounded-full bg-black px-4 py-2 text-white"
+						class="btn-primary"
 						onclick={() => connection?.setMic(!connection.micOn)}
 					>
 						{connection.micOn ? t.micOff : t.micOn}
@@ -201,11 +197,11 @@
 				{/if}
 				{#if data.role === 'host'}
 					<!-- ホストの退室は終了と同じ（LIFE-06） -->
-					<button type="button" class="rounded-full border px-4 py-2" onclick={endSpace}>
+					<button type="button" class="btn" onclick={endSpace}>
 						{t.end}
 					</button>
 				{:else}
-					<button type="button" class="rounded-full border px-4 py-2" onclick={leave}>
+					<button type="button" class="btn" onclick={leave}>
 						{t.leave}
 					</button>
 				{/if}

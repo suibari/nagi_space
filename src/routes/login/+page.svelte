@@ -28,13 +28,13 @@
 				required
 				placeholder={t.handlePlaceholder}
 				value={form?.handle ?? ''}
-				class="rounded-lg border px-3 py-2"
+				class="rounded-md border border-line-strong px-3 py-2"
 			/>
 		</label>
 		{#if error}
-			<p role="alert" class="text-sm text-red-700">{t.errors[error]}</p>
+			<p role="alert" class="text-sm text-danger">{t.errors[error]}</p>
 		{/if}
-		<button type="submit" class="rounded-full bg-black px-4 py-2 font-medium text-white">
+		<button type="submit" class="btn-primary">
 			{t.submit}
 		</button>
 	</form>

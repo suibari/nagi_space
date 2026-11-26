@@ -18,11 +18,32 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		return {
 			state: 'ended' as const,
 			title: ended.title,
+			og:
+				ended.kind === 'public'
+					? {
+							title: `${ended.title} | Nagi Space`,
+							description:
+								locals.locale === 'ja' ? 'この Space は終了しました' : 'This Space has ended',
+							image: `/og/s/${ended.id}.png`,
+							path: `/s/${ended.id}`
+						}
+					: undefined,
 			timeLimit:
 				!!ended.endedAt && endedByTimeLimit(ended.startedAt, ended.endedAt, lifecycle.limits)
 		};
 	}
 
+	// パブリックSpace だけ、タイトルとホストを入れた OGP にする（LOOK-04）
+	const og =
+		space.kind === 'public'
+			? {
+					title: `${space.title} | Nagi Space`,
+					// リンクカードを作る側は言語を送らないので、OGP は日本語で書く
+					description: `${space.host.displayName ?? space.host.handle} の Space`,
+					image: `/og/s/${space.id}.png`,
+					path: `/s/${space.id}`
+				}
+			: undefined;
 	const summary = {
 		id: space.id,
 		kind: space.kind,
@@ -36,14 +57,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}
 	};
 	// 未ログイン・未登録の閲覧者にはタイトルとホストだけを見せる（ACC-03）
-	if (!locals.did) return { state: 'anonymous' as const, space: summary };
-	if (locals.nagiUser !== 'registered') return { state: 'unregistered' as const, space: summary };
+	if (!locals.did) return { state: 'anonymous' as const, space: summary, og };
+	if (locals.nagiUser !== 'registered')
+		return { state: 'unregistered' as const, space: summary, og };
 	const role = initialRole(space, locals.did);
 	// 開始時のシェアに失敗していたら、ホストに再試行を出す（LIFE-04）
 	const shareDraft = role === 'host' ? await store.get(shareDraftKey(space.id)) : undefined;
 	return {
 		state: 'live' as const,
 		space: summary,
+		og,
 		role,
 		shareDraft,
 		botAssetsBase,

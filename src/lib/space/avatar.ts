@@ -68,7 +68,8 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 		action.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, loop ? Infinity : 1);
 		action.clampWhenFinished = !loop;
 		action.fadeIn(0.3).play();
-		current?.fadeOut(0.3);
+		// 同じ動きを続けて流すと action が同じものになる。消すと重みが0になり T ポーズになる
+		if (current && current !== action) current.fadeOut(0.3);
 		current = action;
 		return action.getClip().duration;
 	}

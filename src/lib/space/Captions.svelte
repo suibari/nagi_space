@@ -40,14 +40,10 @@
 	{#if paused}<p class="mt-1 text-sm" role="status" data-testid="captions-paused">
 			{t.paused}
 		</p>{/if}
-	<div
-		bind:this={box}
-		class="mt-2 max-h-48 overflow-y-auto rounded-xl border p-2 text-sm"
-		aria-live="polite"
-	>
+	<div bind:this={box} class="card mt-2 max-h-48 overflow-y-auto p-2 text-sm" aria-live="polite">
 		{#each lines as line (line.id)}
 			<p data-testid="caption-line" data-speaker={line.speaker}>
-				<span class="font-medium">{line.name}</span>：{line.text}
+				<span class="font-medium">{line.name}</span>{t.separator}{line.text}
 			</p>
 		{:else}
 			<p class="text-xs">{t.empty}</p>
