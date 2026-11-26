@@ -22,8 +22,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	const participant = event.participant;
 	switch (event.event) {
 		case 'participant_joined':
-			if (participant)
+			// 終了後に遅れて届いた通知で参加者の記録を作り直さない（LIFE-07）
+			if (participant && (await spaces.getLive(spaceId))) {
 				await presence.joined(spaceId, participant.identity, parseRole(participant.metadata));
+			}
 			break;
 		case 'participant_left':
 			if (participant) await presence.left(spaceId, participant.identity);

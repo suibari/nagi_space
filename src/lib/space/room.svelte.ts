@@ -1,7 +1,14 @@
-import { Room, RoomEvent, Track, type Participant, type RemoteTrack } from 'livekit-client';
+import {
+	DisconnectReason,
+	Room,
+	RoomEvent,
+	Track,
+	type Participant,
+	type RemoteTrack
+} from 'livekit-client';
 
 export type Role = 'host' | 'speaker' | 'listener';
-export type ConnectionState = 'connecting' | 'connected' | 'disconnected';
+export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'ended';
 
 export type ParticipantView = {
 	identity: string;
@@ -55,7 +62,10 @@ export class SpaceConnection {
 			})
 			.on(RoomEvent.Reconnecting, () => (this.state = 'connecting'))
 			.on(RoomEvent.Reconnected, () => (this.state = 'connected'))
-			.on(RoomEvent.Disconnected, () => (this.state = 'disconnected'));
+			.on(RoomEvent.Disconnected, (reason) => {
+				// ホストが終了すると room が消える（LIFE-05）
+				this.state = reason === DisconnectReason.ROOM_DELETED ? 'ended' : 'disconnected';
+			});
 	}
 
 	async connect(url: string, token: string): Promise<void> {

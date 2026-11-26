@@ -26,6 +26,12 @@
 		return () => void current.disconnect();
 	});
 
+	async function endSpace() {
+		if (data.state !== 'live') return;
+		const response = await fetch(`/s/${data.space.id}/end`, { method: 'POST' });
+		if (!response.ok) console.warn('[space] end failed', response.status);
+	}
+
 	const roleLabel = (role: 'host' | 'speaker' | 'listener') => t[role];
 	const canSpeak = $derived(data.state === 'live' && data.role !== 'listener');
 </script>
@@ -59,6 +65,8 @@
 			</a>
 		{:else if data.state === 'unregistered'}
 			<p class="mt-6">{t.unregistered}</p>
+		{:else if connection?.state === 'ended'}
+			<p class="mt-6" data-testid="ended">{t.ended}</p>
 		{:else}
 			<p class="mt-4 text-sm" data-testid="connection-state">
 				{failed ? t.disconnected : t[connection?.state ?? 'connecting']}
@@ -81,6 +89,12 @@
 					onclick={() => connection?.setMic(!connection.micOn)}
 				>
 					{connection.micOn ? t.micOff : t.micOn}
+				</button>
+			{/if}
+
+			{#if data.role === 'host' && connection?.state === 'connected'}
+				<button type="button" class="mt-4 ml-2 rounded-full border px-4 py-2" onclick={endSpace}>
+					{t.end}
 				</button>
 			{/if}
 

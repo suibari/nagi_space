@@ -48,6 +48,7 @@ const ja = {
 		loginToJoin: 'ログインして参加する',
 		unregistered: 'Nagi に登録すると、この Space に入れます。',
 		startAudio: 'タップして音声を聞く',
+		end: 'Space を終了する',
 		speaking: '話しています'
 	},
 	home: {
@@ -115,6 +116,7 @@ const en: typeof ja = {
 		loginToJoin: 'Log in to join',
 		unregistered: 'Join Nagi to enter this Space.',
 		startAudio: 'Tap to hear audio',
+		end: 'End Space',
 		speaking: 'Speaking'
 	},
 	home: {
