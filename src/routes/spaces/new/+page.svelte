@@ -37,7 +37,9 @@
 <main class="mx-auto max-w-xl px-4 py-12">
 	<h1 class="text-2xl font-bold">{t.title}</h1>
 
-	{#if data.activeSpaceId}
+	{#if !data.canCreate}
+		<p class="mt-6" data-testid="not-allowed">{t.notAllowed}</p>
+	{:else if data.activeSpaceId}
 		<section class="mt-6" data-testid="active-space">
 			<p>{t.active}</p>
 			<a href="/s/{data.activeSpaceId}" class="mt-2 inline-block underline">{t.backToActive}</a>

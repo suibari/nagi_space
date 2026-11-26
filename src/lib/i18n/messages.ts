@@ -32,9 +32,11 @@ const ja = {
 			kind: '種類を選んでください。',
 			botBusy: 'botたんは今いっぱいです。少し待ってからお試しください。',
 			roomFailed: 'Space を開始できませんでした。もう一度お試しください。',
+			notAllowed: 'Space を始められるのは、いまは一部の人だけです。',
 			shareEmpty: '投稿する文章を入力してください。',
 			shareTooLong: '投稿する文章が長すぎます。'
 		},
+		notAllowed: 'Space を始められるのは、いまは一部の人だけです。もうしばらくお待ちください。',
 		active: '開催中の Space があります。',
 		backToActive: '開催中の Space に戻る'
 	},
@@ -157,9 +159,11 @@ const en: typeof ja = {
 			kind: 'Choose a type.',
 			botBusy: 'bot-tan is busy right now. Please try again in a moment.',
 			roomFailed: 'Could not start the Space. Please try again.',
+			notAllowed: 'Only some people can start Spaces right now.',
 			shareEmpty: 'Enter the text to post.',
 			shareTooLong: 'The post text is too long.'
 		},
+		notAllowed: 'Only some people can start Spaces right now. Please check back later.',
 		active: 'You already have a live Space.',
 		backToActive: 'Back to your Space'
 	},

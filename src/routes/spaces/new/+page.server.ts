@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { canCreateSpace } from '#lib/server/allowlist.ts';
 import { isBotAvailable } from '#lib/server/bot/capacity.ts';
 import { requireNagiUser } from '#lib/server/nagi.ts';
 import {
@@ -15,14 +16,17 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.did) redirect(303, '/login?returnTo=%2Fspaces%2Fnew');
 	if (locals.nagiUser !== 'registered') redirect(303, '/');
-	const { spaces } = await getRuntime();
+	const { spaces, creatorAllowlist } = await getRuntime();
 	const active = await spaces.activeSpaceOf(locals.did);
-	return { activeSpaceId: active?.id };
+	return { activeSpaceId: active?.id, canCreate: canCreateSpace(creatorAllowlist, locals.did) };
 };
 
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
 		const hostDid = requireNagiUser(locals);
+		if (!canCreateSpace((await getRuntime()).creatorAllowlist, hostDid)) {
+			return fail(403, { error: 'notAllowed' as const });
+		}
 		const form = await request.formData();
 		const rawTitle = String(form.get('title') ?? '');
 		const kind = form.get('kind');

@@ -41,6 +41,11 @@ export const variables = defineEnvVars({
 		description: 'ホストの再接続を待つ時間（秒）。既定 180',
 		schema: optional
 	},
+	SPACE_CREATOR_ALLOWLIST: {
+		description:
+			'Space を作れる人の DID（カンマ区切り）。空なら誰でも作れる。一般公開前の制限に使う',
+		schema: optional
+	},
 	OAUTH_PRIVATE_KEY_JWK: {
 		description: '本番の confidential client の秘密鍵（ES256 の JWK を1行のJSONで）',
 		schema: optional
