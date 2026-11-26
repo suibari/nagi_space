@@ -31,6 +31,16 @@ export const variables = defineEnvVars({
 		description: 'SSOチケットの発行者（Nagi AppView）の origin。省略時は本番の AppView',
 		schema: optional
 	},
+	SPACE_MAX_SPEAKERS: {
+		description: 'スピーカーの上限（ホストを含む）。既定 13',
+		schema: optional
+	},
+	SPACE_MAX_ENTRANTS: { description: '入室者の上限。既定 100', schema: optional },
+	SPACE_MAX_DURATION_SECONDS: { description: '開催時間の上限（秒）。既定 14400', schema: optional },
+	SPACE_HOST_GRACE_SECONDS: {
+		description: 'ホストの再接続を待つ時間（秒）。既定 180',
+		schema: optional
+	},
 	OAUTH_PRIVATE_KEY_JWK: {
 		description: '本番の confidential client の秘密鍵（ES256 の JWK を1行のJSONで）',
 		schema: optional

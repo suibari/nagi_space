@@ -1,21 +1,42 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { messages } from '#lib/i18n/messages.ts';
 	import { SpaceConnection } from '#lib/space/room.svelte.ts';
 	import type { PageProps } from './$types';
+
+	const STATUS_POLL_MS = 20_000;
 
 	let { data }: PageProps = $props();
 	const t = $derived(messages[data.locale].space);
 	let audioContainer: HTMLDivElement;
 	let connection = $state<SpaceConnection>();
 	let failed = $state(false);
+	let full = $state(false);
+	let endedByTimeLimit = $state(false);
+
+	type Status = { state: 'live'; hostAway: boolean } | { state: 'ended'; timeLimit: boolean };
+
+	async function fetchStatus(): Promise<Status | undefined> {
+		if (data.state !== 'live') return undefined;
+		const response = await fetch(`/s/${data.space.id}/status`);
+		if (!response.ok) return undefined;
+		const status = (await response.json()) as Status;
+		if (status.state === 'ended') endedByTimeLimit = status.timeLimit;
+		return status;
+	}
 
 	onMount(() => {
 		if (data.state !== 'live') return;
+		const live = data;
 		const current = new SpaceConnection(audioContainer);
 		connection = current;
 		(async () => {
-			const response = await fetch(`/s/${data.space.id}/token`, { method: 'POST' });
+			const response = await fetch(`/s/${live.space.id}/token`, { method: 'POST' });
+			if (response.status === 409) {
+				full = true;
+				return;
+			}
 			if (!response.ok) throw new Error(`token ${response.status}`);
 			const { url, token } = (await response.json()) as { url: string; token: string };
 			await current.connect(url, token);
@@ -23,13 +44,45 @@
 			console.warn('[space] connect failed', cause);
 			failed = true;
 		});
-		return () => void current.disconnect();
+
+		// 開催時間の上限に合わせて状態を確かめ、サーバーに終えてもらう（LIFE-09）
+		const endsAt = Date.parse(live.space.startedAt) + live.maxDurationSeconds * 1000;
+		const limitTimer = setTimeout(
+			() => void fetchStatus(),
+			Math.max(0, endsAt - Date.now()) + 2000
+		);
+		return () => {
+			clearTimeout(limitTimer);
+			void current.disconnect();
+		};
+	});
+
+	// ホストがいない間は、状態を確かめ続ける（待ち時間を過ぎるとサーバーが終える。LIFE-06）
+	const hostAway = $derived(
+		data.state === 'live' &&
+			data.role !== 'host' &&
+			connection?.state === 'connected' &&
+			!connection.participants.some((p) => p.identity === data.space.host.did)
+	);
+	$effect(() => {
+		if (!hostAway) return;
+		const timer = setInterval(() => void fetchStatus(), STATUS_POLL_MS);
+		return () => clearInterval(timer);
+	});
+	// 終了で切断されたら、時間の上限で終わったかを確かめる
+	$effect(() => {
+		if (connection?.state === 'ended') void fetchStatus();
 	});
 
 	async function endSpace() {
 		if (data.state !== 'live') return;
 		const response = await fetch(`/s/${data.space.id}/end`, { method: 'POST' });
 		if (!response.ok) console.warn('[space] end failed', response.status);
+	}
+
+	async function leave() {
+		await connection?.disconnect();
+		await goto('/');
 	}
 
 	const roleLabel = (role: 'host' | 'speaker' | 'listener') => t[role];
@@ -49,7 +102,7 @@
 		<p data-testid="not-found">{t.notFound}</p>
 	{:else if data.state === 'ended'}
 		<h1 class="text-xl font-bold">{data.title}</h1>
-		<p class="mt-2" data-testid="ended">{t.ended}</p>
+		<p class="mt-2" data-testid="ended">{data.timeLimit ? t.endedTimeLimit : t.ended}</p>
 	{:else}
 		<h1 class="text-xl font-bold" data-testid="space-title">{data.space.title}</h1>
 		<p class="mt-1 text-sm">
@@ -65,12 +118,17 @@
 			</a>
 		{:else if data.state === 'unregistered'}
 			<p class="mt-6">{t.unregistered}</p>
+		{:else if full}
+			<p class="mt-6" role="alert" data-testid="full">{t.full}</p>
 		{:else if connection?.state === 'ended'}
-			<p class="mt-6" data-testid="ended">{t.ended}</p>
+			<p class="mt-6" data-testid="ended">{endedByTimeLimit ? t.endedTimeLimit : t.ended}</p>
 		{:else}
 			<p class="mt-4 text-sm" data-testid="connection-state">
 				{failed ? t.disconnected : t[connection?.state ?? 'connecting']}
 			</p>
+			{#if hostAway}
+				<p class="mt-2 text-sm" role="status" data-testid="host-away">{t.hostAway}</p>
+			{/if}
 
 			{#if connection && !connection.canPlayAudio}
 				<button
@@ -82,21 +140,27 @@
 				</button>
 			{/if}
 
-			{#if canSpeak && connection?.state === 'connected'}
-				<button
-					type="button"
-					class="mt-4 rounded-full bg-black px-4 py-2 text-white"
-					onclick={() => connection?.setMic(!connection.micOn)}
-				>
-					{connection.micOn ? t.micOff : t.micOn}
-				</button>
-			{/if}
-
-			{#if data.role === 'host' && connection?.state === 'connected'}
-				<button type="button" class="mt-4 ml-2 rounded-full border px-4 py-2" onclick={endSpace}>
-					{t.end}
-				</button>
-			{/if}
+			<div class="mt-4 flex flex-wrap gap-2">
+				{#if canSpeak && connection?.state === 'connected'}
+					<button
+						type="button"
+						class="rounded-full bg-black px-4 py-2 text-white"
+						onclick={() => connection?.setMic(!connection.micOn)}
+					>
+						{connection.micOn ? t.micOff : t.micOn}
+					</button>
+				{/if}
+				{#if data.role === 'host'}
+					<!-- ホストの退室は終了と同じ（LIFE-06） -->
+					<button type="button" class="rounded-full border px-4 py-2" onclick={endSpace}>
+						{t.end}
+					</button>
+				{:else}
+					<button type="button" class="rounded-full border px-4 py-2" onclick={leave}>
+						{t.leave}
+					</button>
+				{/if}
+			</div>
 
 			<h2 class="mt-8 font-bold">{t.participants}</h2>
 			<ul class="mt-2 flex flex-col gap-2" data-testid="participants">

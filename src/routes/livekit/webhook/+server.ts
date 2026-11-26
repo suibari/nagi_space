@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 
 /** LiveKit の Webhook。署名を確かめてから、入退室と room の終了を反映する（design.md D3）。 */
 export const POST: RequestHandler = async ({ request }) => {
-	const { webhooks, presence, spaces } = await getRuntime();
+	const { webhooks, presence, lifecycle } = await getRuntime();
 	let event;
 	try {
 		event = await webhooks.receive(
@@ -19,22 +19,24 @@ export const POST: RequestHandler = async ({ request }) => {
 	const spaceId = event.room?.name;
 	if (!spaceId || !isSpaceId(spaceId)) return new Response(null, { status: 204 });
 
+	if (event.event === 'room_finished') {
+		// 誰もいなくなって LiveKit が room を片付けたら、Space も終える
+		await lifecycle.end(spaceId);
+		return new Response(null, { status: 204 });
+	}
+	// 終了後に遅れて届いた通知では何も作り直さない（LIFE-07）。期限もここで確かめる
+	const space = await lifecycle.getLive(spaceId);
 	const participant = event.participant;
-	switch (event.event) {
-		case 'participant_joined':
-			// 終了後に遅れて届いた通知で参加者の記録を作り直さない（LIFE-07）
-			if (participant && (await spaces.getLive(spaceId))) {
-				await presence.joined(spaceId, participant.identity, parseRole(participant.metadata));
-			}
-			break;
-		case 'participant_left':
-			if (participant) await presence.left(spaceId, participant.identity);
-			break;
-		case 'room_finished':
-			// 誰もいなくなって LiveKit が room を片付けたら、Space も終える
-			await spaces.end(spaceId);
-			await presence.clear(spaceId);
-			break;
+	if (!space || !participant) return new Response(null, { status: 204 });
+
+	const isHost = participant.identity === space.hostDid;
+	if (event.event === 'participant_joined') {
+		await presence.joined(spaceId, participant.identity, parseRole(participant.metadata));
+		if (isHost) await lifecycle.hostReturned(spaceId);
+	} else if (event.event === 'participant_left') {
+		await presence.left(spaceId, participant.identity);
+		// ホストの切断は3分待つ（LIFE-06）。自分で退室したときは終了の操作で先に終わっている
+		if (isHost) await lifecycle.hostLeft(spaceId);
 	}
 	return new Response(null, { status: 204 });
 };

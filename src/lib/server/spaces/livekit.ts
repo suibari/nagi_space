@@ -1,6 +1,7 @@
 import { AccessToken, RoomServiceClient, TrackSource } from 'livekit-server-sdk';
 import type { ServiceConfig } from '../config';
 import { livekitHttpUrl } from '../services';
+import type { SpaceLimits } from './limits';
 import type { Space } from './model';
 
 export type Role = 'host' | 'speaker' | 'listener';
@@ -24,7 +25,10 @@ export function grantsFor(role: Role, room: string) {
 export class SpaceRooms {
 	readonly rooms: RoomServiceClient;
 
-	constructor(private readonly config: ServiceConfig['livekit']) {
+	constructor(
+		private readonly config: ServiceConfig['livekit'],
+		private readonly limits: SpaceLimits
+	) {
 		this.rooms = new RoomServiceClient(livekitHttpUrl(config.url), config.apiKey, config.apiSecret);
 	}
 
@@ -37,6 +41,8 @@ export class SpaceRooms {
 			name: space.id,
 			// 誰もいなくなった room は LiveKit 側でも片付ける。Space の終了判定は Webhook で行う（作業4.2〜4.4）
 			emptyTimeout: 10 * 60,
+			// 入室者の上限（LIFE-08）の最後の砦。space-agent の分を足す
+			maxParticipants: this.limits.maxEntrants + 3,
 			metadata: JSON.stringify({ kind: space.kind, hostDid: space.hostDid })
 		});
 	}

@@ -13,8 +13,11 @@ export type LiveSpaceItem = {
 /** 開催中のパブリックSpaceの一覧（LIFE-03）。Nagi登録済みの人にだけ出す（ACC-02）。 */
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.nagiUser !== 'registered') return { spaces: [] as LiveSpaceItem[] };
-	const { spaces, presence } = await getRuntime();
-	const live = await spaces.listLivePublic();
+	const { spaces, presence, lifecycle } = await getRuntime();
+	// 期限を過ぎた Space はここでも終える（LIFE-06・LIFE-09）
+	const live = (
+		await Promise.all((await spaces.listLivePublic()).map((space) => lifecycle.enforce(space)))
+	).filter((space) => space !== undefined);
 	const items = await Promise.all(
 		live.map(async (space): Promise<LiveSpaceItem> => {
 			const counts = await presence.counts(space.id);

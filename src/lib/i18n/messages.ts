@@ -49,6 +49,10 @@ const ja = {
 		unregistered: 'Nagi に登録すると、この Space に入れます。',
 		startAudio: 'タップして音声を聞く',
 		end: 'Space を終了する',
+		leave: '退室する',
+		hostAway: 'ホストの再接続を待っています',
+		full: 'この Space は満員です。',
+		endedTimeLimit: '開催時間の上限に達したため、この Space は終了しました。',
 		speaking: '話しています'
 	},
 	home: {
@@ -117,6 +121,10 @@ const en: typeof ja = {
 		unregistered: 'Join Nagi to enter this Space.',
 		startAudio: 'Tap to hear audio',
 		end: 'End Space',
+		leave: 'Leave',
+		hostAway: 'Waiting for the host to reconnect',
+		full: 'This Space is full.',
+		endedTimeLimit: 'This Space ended because it reached the time limit.',
 		speaking: 'Speaking'
 	},
 	home: {

@@ -14,6 +14,8 @@ import { createRequestLock, createSessionStore, createStateStore } from './oauth
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { createStore } from './services';
 import { SessionManager } from './session';
+import { SpaceLifecycle } from './spaces/lifecycle';
+import { loadLimits } from './spaces/limits';
 import { SpaceRooms } from './spaces/livekit';
 import { PresenceStore } from './spaces/presence';
 import { SpaceRepository } from './spaces/repository';
@@ -31,6 +33,7 @@ export type Runtime = {
 	rooms: SpaceRooms;
 	presence: PresenceStore;
 	webhooks: WebhookReceiver;
+	lifecycle: SpaceLifecycle;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -49,6 +52,10 @@ async function init(): Promise<Runtime> {
 		sessionStore: oauthSessions,
 		requestLock: createRequestLock(store)
 	});
+	const spaces = new SpaceRepository(store);
+	const presence = new PresenceStore(store);
+	const limits = loadLimits(env);
+	const rooms = new SpaceRooms(services.livekit, limits);
 	return {
 		auth,
 		store,
@@ -64,10 +71,11 @@ async function init(): Promise<Runtime> {
 			store,
 			env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL
 		),
-		spaces: new SpaceRepository(store),
-		rooms: new SpaceRooms(services.livekit),
-		presence: new PresenceStore(store),
-		webhooks: new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret)
+		spaces,
+		rooms,
+		presence,
+		webhooks: new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret),
+		lifecycle: new SpaceLifecycle(store, spaces, presence, rooms, limits)
 	};
 }
 
