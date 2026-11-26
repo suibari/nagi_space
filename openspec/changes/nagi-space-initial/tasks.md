@@ -9,7 +9,7 @@
 
 ## 2. 土台（Webアプリ・外部サービス）
 
-- [ ] 2.1 SvelteKit（Svelte 5・TypeScript・Tailwind）とVercel adapterでアプリを作成し、Vitest・Playwright・svelte-check・Prettierを設定する（完了の確認：`npm run check`・`npm test`・`npm run build` が通る）
+- [x] 2.1 SvelteKit（Svelte 5・TypeScript・Tailwind）とVercel adapterでアプリを作成し、Vitest・Playwright・svelte-check・Prettierを設定する（完了の確認：`npm run check`・`npm test`・`npm run build` が通る）
 - [ ] 2.2 LiveKit Cloudのプロジェクトと Upstash Redis を用意し、`LIVEKIT_URL` などの接続情報を環境変数だけで切り替えられるようにする。`.env.example` とREADMEに設定手順を書く（完了の確認：開発サーバーからLiveKitのroom作成とRedisの読み書きができる）
 
 ## 3. 認証（space-access）
