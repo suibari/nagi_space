@@ -4,7 +4,7 @@ import { render } from 'vitest-browser-svelte';
 import Page from './+page.svelte';
 
 const props = (did?: string, nagiUser = did ? 'registered' : 'anonymous') =>
-	({ data: { did, nagiUser, locale: 'ja' as const }, params: {} }) as never;
+	({ data: { did, nagiUser, locale: 'ja' as const, spaces: [] }, params: {} }) as never;
 
 describe('/+page.svelte', () => {
 	it('未ログインならログインのリンクを表示する', async () => {

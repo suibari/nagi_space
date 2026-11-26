@@ -16,7 +16,7 @@ npm run dev
 
 ### 外部サービス
 
-ローカルでは LiveKit サーバー（開発モード）と Redis を Docker で動かします。
+ローカルでは LiveKit サーバーと Redis を Docker で動かします。LiveKit はホスト側のアプリ（`127.0.0.1:5173` と E2E の `127.0.0.1:4173`）へ Webhook を送るため、ホストのネットワークで動かします（Linux 向け。設定は `ops/dev/livekit.yaml`）。
 
 ```sh
 cp .env.example .env.local

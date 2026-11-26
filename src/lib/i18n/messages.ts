@@ -54,6 +54,11 @@ const ja = {
 		loginLink: 'ログイン',
 		signedInAs: 'ログイン中',
 		startSpace: 'Space を始める',
+		liveSpaces: '開催中の Space',
+		noSpaces: 'いま開催中の Space はありません。',
+		speakers: (n: number) => `スピーカー ${n}人`,
+		listeners: (n: number) => `聴いている人 ${n}人`,
+		botPresent: 'botたん参加中',
 		unregistered:
 			'Nagi Space は Nagi に登録している人が使えます。Nagi でプロフィールを作るか、投稿してから戻ってきてください。',
 		openNagi: 'Nagi を開く',
@@ -116,6 +121,11 @@ const en: typeof ja = {
 		loginLink: 'Log in',
 		signedInAs: 'Logged in',
 		startSpace: 'Start a Space',
+		liveSpaces: 'Live Spaces',
+		noSpaces: 'No Spaces are live right now.',
+		speakers: (n: number) => `${n} speaking`,
+		listeners: (n: number) => `${n} listening`,
+		botPresent: 'bot-tan is here',
 		unregistered:
 			'Nagi Space is for people who use Nagi. Create a profile or post on Nagi, then come back.',
 		openNagi: 'Open Nagi',

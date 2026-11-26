@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 	import { messages } from '#lib/i18n/messages.ts';
 	import type { PageProps } from './$types';
 
@@ -6,6 +8,14 @@
 
 	let { data }: PageProps = $props();
 	const t = $derived(messages[data.locale]);
+
+	// 一覧を見ている間に始まった・終わった Space を反映する（LIFE-03）
+	onMount(() => {
+		const timer = setInterval(() => {
+			if (document.visibilityState === 'visible') void invalidateAll();
+		}, 15_000);
+		return () => clearInterval(timer);
+	});
 </script>
 
 <svelte:head>
@@ -32,6 +42,32 @@
 			<a href="/spaces/new" class="mt-4 inline-block rounded-full bg-black px-4 py-2 text-white">
 				{t.home.startSpace}
 			</a>
+			<section class="mt-8">
+				<h2 class="font-bold">{t.home.liveSpaces}</h2>
+				{#if data.spaces.length === 0}
+					<p class="mt-2 text-sm" data-testid="no-spaces">{t.home.noSpaces}</p>
+				{:else}
+					<ul class="mt-2 flex flex-col gap-3" data-testid="live-spaces">
+						{#each data.spaces as space (space.id)}
+							<li>
+								<a
+									href="/s/{space.id}"
+									class="block rounded-xl border p-3"
+									data-space-id={space.id}
+								>
+									<span class="block font-medium">{space.title}</span>
+									<span class="block text-sm">{space.host.displayName ?? space.host.handle}</span>
+									<span class="mt-1 flex flex-wrap gap-3 text-xs">
+										<span>{t.home.speakers(space.speakers)}</span>
+										<span>{t.home.listeners(space.listeners)}</span>
+										{#if space.botPresent}<span>{t.home.botPresent}</span>{/if}
+									</span>
+								</a>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</section>
 		{/if}
 		<form method="POST" action="/logout" class="mt-4">
 			<button type="submit" class="rounded-full border px-4 py-2">{t.logout}</button>

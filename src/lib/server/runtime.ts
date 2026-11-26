@@ -10,6 +10,8 @@ import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from '.
 import { SessionManager } from './session';
 import { SpaceRepository } from './spaces/repository';
 import { SpaceRooms } from './spaces/livekit';
+import { PresenceStore } from './spaces/presence';
+import { WebhookReceiver } from 'livekit-server-sdk';
 import {
 	DEFAULT_NAGI_APPVIEW_URL,
 	createRegistrationChecker,
@@ -27,6 +29,8 @@ export type Runtime = {
 	checkRegistration: (did: string) => Promise<RegistrationResult>;
 	spaces: SpaceRepository;
 	rooms: SpaceRooms;
+	presence: PresenceStore;
+	webhooks: WebhookReceiver;
 };
 
 let runtime: Promise<Runtime> | undefined;
@@ -57,7 +61,21 @@ async function init(): Promise<Runtime> {
 	);
 	const spaces = new SpaceRepository(redis);
 	const rooms = new SpaceRooms(services.livekit);
-	return { auth, redis, oauth, oauthSessions, sessions, sso, checkRegistration, spaces, rooms };
+	const presence = new PresenceStore(redis);
+	const webhooks = new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret);
+	return {
+		auth,
+		redis,
+		oauth,
+		oauthSessions,
+		sessions,
+		sso,
+		checkRegistration,
+		spaces,
+		rooms,
+		presence,
+		webhooks
+	};
 }
 
 /** サーバーのインスタンスごとに1回だけ初期化する。失敗したら次の要求で作り直す。 */

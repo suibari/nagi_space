@@ -1,0 +1,17 @@
+# ローカル開発用の LiveKit 設定（compose.dev.yml から読む）。
+port: 7880
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: false
+  node_ip: 127.0.0.1
+keys:
+  devkey: secret
+webhook:
+  api_key: devkey
+  # 開発サーバー（5173）と E2E のプレビュー（4173）の両方へ送る
+  urls:
+    - http://127.0.0.1:5173/livekit/webhook
+    - http://127.0.0.1:4173/livekit/webhook
+logging:
+  level: info

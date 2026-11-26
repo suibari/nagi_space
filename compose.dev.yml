@@ -3,12 +3,12 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.9.0
-    # --dev は API キー devkey / シークレット secret で起動する開発モード
-    command: --dev --bind 0.0.0.0
-    ports:
-      - '127.0.0.1:7880:7880'
-      - '127.0.0.1:7881:7881'
-      - '127.0.0.1:7882:7882/udp'
+    # API キー devkey / シークレット secret。Webhook はホスト側のアプリへ送る（ops/dev/livekit.yaml）
+    # ホストの 127.0.0.1 で待ち受けるアプリへ Webhook を送るため、ホストのネットワークで動かす（Linux 向け）
+    command: --config /etc/livekit.yaml --bind 127.0.0.1
+    network_mode: host
+    volumes:
+      - ./ops/dev/livekit.yaml:/etc/livekit.yaml:ro
   redis:
     image: redis:7.4-alpine
     ports:
