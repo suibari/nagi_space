@@ -2,6 +2,30 @@
 
 夜間の自律作業で、推奨案で進めた判断の一覧です。違っていれば、項目ごとに直します。
 
+## まず決めていただきたいこと（優先順）
+
+1. **botたんSpace の会話を botたんの記憶に残すか（BOT-07・作業8.7）**：Bot Memory API に会話を書き込む口が無く、記憶が利用者ごとに分かれていないため、二人きりの会話がパブリックSpace で話題に出るおそれがある。推奨は「まず残さない（BOT-07 を変更）」で公開し、利用者ごとに分けて引く仕組みを別の change で設計すること。
+2. **Nagi Space の本番ドメイン**：仮に `https://space.nagi.suibari.com` とした（SSO の許可先・OAuth・OGP で使う）。
+3. **アイコンのデザイン**（`static/icons/icon.svg`）と、**convo の Space 用の人物設定の文面**（bot-tan-convo のブランチ `nagi-space` の `config.toml` の `space` / `space_bot`）。
+4. **公開前の LiveKit の運用**（無料枠・Ship・セルフホスト）。判断材料は design.md の「公開前の LiveKit の運用の判断材料」。
+
+## 外部リポジトリに置いたもの（どれも未push）
+
+| リポジトリ           | 場所                                                                        | 内容                                                                                          |
+| -------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| bot-tan-convo        | 作業ディレクトリ `../bot-tan-convo-nagi-space`、ブランチ `nagi-space`       | 字幕だけのつなぎ・Space ごとの会話・ASR の優先・計測スクリプト（説明は `docs/nagi-space.md`） |
+| bsky-affirmative-bot | ブランチ `nagi-space-report`（作業中のチェックアウトは main に戻した）      | `createReport` に Space の通報を足す（lexicon の公開と AppView のデプロイが要る）             |
+| nagi_client          | 作業ディレクトリ `../nagi_client-nagi-space-sso`、ブランチ `nagi-space-sso` | 姉妹アプリの許可 origin に Nagi Space を加える OpenSpec の change（提案だけ）                 |
+
+## あなたの作業（作業項目）
+
+- 1.4 総合通信局への事前相談（一般公開の前）
+- 2.3 LiveKit Cloud のプロジェクトと鍵
+- 2.5 自宅 DB へのマイグレーション（`db/migrations/0001`・`0002`）の適用、PostgREST の設定、Cloudflare Access のトークン
+- 2.6 botたんの3Dモデルと動きを外部の置き場に置く
+- 3.7 実際のアカウントでのログインとシェアの手動確認
+- そのほか：本物の convo（ブランチ `nagi-space`）と space-agent をつないだ確認、space-agent の自動再起動（systemd）の設定、AppView の環境変数 `PASSPORT_AUDIENCES` への Nagi Space の追加
+
 ## これまでに伝えた判断（2026-11-26 夕方までの報告分）
 
 - タイトルは100書記素まで。ホストも最初はミュートで入室し、初めてマイクをオンにするときに許可を求める。
