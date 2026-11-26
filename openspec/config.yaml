@@ -1,0 +1,32 @@
+schema: spec-driven
+
+context: |
+  Language: ja
+  All artifacts must be written in ja.
+  Keep OpenSpec structural headings (Purpose / Requirements / Requirement / Scenario / WHEN / THEN)
+  and SHALL/MUST keywords in English.
+
+  Nagi Space は、AT Protocol 上の全肯定SNS「Nagi」の利用者向けリアルタイム音声チャット（Twitter Space 相当）である。
+  独立したWebアプリとして本リポジトリで開発する。関連する外部リポジトリ：
+  - nagi_client（Nagi Webクライアント。SvelteKit / Svelte 5 / Tailwind / Vercel。OAuth・テーマ・絵文字・OGPの既存仕様は
+    nagi_client/openspec/specs/ にある）
+  - Nagi AppView（別リポジトリ。本リポジトリからは契約のみ参照する）
+  - bot-tan-convo（botたんのリアルタイム音声会話サーバー。Python。Tailscale 内側専用で、Tailscale-User-Login ヘッダで認証。
+    API v1 は WebSocket で PCM16 16kHz 上り / 24kHz 下り。セッション数は設定値で既定2〜3）
+  仕様書が振る舞いの正本で、コードは仕様に合わせる。仕様に無い挙動を新たに決めるときは利用者に確認する。
+  外部リポジトリの実装を本リポジトリの記載だけで検証済みと主張しない。
+
+rules:
+  proposal:
+    - 対象分野、利用者から見える振る舞い、非対象、影響する外部リポジトリを明記する。
+    - 利用者に確認が必要な未決事項は「未決事項」として明示し、推測で確定させない。
+  design:
+    - 課題・採用判断・理由と制約を文章で整理する。
+    - 失敗時の扱い、個人情報の境界、外部サービスの上限と費用を記録する。
+  specs:
+    - 機能概要、要件IDと対応させた機能一覧、主な利用の流れを先に書く。
+    - 観測可能な要件にMUSTまたはSHALLとWHEN/THENシナリオを付ける。
+    - 正常系だけでなく権限不足・上限超過・切断・競合を必要に応じて扱う。
+  tasks:
+    - 外部リポジトリ（convo・AppView・nagi_client）への変更は、それと分かるタスクに分ける。
+    - 推定値に依存する上限は、計測タスクを置いてから確定させる。
