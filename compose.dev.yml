@@ -2,7 +2,7 @@
 # 本番は LiveKit Cloud（または自前の LiveKit）と自宅の PostgREST を環境変数で指定する（design.md D1・D10）。
 services:
   livekit:
-    image: livekit/livekit-server:v1.9.0
+    image: livekit/livekit-server:v1.13.0
     # ホストの 127.0.0.1 で待ち受けるアプリへ Webhook を送るため、ホストのネットワークで動かす（Linux 向け）
     command: --config /etc/livekit.yaml --bind 127.0.0.1
     network_mode: host

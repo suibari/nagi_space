@@ -37,6 +37,12 @@ export default defineConfig({
 	],
 	// botたんの空き状況など保存先の共有の状態を書き換えるテストがあるので、順番に実行する
 	workers: 1,
-	use: { baseURL: `http://127.0.0.1:${port}` },
+	use: {
+		baseURL: `http://127.0.0.1:${port}`,
+		// 軽量の headless shell はマイクの取得（getUserMedia）に対応しないので、通常の Chromium を使う
+		channel: 'chromium',
+		// マイクは偽の装置を使う（許可の画面は出さず、テストごとに許可を与える）
+		launchOptions: { args: ['--use-fake-device-for-media-stream'] }
+	},
 	testMatch: '**/*.e2e.{ts,js}'
 });
