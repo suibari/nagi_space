@@ -76,7 +76,11 @@ export class BotRequests {
 export async function recordAgentReport(store: KeyValueStore, report: AgentReport): Promise<void> {
 	await store.set(
 		CAPACITY_KEY,
-		JSON.stringify({ freeSessions: report.bot.free, updatedAt: new Date().toISOString() }),
+		JSON.stringify({
+			freeSessions: report.bot.free,
+			maxSessions: report.bot.max,
+			updatedAt: new Date().toISOString()
+		}),
 		{ ttlSeconds: AGENT_STALE_SECONDS }
 	);
 }

@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { canCreateSpace } from '#lib/server/allowlist.ts';
-import { isBotAvailable } from '#lib/server/bot/capacity.ts';
+import { botStatus } from '#lib/server/bot/capacity.ts';
 import { requireNagiUser } from '#lib/server/nagi.ts';
 import {
 	SHARE_DRAFT_TTL_SECONDS,
@@ -51,9 +51,11 @@ export const actions: Actions = {
 		}
 
 		const { spaces, rooms, store, oauth, auth, botRequests } = await getRuntime();
-		// botたんSpace は botたんに空きが無ければ作らない（LIFE-02）
-		if (kind === 'bot' && !(await isBotAvailable(store))) {
-			return fail(409, { ...echo, error: 'botBusy' as const });
+		// botたんSpace は botたんを呼べなければ作らない（LIFE-02・BOT-06）
+		if (kind === 'bot') {
+			const status = await botStatus(store);
+			if (status === 'busy') return fail(409, { ...echo, error: 'botBusy' as const });
+			if (status === 'resting') return fail(409, { ...echo, error: 'botResting' as const });
 		}
 
 		const space: Space = {

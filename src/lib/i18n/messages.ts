@@ -41,6 +41,7 @@ const ja = {
 			tooLong: 'タイトルが長すぎます。',
 			kind: '種類を選んでください。',
 			botBusy: 'botたんは今いっぱいです。少し待ってからお試しください。',
+			botResting: 'botたんは今お休み中です。しばらくしてからお試しください。',
 			roomFailed: 'Space を開始できませんでした。もう一度お試しください。',
 			notAllowed: 'Space を始められるのは、いまは一部の人だけです。',
 			shareEmpty: '投稿する文章を入力してください。',
@@ -101,6 +102,7 @@ const ja = {
 			invite: 'botたんを呼ぶ',
 			remove: 'botたんに抜けてもらう',
 			busy: 'botたんは今いっぱいです。空いたら呼べます。',
+			resting: 'botたんは今お休み中です。戻ってきたら呼べます。',
 			joining: 'botたんを呼んでいます…',
 			left: 'botたんとの接続が切れたため、botたんは退出しました。もう一度呼べます。'
 		},
@@ -204,6 +206,7 @@ const en: typeof ja = {
 			tooLong: 'The title is too long.',
 			kind: 'Choose a type.',
 			botBusy: 'bot-tan is busy right now. Please try again in a moment.',
+			botResting: 'bot-tan is taking a break right now. Please try again later.',
 			roomFailed: 'Could not start the Space. Please try again.',
 			notAllowed: 'Only some people can start Spaces right now.',
 			shareEmpty: 'Enter the text to post.',
@@ -264,6 +267,7 @@ const en: typeof ja = {
 			invite: 'Invite bot-tan',
 			remove: 'Ask bot-tan to leave',
 			busy: 'bot-tan is busy right now. You can invite them when they are free.',
+			resting: 'bot-tan is taking a break right now. You can invite them when they are back.',
 			joining: 'Inviting bot-tan…',
 			left: 'bot-tan left because the connection was lost. You can invite them again.'
 		},

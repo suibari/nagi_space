@@ -3,7 +3,8 @@
 - /v1/transcribe/ws：話者ごとの声を数え、音のあった1秒ごとに speech.start と文字起こしを返す
   （Chrome の偽のマイクは1秒ごとに短く鳴るだけなので、無音の部分も含めて数える）
 - /v1/sessions/{sid}/ws：文字（input.text）を受けたら、短い返事の声と動きと字幕を返す
-- POST /test/capacity：botたんの空きを変える（会話が増えても減っても、空きはこの数のまま）
+- POST /test/capacity：botたんの空きを変える（会話が増えても減っても、空きはこの数のまま）。
+  `down: true` なら /v1/health を 503 にして、convo が止まった状態を再現する
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ import struct
 from aiohttp import WSMsgType, web
 
 PORT = int(os.environ.get("PORT", "8799"))
-state = {"free": 2, "sessions": {}, "transcribers": 0, "last_text": {}, "conversations": set(), "interrupts": 0, "transcribe_ws": set()}
+state = {"down": False, "free": 2, "sessions": {}, "transcribers": 0, "last_text": {}, "conversations": set(), "interrupts": 0, "transcribe_ws": set()}
 
 
 def tone(seconds: float, rate: int = 24000) -> bytes:
@@ -25,8 +26,12 @@ def tone(seconds: float, rate: int = 24000) -> bytes:
 
 
 async def health(_r):
-    return web.json_response({"status": "ok", "v": 1, "sessions": len(state["sessions"]),
-                              "max_sessions": len(state["sessions"]) + state["free"], "transcribers": state["transcribers"],
+    if state["down"]:
+        return web.json_response({"error": "down"}, status=503)
+    # 本物の convo は上限が 1 以上。上限 0 は「止まっている」とみなされる（BOT-06）ので、空きが 0 でも上限は残す
+    max_sessions = max(2, len(state["sessions"]) + state["free"])
+    return web.json_response({"status": "ok", "v": 1, "sessions": max_sessions - state["free"],
+                              "max_sessions": max_sessions, "transcribers": state["transcribers"],
                               "max_transcribe": 6})
 
 
@@ -107,7 +112,9 @@ async def transcribe(request):
 
 
 async def set_capacity(request):
-    state["free"] = int((await request.json())["bot"])
+    body = await request.json()
+    state["free"] = int(body["bot"])
+    state["down"] = bool(body.get("down", False))
     return web.json_response({"ok": True})
 
 

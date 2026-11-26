@@ -5,7 +5,8 @@ import {
 	createSpace,
 	openAs,
 	resetBotCapacity,
-	setBotCapacity
+	setBotCapacity,
+	setBotDown
 } from './fixtures/space.ts';
 
 const connected = { timeout: 15000 };
@@ -90,6 +91,24 @@ test('botたんに空きが無いと呼べず、空きができたら呼べる�
 		'botたんは今いっぱいです。空いたら呼べます。',
 		slow
 	);
+	await expect(host.page.getByRole('button', { name: 'botたんを呼ぶ' })).toBeDisabled();
+	await setBotCapacity(1);
+	await expect(host.page.getByRole('button', { name: 'botたんを呼ぶ' })).toBeEnabled(slow);
+	await resetBotCapacity();
+	await cleanup(host.did);
+});
+
+// BOT-06 convoに届かない間に招待しようとする
+test('convoに届かない間は「お休み中」と出て呼べず、戻ったら呼べる', async ({ browser }) => {
+	test.setTimeout(90_000);
+	await setBotDown();
+	const host = await openAs(browser);
+	await createSpace(host.page, 'お休み');
+	await expect(host.page.getByTestId('bot-resting')).toHaveText(
+		'botたんは今お休み中です。戻ってきたら呼べます。',
+		slow
+	);
+	await expect(host.page.getByTestId('bot-busy')).toHaveCount(0);
 	await expect(host.page.getByRole('button', { name: 'botたんを呼ぶ' })).toBeDisabled();
 	await setBotCapacity(1);
 	await expect(host.page.getByRole('button', { name: 'botたんを呼ぶ' })).toBeEnabled(slow);

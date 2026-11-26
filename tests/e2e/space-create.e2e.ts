@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { db, revokeOAuthSession, signIn } from './fixtures/session.ts';
-import { cleanup, resetBotCapacity, setBotCapacity } from './fixtures/space.ts';
+import { cleanup, resetBotCapacity, setBotCapacity, setBotDown } from './fixtures/space.ts';
 
 test.use({ locale: 'ja-JP' });
 
@@ -70,6 +70,21 @@ test('botたんに空きが無ければbotたんSpaceを作らない', async ({ 
 	await page.getByRole('button', { name: '開始する' }).click();
 	await expect(page.getByRole('alert')).toContainText('botたんは今いっぱいです');
 	expect(await db.get(`space:host:${did}`)).toBeUndefined();
+	await revokeOAuthSession(did);
+});
+
+// BOT-06 convoに届かない間にbotたんSpaceを作成する
+test('convoに届かなければbotたんSpaceを作らず、お休み中と表示する', async ({ context, page }) => {
+	const did = memberDid();
+	await signIn(context, did);
+	await setBotDown();
+	await page.goto('/spaces/new');
+	await page.getByLabel('タイトル').fill('botたんとおしゃべり');
+	await page.getByLabel('botたんSpace').check();
+	await page.getByRole('button', { name: '開始する' }).click();
+	await expect(page.getByRole('alert')).toContainText('botたんは今お休み中です');
+	expect(await db.get(`space:host:${did}`)).toBeUndefined();
+	await resetBotCapacity();
 	await revokeOAuthSession(did);
 });
 

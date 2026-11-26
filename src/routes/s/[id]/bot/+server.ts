@@ -1,5 +1,5 @@
 import { error, json } from '@sveltejs/kit';
-import { isBotAvailable } from '#lib/server/bot/capacity.ts';
+import { botStatus } from '#lib/server/bot/capacity.ts';
 import { requireNagiUser } from '#lib/server/nagi.ts';
 import { getRuntime } from '#lib/server/runtime.ts';
 import { isSpaceId, type Space } from '#lib/server/spaces/model.ts';
@@ -16,7 +16,7 @@ async function hostSpace(id: string, did: string): Promise<Space> {
 	return space;
 }
 
-/** botたんの状態（招待中か・参加しているか・いま招待できるか。BOT-02）。 */
+/** botたんの状態（招待中か・参加しているか・いま招待できるか。BOT-02・BOT-06）。 */
 export const GET: RequestHandler = async ({ params, locals }) => {
 	const did = requireNagiUser(locals);
 	const space = await hostSpace(params.id, did);
@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		{
 			requested: await botRequests.requested(space.id),
 			present: (await presence.counts(space.id)).botPresent,
-			available: await isBotAvailable(store)
+			status: await botStatus(store)
 		},
 		{ headers: { 'cache-control': 'no-store' } }
 	);
@@ -39,7 +39,10 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 	const body = (await request.json().catch(() => ({}))) as { action?: unknown };
 	if (body.action === 'invite') {
 		if (await botRequests.requested(space.id)) return new Response(null, { status: 204 });
-		if (!(await isBotAvailable(store))) return json({ error: 'botBusy' }, { status: 409 });
+		const status = await botStatus(store);
+		if (status !== 'available') {
+			return json({ error: status === 'busy' ? 'botBusy' : 'botResting' }, { status: 409 });
+		}
 		await botRequests.request(space.id);
 		return new Response(null, { status: 204 });
 	}

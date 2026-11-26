@@ -5,7 +5,11 @@
 
 	const POLL_MS = 5000;
 
-	type BotState = { requested: boolean; present: boolean; available: boolean };
+	type BotState = {
+		requested: boolean;
+		present: boolean;
+		status: 'available' | 'busy' | 'resting';
+	};
 
 	let {
 		spaceId,
@@ -37,7 +41,7 @@
 
 	onMount(() => {
 		void refresh();
-		// 空きができたら招待の操作を使えるようにする（BOT-02）
+		// 空きができたり convo に届くようになったら、招待の操作を使えるようにする（BOT-02・BOT-06）
 		const timer = setInterval(() => void refresh(), POLL_MS);
 		const previous = connection.onControl;
 		connection.onControl = (message) => {
@@ -68,12 +72,16 @@
 			<button
 				type="button"
 				class="btn"
-				disabled={busy || !botState.available}
+				disabled={busy || botState.status !== 'available'}
 				onclick={() => act('invite')}
 			>
 				{t.invite}
 			</button>
-			{#if !botState.available}<p class="mt-1" data-testid="bot-busy">{t.busy}</p>{/if}
+			{#if botState.status === 'busy'}
+				<p class="mt-1" data-testid="bot-busy">{t.busy}</p>
+			{:else if botState.status === 'resting'}
+				<p class="mt-1" data-testid="bot-resting">{t.resting}</p>
+			{/if}
 		{/if}
 	</section>
 {/if}

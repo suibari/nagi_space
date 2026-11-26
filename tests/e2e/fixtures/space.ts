@@ -60,10 +60,23 @@ export async function setBotCapacity(freeSessions: number) {
 		body: JSON.stringify({ bot: freeSessions })
 	});
 	const free = () =>
-		db
-			.get('bot:capacity')
-			.then((raw) => JSON.parse(raw ?? '{"freeSessions":-1}').freeSessions as number);
+		db.get('bot:capacity').then((raw) => {
+			const capacity = JSON.parse(raw ?? '{"freeSessions":-1}');
+			return capacity.maxSessions === 0 ? -1 : (capacity.freeSessions as number);
+		});
 	await expect.poll(free, { timeout: 10000 }).toBe(freeSessions);
+}
+
+/** convo が止まった状態にする（BOT-06）。space-agent が上限 0 を知らせてくるまで待つ。 */
+export async function setBotDown() {
+	await fetch(`${FAKE_CONVO_URL}/test/capacity`, {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({ bot: 0, down: true })
+	});
+	const max = () =>
+		db.get('bot:capacity').then((raw) => JSON.parse(raw ?? '{}').maxSessions as number | undefined);
+	await expect.poll(max, { timeout: 10000 }).toBe(0);
 }
 
 /** テストの終わりに、botたんの空きを既定（2）に戻す（待たない）。 */

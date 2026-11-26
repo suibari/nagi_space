@@ -4,13 +4,13 @@
 
 ## 実行結果
 
-| 種類                                         | 件数 | 結果                        |
-| -------------------------------------------- | ---- | --------------------------- |
-| ユニット・コンポーネント（Vitest）           | 74   | すべて成功                  |
-| 統合（実際の PostgREST・LiveKit）            | 25   | すべて成功                  |
-| space-agent（pytest）                        | 6    | すべて成功                  |
-| E2E（Playwright）                            | 68   | すべて成功（通しで2回以上） |
-| bot-tan-convo（pytest、ブランチ nagi-space） | 92   | すべて成功                  |
+| 種類                                         | 件数 | 結果                                                   |
+| -------------------------------------------- | ---- | ------------------------------------------------------ |
+| ユニット・コンポーネント（Vitest）           | 74   | すべて成功                                             |
+| 統合（実際の PostgREST・LiveKit）            | 25   | すべて成功                                             |
+| space-agent（pytest）                        | 6    | すべて成功                                             |
+| E2E（Playwright）                            | 70   | すべて成功（2026-11-27 に BOT-06 の2件を足して再実行） |
+| bot-tan-convo（pytest、ブランチ nagi-space） | 92   | すべて成功                                             |
 
 通し試験（`tests/e2e/integration.e2e.ts`）：ホストが作成 → スピーカーが一覧から入室・発話をリクエスト → ホストが承認 → スピーカーの発話が字幕になる → ホストが botたんを呼ぶ → botたんが名前付きの発話に返事し、字幕と動きが届く → 聴衆が絵文字を送る → ホストがスピーカーをミュート → ホストが終了し、全員が終了の表示になり、参加者と発話の記録が消える。
 
@@ -32,7 +32,7 @@
 | bot-tan-presence    | BOT-03 話者ごとの名前付きの発話で会話する         | `tests/e2e/bot.e2e.ts`, `tests/e2e/integration.e2e.ts`                                                                                              |
 | bot-tan-presence    | BOT-04 人間が話し始めたら譲る                     | `tests/e2e/bot.e2e.ts`                                                                                                                              |
 | bot-tan-presence    | BOT-05 3Dモデルの表示                             | `tests/e2e/avatar-nowebgl.e2e.ts`, `tests/e2e/avatar.e2e.ts`, `tests/e2e/integration.e2e.ts`                                                        |
-| bot-tan-presence    | BOT-06 convoの障害                                | `tests/e2e/bot.e2e.ts`                                                                                                                              |
+| bot-tan-presence    | BOT-06 convoの障害                                | `tests/e2e/bot.e2e.ts`・`tests/e2e/space-create.e2e.ts`                                                                                             |
 | bot-tan-presence    | BOT-07 Spaceの会話はbotたんの記憶に残さない       | （テストに要件IDの記載なし）                                                                                                                        |
 | space-access        | ACC-01 AT Protocol OAuthによるログイン            | `tests/e2e/sso.e2e.ts`                                                                                                                              |
 | space-access        | ACC-02 Nagi登録済みの利用者に限る                 | `tests/e2e/registration.e2e.ts`                                                                                                                     |
