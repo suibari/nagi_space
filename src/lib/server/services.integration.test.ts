@@ -1,7 +1,6 @@
-import { beforeAll, describe, expect, it } from 'vitest';
-import type { ServiceConfig } from './config';
+import { describe, expect, it } from 'vitest';
 import { loadServiceConfig } from './config';
-import { connectRedis, createRoomService, livekitHttpUrl } from './services';
+import { createRoomService, livekitHttpUrl } from './services';
 
 describe('livekitHttpUrl', () => {
 	it('ws(s) を http(s) に直す', () => {
@@ -12,29 +11,12 @@ describe('livekitHttpUrl', () => {
 });
 
 // 実サービスへの疎通確認。INTEGRATION=1 のときだけ動かす（npm run test:integration）。
-describe.runIf(process.env.INTEGRATION === '1')('外部サービスへの疎通', () => {
-	let config: ServiceConfig;
-	beforeAll(() => {
-		config = loadServiceConfig(process.env);
-	});
-
-	it('LiveKit で room を作成・削除できる', async () => {
-		const rooms = createRoomService(config);
+describe.runIf(process.env.INTEGRATION === '1')('LiveKit への疎通', () => {
+	it('room を作成・削除できる', async () => {
+		const rooms = createRoomService(loadServiceConfig(process.env));
 		const name = `integration-${crypto.randomUUID()}`;
 		const room = await rooms.createRoom({ name, emptyTimeout: 10 });
 		expect(room.name).toBe(name);
 		await rooms.deleteRoom(name);
-	});
-
-	it('Redis に読み書きできる', async () => {
-		const redis = await connectRedis(config);
-		const key = `integration:${crypto.randomUUID()}`;
-		try {
-			await redis.set(key, 'ok', { EX: 10 });
-			expect(await redis.get(key)).toBe('ok');
-		} finally {
-			await redis.del(key);
-			await redis.quit();
-		}
 	});
 });

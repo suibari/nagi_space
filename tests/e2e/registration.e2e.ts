@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { revokeOAuthSession, signIn, withRedis } from './fixtures/session.ts';
+import { db, revokeOAuthSession, signIn } from './fixtures/session.ts';
 
 test.use({ locale: 'ja-JP' });
 
@@ -21,7 +21,7 @@ test('Nagi登録済みならログイン中として表示する', async ({ cont
 	await signIn(context, did);
 	await page.goto('/');
 	await expect(page.getByTestId('signed-in')).toBeVisible();
-	const cached = await withRedis((redis) => redis.get(`nagi:registration:${did}`));
+	const cached = await db.get(`nagi:registration:${did}`);
 	expect(JSON.parse(cached ?? '{}').registration).toBe('registered');
 	await revokeOAuthSession(did);
 });
@@ -34,6 +34,6 @@ test('AppViewに確認できなければ未登録扱いにせず再読み込み�
 	await expect(page.getByTestId('registration-unknown')).toBeVisible();
 	await expect(page.getByTestId('unregistered')).toHaveCount(0);
 	// 確認できなかった結果は覚えない
-	expect(await withRedis((redis) => redis.exists(`nagi:registration:${did}`))).toBe(0);
+	expect(await db.get(`nagi:registration:${did}`)).toBeUndefined();
 	await revokeOAuthSession(did);
 });

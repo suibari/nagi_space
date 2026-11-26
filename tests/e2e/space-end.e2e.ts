@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { cleanup, createSpace, openAs } from './fixtures/space.ts';
-import { withRedis } from './fixtures/session.ts';
+import { db } from './fixtures/session.ts';
 
 const connected = { timeout: 15000 };
 
@@ -35,14 +35,12 @@ test('ホストが終了すると全員の接続が切れ、終了の表示に�
 	await expect(viewer.page.getByTestId('ended')).toBeVisible();
 	await expect(viewer.page.getByTestId('participants')).toHaveCount(0);
 
-	await withRedis(async (redis) => {
-		const saved = JSON.parse((await redis.get(`space:${id}`))!);
-		expect(Object.keys(saved).sort()).toEqual(
-			['endedAt', 'host', 'hostDid', 'id', 'kind', 'startedAt', 'title'].sort()
-		);
-		expect(await redis.exists(`space:presence:${id}`)).toBe(0);
-		expect(await redis.exists(`space:host:${host.did}`)).toBe(0);
-		await redis.del(`space:${id}`);
-	});
+	const saved = JSON.parse((await db.get(`space:${id}`))!);
+	expect(Object.keys(saved).sort()).toEqual(
+		['endedAt', 'host', 'hostDid', 'id', 'kind', 'startedAt', 'title'].sort()
+	);
+	expect(await db.list(`space:presence:${id}:`)).toEqual([]);
+	expect(await db.get(`space:host:${host.did}`)).toBeUndefined();
+	await db.del(`space:${id}`);
 	await cleanup(host.did, listener.did, viewer.did);
 });

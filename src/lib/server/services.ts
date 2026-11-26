@@ -1,6 +1,7 @@
 import { RoomServiceClient } from 'livekit-server-sdk';
-import { createClient, type RedisClientType } from 'redis';
 import type { ServiceConfig } from './config';
+import { PostgrestStore } from './store/postgrest';
+import type { KeyValueStore } from './store/types';
 
 /** LiveKit の Server API は http(s) で呼ぶ。設定は ws(s) でも受け付ける。 */
 export function livekitHttpUrl(url: string): string {
@@ -12,8 +13,6 @@ export function createRoomService(config: ServiceConfig): RoomServiceClient {
 	return new RoomServiceClient(livekitHttpUrl(url), apiKey, apiSecret);
 }
 
-export async function connectRedis(config: ServiceConfig): Promise<RedisClientType> {
-	const client: RedisClientType = createClient({ url: config.redisUrl });
-	await client.connect();
-	return client;
+export function createStore(config: ServiceConfig): KeyValueStore {
+	return new PostgrestStore(config.db);
 }

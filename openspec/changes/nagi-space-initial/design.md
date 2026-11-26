@@ -34,7 +34,7 @@ flowchart LR
   end
   subgraph Vercel["Vercel"]
     APP["Webアプリ + Space API（Node Functions）"]
-    REDIS[("Upstash Redis")]
+    REDIS[("自宅DB（PostgREST）")]
   end
   LK["LiveKit Cloud（SFU）"]
   subgraph Home["自宅GPUマシン（Tailscale側）"]
@@ -58,13 +58,16 @@ flowchart LR
 
 ## Decisions
 
-### D1. Webアプリとサーバーは Vercel（Node）上の SvelteKit + Upstash Redis
+### D1. Webアプリとサーバーは Vercel（Node）上の SvelteKit、保存は自宅DB（PostgREST）
 
 Nagiと同じSvelteKit・Tailwindにして、テーマ・絵文字ピッカーなどの部品とノウハウを流用する。Space APIは同じアプリのサーバールート（Node Functions）に置く。リアルタイムの通信はLiveKitが担うので、サーバーに常時接続は要らない。
 
-状態の保存はUpstash Redisにする。接続はRESTではなくRedisプロトコル（`REDIS_URL`、Upstashは `rediss://`）にし、ローカルではDockerのRedisをそのまま使えるようにする。Spaceの状態は短命でTTLと相性が良く、nagi-passportの `TicketStore` も `SET NX EX` で不可分に実装できる。
+状態の保存は、自宅のPostgreSQLを **PostgREST**（db.suibari.com、Cloudflare Tunnel と Cloudflare Access のサービストークンで保護）経由で使う。専用スキーマ `nagi_space` に、期限付きのキー・値の表と、それを操作する関数（取得・期限付きの書き込み・「無ければ書く」・値が一致するときだけ消す・接頭辞での一覧）だけを置き、表そのものはPostgRESTに公開しない。アプリは「キー・値ストア」のインターフェースだけに依存する。ローカルではDockerのPostgreSQLとPostgRESTで同じ構成を動かす。
 
-- 代替案：Cloudflare Workers + Durable Objects。Space単位の状態・連投制限・時間切れの処理には最適だが、`@atproto/oauth-client-node` がworkerdで動くかが未確認。サーバー側OAuth（D2）を優先した。
+- 採用理由（2026-11-26 利用者と決定）：Nagi AppViewも自宅にあり、自宅が止まればNagi Spaceも止まってよい。外部サービスの無料枠（Upstashは月50万コマンド）と従量課金を気にせずに済む。
+- 期限切れの行は、書き込みのたびにまれに掃除する（pg_cron に依存しない）。読み取りは期限切れの行を無視するので、掃除の遅れは結果に影響しない。
+- 1回の画面表示の往復を減らすため、セッションの読み取りと期限の延長を1回の関数呼び出しにまとめ、OAuthセッションと登録の確認は複数キーの取得1回で読む。
+- 代替案：Upstash Redis（最初の案）。速くTTLも使えるが、無料枠が実利用に足りない。自宅でRedisを動かす案は、Cloudflare Tunnel越しのTCP接続をVercelから使えないため採らない。
 
 ### D2. 認証はサーバー側OAuth（confidential client）とcookieセッション
 
@@ -85,13 +88,13 @@ Spaceごとに1つのroomを作る。入室時にSpace APIがLiveKitのアクセ
 | 聴衆 | × | ○ | × |
 | space-agent（字幕・botたん） | 音声（botたんのみ） | ○ | ○ |
 
-ロールの変更（承認・取り消し）はServer APIの `UpdateParticipant` で権限を変える。ミュートは `MutePublishedTrack`、退室は `RemoveParticipant` で行い、再入室の禁止はRedisに記録して、トークンの発行時に確認する（PART-06）。ブラウザは `canPublishData` を持たないので、偽の字幕やリアクションを流せない。
+ロールの変更（承認・取り消し）はServer APIの `UpdateParticipant` で権限を変える。ミュートは `MutePublishedTrack`、退室は `RemoveParticipant` で行い、再入室の禁止は自宅DBに記録して、トークンの発行時に確認する（PART-06）。ブラウザは `canPublishData` を持たないので、偽の字幕やリアクションを流せない。
 
 参加者の出入りはLiveKitのWebhookで受け、一覧の人数（LIFE-03）、ホストの切断（LIFE-06）、1対1の判定（PART-05）に使う。
 
 ### D4. リアクションはSpace API経由で送る
 
-連投制限をサーバーで行う必要があるので（REACT-03）、ブラウザはリアクションをSpace APIへPOSTする。APIはSpace・ユーザー単位の制限をRedisで数え、通ったものだけをLiveKitの `SendData` でroomへ配る。保存はしない（REACT-04）。ミュートしている人の絵文字を隠す処理（PART-09）は、受け取ったブラウザが本人のミュート一覧で行う。サーバーで宛先を絞ると、送り主ごとに配信先が変わる経路ができてしまうためである。カスタム絵文字は、AppViewで存在し規格に合うものだけを受け付ける。
+連投制限をサーバーで行う必要があるので（REACT-03）、ブラウザはリアクションをSpace APIへPOSTする。APIはSpace・ユーザー単位の制限を自宅DBで数え、通ったものだけをLiveKitの `SendData` でroomへ配る。保存はしない（REACT-04）。ミュートしている人の絵文字を隠す処理（PART-09）は、受け取ったブラウザが本人のミュート一覧で行う。サーバーで宛先を絞ると、送り主ごとに配信先が変わる経路ができてしまうためである。カスタム絵文字は、AppViewで存在し規格に合うものだけを受け付ける。
 
 ### D5. botたんと字幕は自宅の space-agent が担う
 
@@ -141,11 +144,11 @@ VRMと作り置きのVRMA（待機・相槌・喜びなど）は本アプリの�
 
 | データ | 保存先 | 期間 |
 |---|---|---|
-| Spaceの開催情報（ID・種別・ホストDID・タイトル・開始と終了の時刻・シェア投稿のURI） | Redis | 終了後30日（終了済みURLの表示用） |
-| 再入室禁止（Space ID・DID） | Redis | Space終了まで |
-| リアクションの連投カウンタ | Redis | 数十秒のTTL |
-| SSOチケットの使用記録 | Redis | チケットの有効期限まで |
-| OAuthセッション | Redis（暗号化） | OAuthの期限まで |
+| Spaceの開催情報（ID・種別・ホストDID・タイトル・開始と終了の時刻・シェア投稿のURI） | 自宅DB | 終了後30日（終了済みURLの表示用） |
+| 再入室禁止（Space ID・DID） | 自宅DB | Space終了まで |
+| リアクションの連投カウンタ | 自宅DB | 数十秒のTTL |
+| SSOチケットの使用記録 | 自宅DB | チケットの有効期限まで |
+| OAuthセッション | 自宅DB（暗号化） | OAuthの期限まで |
 | 音声・字幕・リアクションの中身 | 保存しない | — |
 
 終了済みの開催情報を30日残す期間は、利用者に見えるのは「終了しました」の表示だけで、要件の範囲内の実装上の値として扱う。
@@ -158,7 +161,8 @@ LiveKit Cloudだけの機能（Cloud上へのagentのデプロイ、LiveKit Infe
 
 - [LiveKit無料枠を早く使い切る] 字幕用のhidden参加者が全Spaceに常に1つ加わり、10人のSpaceで1時間あたり約660分を使う → 開発中は利用者を限る。月の使用量を監視し、上限が近づいたら新しいSpaceの作成を止めて理由を表示する。公開前にセルフホストか有料プランかを決める。
 - [ASRの処理能力が不明] 計測は1発話あたりの時間だけ。3秒の発話を0.15秒で処理できるなら、理論上は同時に話し続ける約20人分を1件ずつ処理できる。Spaceでは普通1人ずつ話すので、同時開催10〜20 Spaceが目安になる。ただしbotたんの応答の遅れの許容範囲を含めた値は無い → 実装の初期に負荷計測を行い、字幕の同時Space数の上限と一時停止のしきい値を決める。
-- [自宅マシンが止まるとbotたんと字幕が全部止まる] → 人間どうしの音声はLiveKitだけで成り立つ（BOT-06）。字幕も止まったことを表示する。
+- [自宅が止まるとNagi Space全体が止まる] 保存先（自宅DB）、Nagi AppView、botたんと字幕がすべて自宅にある → 2026-11-26に許容すると決めた。入室中の人どうしの音声はLiveKitだけで続くが、新しい入室・ログイン・操作はできなくなる。botたんと字幕だけが止まった場合は、人間の会話を止めない（BOT-06）。
+- [自宅DBへの往復が遅い] Cloudflare経由で自宅まで往復するため、Upstashより1回あたり遅い（未計測） → 往復をまとめる関数を用意し、実装の初期に応答時間を計測する。
 - [複数話者の終話判定] 話者ごとにVADを持つと、2人が同時に話したときbotたんの返事がずれる → convoの改修で、どの話者が話していても返事を始めない待ちを入れる。会話の自然さは試験で調整する。
 - [nagi-passportの署名鍵が漏れると乗っ取られる] → チケットで作るセッションの寿命を短くし、シェアのような書き込みには本アプリ自身のOAuth認可を必須にする（D2）。
 - [音声の内容がサーバーのメモリを通る] 保存はしないが、space-agentとconvoは音声と文字を処理する → ログに発話の内容を出さない（TRANS-04）。convoのデバッグ用の録音保存（replays/）をSpace用プロファイルでは無効にする。

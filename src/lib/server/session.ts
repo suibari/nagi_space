@@ -1,9 +1,9 @@
 import type { Cookies } from '@sveltejs/kit';
-import type { RedisClientType } from 'redis';
+import type { KeyValueStore } from './store/types';
 
 export const SESSION_COOKIE = 'ns_sid';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
-const KEY_PREFIX = 'app:session:';
+export const APP_SESSION_PREFIX = 'app:session:';
 
 export type AppSession = { did: string };
 
@@ -13,13 +13,15 @@ export type AppSession = { did: string };
  */
 export class SessionManager {
 	constructor(
-		private readonly redis: RedisClientType,
+		private readonly store: KeyValueStore,
 		private readonly secureCookie: boolean
 	) {}
 
 	async create(cookies: Cookies, session: AppSession): Promise<void> {
 		const id = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url');
-		await this.redis.set(KEY_PREFIX + id, JSON.stringify(session), { EX: SESSION_TTL_SECONDS });
+		await this.store.set(APP_SESSION_PREFIX + id, JSON.stringify(session), {
+			ttlSeconds: SESSION_TTL_SECONDS
+		});
 		cookies.set(SESSION_COOKIE, id, {
 			path: '/',
 			httpOnly: true,
@@ -29,23 +31,21 @@ export class SessionManager {
 		});
 	}
 
-	/** cookie のセッションを読む。見つからなければ cookie を消す。通信の失敗は呼び出し側へ投げる。 */
+	/** cookie のセッションを読み、使っている間は期限を延ばす。見つからなければ cookie を消す。 */
 	async read(cookies: Cookies): Promise<AppSession | undefined> {
 		const id = cookies.get(SESSION_COOKIE);
 		if (!id) return undefined;
-		const raw = await this.redis.get(KEY_PREFIX + id);
+		const raw = await this.store.get(APP_SESSION_PREFIX + id, SESSION_TTL_SECONDS);
 		if (!raw) {
 			cookies.delete(SESSION_COOKIE, { path: '/' });
 			return undefined;
 		}
-		// 使っている間は期限を延ばす
-		await this.redis.expire(KEY_PREFIX + id, SESSION_TTL_SECONDS);
 		return JSON.parse(raw) as AppSession;
 	}
 
 	async destroy(cookies: Cookies): Promise<void> {
 		const id = cookies.get(SESSION_COOKIE);
-		if (id) await this.redis.del(KEY_PREFIX + id);
+		if (id) await this.store.del(APP_SESSION_PREFIX + id);
 		cookies.delete(SESSION_COOKIE, { path: '/' });
 	}
 }

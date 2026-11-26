@@ -7,7 +7,20 @@ export const variables = defineEnvVars({
 	LIVEKIT_URL: { description: 'LiveKit の URL（wss://… / ws://…）' },
 	LIVEKIT_API_KEY: { description: 'LiveKit の API キー' },
 	LIVEKIT_API_SECRET: { description: 'LiveKit の API シークレット' },
-	REDIS_URL: { description: 'Redis の URL（Upstash は rediss://…）' },
+	DB_URL: { description: '保存先の PostgREST の URL（本番は https://db.suibari.com）' },
+	DB_SCHEMA: { description: 'PostgREST のスキーマ。省略時は nagi_space', schema: optional },
+	POSTGREST_JWT: {
+		description: 'role=nagi_space_api の JWT。anon ロールに権限を与えている場合は不要',
+		schema: optional
+	},
+	CF_ACCESS_CLIENT_ID_DB: {
+		description: 'Cloudflare Access のサービストークンID',
+		schema: optional
+	},
+	CF_ACCESS_CLIENT_SECRET_DB: {
+		description: 'Cloudflare Access のサービストークンのシークレット',
+		schema: optional
+	},
 	PUBLIC_ORIGIN: { description: 'OAuth の基準にする正規 origin' },
 	SESSION_SECRET: { description: 'セッションと保存トークンの暗号化に使う32文字以上の乱数' },
 	NAGI_APPVIEW_URL: {

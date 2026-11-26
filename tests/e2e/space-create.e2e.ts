@@ -1,17 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { revokeOAuthSession, signIn, withRedis } from './fixtures/session.ts';
+import { db, revokeOAuthSession, signIn } from './fixtures/session.ts';
+import { cleanup, setBotCapacity } from './fixtures/space.ts';
 
 test.use({ locale: 'ja-JP' });
 
 const memberDid = () => `did:plc:member${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
 
-async function endHostSpace(did: string) {
-	await withRedis(async (redis) => {
-		const id = await redis.get(`space:host:${did}`);
-		if (id) await redis.del([`space:${id}`, `space:host:${did}`]);
-		if (id) await redis.zRem('space:live:public', id);
-	});
-}
+const endHostSpace = (did: string) => cleanup(did);
 
 // LIFE-01 パブリックSpaceを作成する
 test('パブリックSpaceを作成するとホストとして入室する', async ({ context, page }) => {
@@ -60,7 +55,7 @@ test('空白だけのタイトルでは作成しない', async ({ context, page 
 	await page.getByLabel('タイトル').fill('   ');
 	await page.getByRole('button', { name: '開始する' }).click();
 	await expect(page.getByRole('alert')).toHaveText('タイトルを入力してください。');
-	expect(await withRedis((redis) => redis.exists(`space:host:${did}`))).toBe(0);
+	expect(await db.get(`space:host:${did}`)).toBeUndefined();
 	await revokeOAuthSession(did);
 });
 
@@ -68,13 +63,13 @@ test('空白だけのタイトルでは作成しない', async ({ context, page 
 test('botたんに空きが無ければbotたんSpaceを作らない', async ({ context, page }) => {
 	const did = memberDid();
 	await signIn(context, did);
-	await withRedis((redis) => redis.del('bot:capacity'));
+	await setBotCapacity(undefined);
 	await page.goto('/spaces/new');
 	await page.getByLabel('タイトル').fill('botたんとおしゃべり');
 	await page.getByLabel('botたんSpace').check();
 	await page.getByRole('button', { name: '開始する' }).click();
 	await expect(page.getByRole('alert')).toContainText('botたんは今いっぱいです');
-	expect(await withRedis((redis) => redis.exists(`space:host:${did}`))).toBe(0);
+	expect(await db.get(`space:host:${did}`)).toBeUndefined();
 	await revokeOAuthSession(did);
 });
 
@@ -83,13 +78,7 @@ test('botたんSpaceはホスト以外には存在しないのと同じに見え
 	const hostDid = memberDid();
 	const hostContext = await browser.newContext({ locale: 'ja-JP' });
 	await signIn(hostContext, hostDid);
-	await withRedis((redis) =>
-		redis.set(
-			'bot:capacity',
-			JSON.stringify({ freeSessions: 1, updatedAt: new Date().toISOString() }),
-			{ EX: 30 }
-		)
-	);
+	await setBotCapacity(1);
 	const hostPage = await hostContext.newPage();
 	await hostPage.goto('/spaces/new');
 	await hostPage.getByLabel('タイトル').fill('ないしょ');
@@ -115,7 +104,7 @@ test('botたんSpaceはホスト以外には存在しないのと同じに見え
 	await expect(anonymousPage.getByTestId('not-found')).toBeVisible();
 	await expect(anonymousPage.getByText('ないしょ')).toHaveCount(0);
 
-	await withRedis((redis) => redis.del('bot:capacity'));
+	await setBotCapacity(undefined);
 	await endHostSpace(hostDid);
 	await revokeOAuthSession(hostDid);
 	await revokeOAuthSession(otherDid);

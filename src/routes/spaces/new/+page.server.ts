@@ -23,9 +23,9 @@ export const actions: Actions = {
 		if (!title.ok) return fail(400, { title: rawTitle, kind, error: title.reason });
 		if (!isSpaceKind(kind)) return fail(400, { title: rawTitle, kind, error: 'kind' as const });
 
-		const { spaces, rooms, redis } = await getRuntime();
+		const { spaces, rooms, store } = await getRuntime();
 		// botたんSpace は botたんに空きが無ければ作らない（LIFE-02）
-		if (kind === 'bot' && !(await isBotAvailable(redis))) {
+		if (kind === 'bot' && !(await isBotAvailable(store))) {
 			return fail(409, { title: rawTitle, kind, error: 'botBusy' as const });
 		}
 

@@ -1,9 +1,10 @@
-import type { RedisClientType } from 'redis';
+import type { KeyValueStore } from '../store/types';
 import type { Space } from './model';
 
 const spaceKey = (id: string) => `space:${id}`;
 const hostKey = (did: string) => `space:host:${did}`;
-const LIVE_PUBLIC = 'space:live:public';
+const liveKey = (id: string) => `space:live:${id}`;
+const LIVE_PREFIX = 'space:live:';
 /** 終了後に開催情報を残す期間（design.md D9） */
 export const ENDED_RETENTION_SECONDS = 60 * 60 * 24 * 30;
 
@@ -11,28 +12,35 @@ export type CreateResult = { ok: true; space: Space } | { ok: false; activeSpace
 
 /** Space の開催情報の保存。音声・字幕・参加者の情報はここに置かない（LIFE-07）。 */
 export class SpaceRepository {
-	constructor(private readonly redis: RedisClientType) {}
+	constructor(private readonly store: KeyValueStore) {}
 
-	/** 1人が同時に開催できるのは1つまで（LIFE-01）。ホストの枠を不可分に確保してから保存する。 */
+	/**
+	 * 1人が同時に開催できるのは1つまで（LIFE-01）。開催情報を先に書いてからホストの枠を
+	 * 不可分に確保する。先に書くのは、同時に作成したもう一方が「枠の持ち主の Space が無い
+	 * （途中で失敗した残り）」と誤って判断し、枠を奪わないようにするため。
+	 */
 	async create(space: Space): Promise<CreateResult> {
-		const claimed = await this.redis.set(hostKey(space.hostDid), space.id, { NX: true });
-		if (claimed !== 'OK') {
-			const activeSpaceId = await this.redis.get(hostKey(space.hostDid));
-			if (activeSpaceId && (await this.getLive(activeSpaceId))) {
-				return { ok: false, activeSpaceId };
-			}
-			// 終わったのに枠が残っていた（途中で失敗した等）ときは取り直す
-			await this.redis.set(hostKey(space.hostDid), space.id);
+		await this.store.set(spaceKey(space.id), JSON.stringify(space));
+		if (!(await this.#claimHost(space))) {
+			await this.store.del(spaceKey(space.id));
+			return { ok: false, activeSpaceId: (await this.store.get(hostKey(space.hostDid))) ?? '' };
 		}
-		const multi = this.redis.multi().set(spaceKey(space.id), JSON.stringify(space));
-		if (space.kind === 'public')
-			multi.zAdd(LIVE_PUBLIC, { score: Date.parse(space.startedAt), value: space.id });
-		await multi.exec();
+		if (space.kind === 'public') await this.store.set(liveKey(space.id), space.startedAt);
 		return { ok: true, space };
 	}
 
+	async #claimHost(space: Space): Promise<boolean> {
+		const key = hostKey(space.hostDid);
+		if (await this.store.set(key, space.id, { ifAbsent: true })) return true;
+		const holder = await this.store.get(key);
+		if (holder && (await this.getLive(holder))) return false;
+		// 終わったのに枠が残っていた（途中で失敗した等）ときは、残っていた値のときだけ取り直す
+		if (holder && !(await this.store.delIfEquals(key, holder))) return false;
+		return this.store.set(key, space.id, { ifAbsent: true });
+	}
+
 	async get(id: string): Promise<Space | undefined> {
-		const raw = await this.redis.get(spaceKey(id));
+		const raw = await this.store.get(spaceKey(id));
 		return raw ? (JSON.parse(raw) as Space) : undefined;
 	}
 
@@ -42,15 +50,24 @@ export class SpaceRepository {
 	}
 
 	async activeSpaceOf(hostDid: string): Promise<Space | undefined> {
-		const id = await this.redis.get(hostKey(hostDid));
+		const id = await this.store.get(hostKey(hostDid));
 		return id ? this.getLive(id) : undefined;
 	}
 
 	/** 開催中のパブリックSpace（新しい順）。 */
 	async listLivePublic(limit = 100): Promise<Space[]> {
-		const ids = await this.redis.zRange(LIVE_PUBLIC, 0, limit - 1, { REV: true });
-		const spaces = await Promise.all(ids.map((id) => this.getLive(id)));
-		return spaces.filter((space): space is Space => !!space);
+		const rows = await this.store.list(LIVE_PREFIX);
+		const ids = rows
+			.sort((a, b) => b.value.localeCompare(a.value))
+			.slice(0, limit)
+			.map((row) => row.key.slice(LIVE_PREFIX.length));
+		if (!ids.length) return [];
+		const found = await this.store.getMany(ids.map(spaceKey));
+		return ids
+			.map((id) => found.get(spaceKey(id)))
+			.filter((raw): raw is string => !!raw)
+			.map((raw) => JSON.parse(raw) as Space)
+			.filter((space) => !space.endedAt);
 	}
 
 	/** 終了する。開催情報だけを期限付きで残し、一覧とホストの枠から外す。 */
@@ -58,15 +75,11 @@ export class SpaceRepository {
 		const space = await this.getLive(id);
 		if (!space) return undefined;
 		const ended: Space = { ...space, endedAt: endedAt.toISOString() };
-		await this.redis
-			.multi()
-			.set(spaceKey(id), JSON.stringify(ended), { EX: ENDED_RETENTION_SECONDS })
-			.zRem(LIVE_PUBLIC, id)
-			.eval(
-				"if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
-				{ keys: [hostKey(space.hostDid)], arguments: [id] }
-			)
-			.exec();
+		await this.store.set(spaceKey(id), JSON.stringify(ended), {
+			ttlSeconds: ENDED_RETENTION_SECONDS
+		});
+		await this.store.del(liveKey(id));
+		await this.store.delIfEquals(hostKey(space.hostDid), id);
 		return ended;
 	}
 }

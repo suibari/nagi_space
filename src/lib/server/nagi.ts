@@ -1,8 +1,9 @@
 import { error } from '@sveltejs/kit';
-import type { RedisClientType } from 'redis';
+import type { KeyValueStore } from './store/types';
 
 export const DEFAULT_NAGI_APPVIEW_URL = 'https://nagi-api.suibari.com';
 const CACHE_TTL_SECONDS = 300;
+export const REGISTRATION_PREFIX = 'nagi:registration:';
 
 export type Registration = 'registered' | 'unregistered';
 
@@ -55,18 +56,21 @@ export async function fetchRegistration(
 	};
 }
 
-/** 結果を5分だけ Redis に覚えておく。確認できなかったときは覚えない。 */
+/**
+ * 結果を5分だけ覚えておく。確認できなかったときは覚えない。
+ * cached に、先にまとめて読んだ値（hooks で OAuth セッションと一緒に取得したもの）を渡せる。
+ */
 export function createRegistrationChecker(
-	redis: RedisClientType,
+	store: KeyValueStore,
 	appviewUrl: string,
 	fetchImpl: typeof fetch = fetch
 ) {
-	return async (did: string): Promise<RegistrationResult> => {
-		const key = `nagi:registration:${did}`;
-		const cached = await redis.get(key);
-		if (cached) return JSON.parse(cached) as RegistrationResult;
+	return async (did: string, cached?: string | null): Promise<RegistrationResult> => {
+		const key = REGISTRATION_PREFIX + did;
+		const hit = cached === undefined ? await store.get(key) : cached;
+		if (hit) return JSON.parse(hit) as RegistrationResult;
 		const result = await fetchRegistration(did, appviewUrl, fetchImpl);
-		await redis.set(key, JSON.stringify(result), { EX: CACHE_TTL_SECONDS });
+		await store.set(key, JSON.stringify(result), { ttlSeconds: CACHE_TTL_SECONDS });
 		return result;
 	};
 }

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { revokeOAuthSession, signIn, withRedis } from './fixtures/session.ts';
+import { db, revokeOAuthSession, signIn } from './fixtures/session.ts';
 
 test.use({ locale: 'ja-JP' });
 
@@ -32,7 +32,7 @@ test('PDS側で認可が無くなったセッションはログアウト扱い�
 	await revokeOAuthSession(did);
 	await page.goto('/');
 	await expect(page.getByRole('link', { name: 'ログイン' })).toBeVisible();
-	expect(await withRedis((redis) => redis.exists(`app:session:${sessionId}`))).toBe(0);
+	expect(await db.get(`app:session:${sessionId}`)).toBeUndefined();
 	expect((await context.cookies()).some((cookie) => cookie.name === 'ns_sid')).toBe(false);
 });
 
@@ -42,6 +42,6 @@ test('ログアウトするとセッションが消える', async ({ context, pa
 	await page.goto('/');
 	await page.getByRole('button', { name: 'ログアウト' }).click();
 	await expect(page.getByRole('link', { name: 'ログイン' })).toBeVisible();
-	expect(await withRedis((redis) => redis.exists(`app:session:${sessionId}`))).toBe(0);
+	expect(await db.get(`app:session:${sessionId}`)).toBeUndefined();
 	await revokeOAuthSession(did);
 });

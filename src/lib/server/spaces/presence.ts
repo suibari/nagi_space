@@ -1,4 +1,4 @@
-import type { RedisClientType } from 'redis';
+import type { KeyValueStore } from '../store/types';
 import type { Role } from './livekit';
 
 /** botたんの参加者ID。space-agent がこのIDで入る（design.md D5）。 */
@@ -6,7 +6,7 @@ export const BOT_IDENTITY = 'bot:bot-tan';
 /** 字幕用など、画面に出さない space-agent の参加者IDの接頭辞。 */
 export const AGENT_IDENTITY_PREFIX = 'agent:';
 
-const presenceKey = (spaceId: string) => `space:presence:${spaceId}`;
+const presencePrefix = (spaceId: string) => `space:presence:${spaceId}:`;
 
 export type PresenceCounts = {
 	speakers: number;
@@ -29,24 +29,27 @@ export function parseRole(metadata: string | undefined): Role {
  * Space の終了とともに消す（LIFE-07）。
  */
 export class PresenceStore {
-	constructor(private readonly redis: RedisClientType) {}
+	constructor(private readonly store: KeyValueStore) {}
 
 	async joined(spaceId: string, identity: string, role: Role): Promise<void> {
 		if (identity.startsWith(AGENT_IDENTITY_PREFIX)) return;
-		await this.redis.hSet(presenceKey(spaceId), identity, identity === BOT_IDENTITY ? 'bot' : role);
+		await this.store.set(
+			presencePrefix(spaceId) + identity,
+			identity === BOT_IDENTITY ? 'bot' : role
+		);
 	}
 
 	async left(spaceId: string, identity: string): Promise<void> {
-		await this.redis.hDel(presenceKey(spaceId), identity);
+		await this.store.del(presencePrefix(spaceId) + identity);
 	}
 
 	async roleOf(spaceId: string, identity: string): Promise<Role | undefined> {
-		const value = await this.redis.hGet(presenceKey(spaceId), identity);
+		const value = await this.store.get(presencePrefix(spaceId) + identity);
 		return value === 'host' || value === 'speaker' || value === 'listener' ? value : undefined;
 	}
 
 	async counts(spaceId: string): Promise<PresenceCounts> {
-		const values = Object.values(await this.redis.hGetAll(presenceKey(spaceId)));
+		const values = (await this.store.list(presencePrefix(spaceId))).map((row) => row.value);
 		const humans = values.filter((value) => value !== 'bot');
 		const speakers = humans.filter((value) => value === 'host' || value === 'speaker').length;
 		return {
@@ -58,6 +61,7 @@ export class PresenceStore {
 	}
 
 	async clear(spaceId: string): Promise<void> {
-		await this.redis.del(presenceKey(spaceId));
+		const rows = await this.store.list(presencePrefix(spaceId));
+		await this.store.del(...rows.map((row) => row.key));
 	}
 }

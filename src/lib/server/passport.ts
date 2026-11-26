@@ -1,14 +1,14 @@
 import type { TicketStore } from '@suibari/nagi-passport';
 import { createVerifier, type Verifier, type VerifierOptions } from '@suibari/nagi-passport/verify';
-import type { RedisClientType } from 'redis';
+import type { KeyValueStore } from './store/types';
 
 export const DEFAULT_PASSPORT_ISSUER = 'https://nagi-api.suibari.com';
 
-/** チケットの単回使用の記録。SET NX EX で「無ければ書く」を不可分に行う。 */
-export function createTicketStore(redis: RedisClientType): TicketStore {
+/** チケットの単回使用の記録。「無ければ書く」を不可分に行う。 */
+export function createTicketStore(store: KeyValueStore): TicketStore {
 	return {
-		consume: async (jti, ttlSeconds) =>
-			(await redis.set(`nagipp:${jti}`, '1', { NX: true, EX: Math.max(1, ttlSeconds) })) === 'OK'
+		consume: (jti, ttlSeconds) =>
+			store.set(`nagipp:${jti}`, '1', { ifAbsent: true, ttlSeconds: Math.max(1, ttlSeconds) })
 	};
 }
 

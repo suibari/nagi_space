@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 
 /**
- * Redis に置く OAuth トークン等を AES-256-GCM で暗号化する。
+ * 保存先に置く OAuth トークン等を AES-256-GCM で暗号化する。
  * 鍵は SESSION_SECRET（32文字以上の乱数）の SHA-256。
  */
 export class SecretBox {

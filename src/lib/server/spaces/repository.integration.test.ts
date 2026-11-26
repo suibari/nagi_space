@@ -1,7 +1,7 @@
-import type { RedisClientType } from 'redis';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { loadServiceConfig } from '../config';
-import { connectRedis } from '../services';
+import { createStore } from '../services';
+import type { KeyValueStore } from '../store/types';
 import { newSpaceId, type Space } from './model';
 import { SpaceRepository } from './repository';
 
@@ -14,17 +14,14 @@ const makeSpace = (hostDid: string, kind: Space['kind'] = 'public'): Space => ({
 	startedAt: new Date().toISOString()
 });
 
-describe.runIf(process.env.INTEGRATION === '1')('SpaceRepository（Redis）', () => {
-	let redis: RedisClientType;
+describe.runIf(process.env.INTEGRATION === '1')('SpaceRepository', () => {
+	let store: KeyValueStore;
 	let repo: SpaceRepository;
 	const host = () => `did:plc:repo${crypto.randomUUID()}`;
 
-	beforeAll(async () => {
-		redis = await connectRedis(loadServiceConfig(process.env));
-		repo = new SpaceRepository(redis);
-	});
-	afterAll(async () => {
-		await redis.quit();
+	beforeAll(() => {
+		store = createStore(loadServiceConfig(process.env));
+		repo = new SpaceRepository(store);
 	});
 
 	it('1人が同時に開催できるのは1つまで（LIFE-01）', async () => {
@@ -56,7 +53,7 @@ describe.runIf(process.env.INTEGRATION === '1')('SpaceRepository（Redis）', ()
 		expect((await repo.listLivePublic()).map((space) => space.id)).not.toContain(pub.id);
 		// 開催情報だけを期限付きで残す（LIFE-07・design.md D9）
 		expect((await repo.get(pub.id))?.endedAt).toBeTruthy();
-		expect(await redis.ttl(`space:${pub.id}`)).toBeGreaterThan(0);
+		expect(await store.ttl(`space:${pub.id}`)).toBeGreaterThan(0);
 		await repo.end(bot.id);
 	});
 });

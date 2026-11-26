@@ -4,12 +4,18 @@
  */
 export type ServiceConfig = {
 	livekit: { url: string; apiKey: string; apiSecret: string };
-	redisUrl: string;
+	/** 保存先の PostgREST（design.md D1） */
+	db: {
+		url: string;
+		schema: string;
+		jwt?: string;
+		cfAccess?: { clientId: string; clientSecret: string };
+	};
 };
 
 type Env = Record<string, string | undefined>;
 
-const REQUIRED = ['LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET', 'REDIS_URL'] as const;
+const REQUIRED = ['LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET', 'DB_URL'] as const;
 
 export class ConfigError extends Error {
 	constructor(public readonly missing: string[]) {
@@ -27,7 +33,18 @@ export function loadServiceConfig(env: Env): ServiceConfig {
 			apiKey: env.LIVEKIT_API_KEY!.trim(),
 			apiSecret: env.LIVEKIT_API_SECRET!.trim()
 		},
-		redisUrl: env.REDIS_URL!.trim()
+		db: {
+			url: env.DB_URL!.trim(),
+			schema: env.DB_SCHEMA?.trim() || 'nagi_space',
+			jwt: env.POSTGREST_JWT?.trim() || undefined,
+			cfAccess:
+				env.CF_ACCESS_CLIENT_ID_DB?.trim() && env.CF_ACCESS_CLIENT_SECRET_DB?.trim()
+					? {
+							clientId: env.CF_ACCESS_CLIENT_ID_DB.trim(),
+							clientSecret: env.CF_ACCESS_CLIENT_SECRET_DB.trim()
+						}
+					: undefined
+		}
 	};
 }
 

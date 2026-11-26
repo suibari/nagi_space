@@ -1,32 +1,32 @@
 import * as privateEnv from '$app/env/private';
 import type { NodeOAuthClient, NodeSavedSessionStore } from '@atproto/oauth-client-node';
-import type { RedisClientType } from 'redis';
+import type { Verifier } from '@suibari/nagi-passport/verify';
+import { WebhookReceiver } from 'livekit-server-sdk';
 import { loadAuthConfig, loadServiceConfig, type AuthConfig } from './config';
 import { SecretBox } from './crypto';
-import { createOAuthClient } from './oauth/client';
-import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
-import { connectRedis } from './services';
-import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
-import { SessionManager } from './session';
-import { SpaceRepository } from './spaces/repository';
-import { SpaceRooms } from './spaces/livekit';
-import { PresenceStore } from './spaces/presence';
-import { WebhookReceiver } from 'livekit-server-sdk';
 import {
 	DEFAULT_NAGI_APPVIEW_URL,
 	createRegistrationChecker,
 	type RegistrationResult
 } from './nagi';
-import type { Verifier } from '@suibari/nagi-passport/verify';
+import { createOAuthClient } from './oauth/client';
+import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
+import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
+import { createStore } from './services';
+import { SessionManager } from './session';
+import { SpaceRooms } from './spaces/livekit';
+import { PresenceStore } from './spaces/presence';
+import { SpaceRepository } from './spaces/repository';
+import type { KeyValueStore } from './store/types';
 
 export type Runtime = {
 	auth: AuthConfig;
-	redis: RedisClientType;
+	store: KeyValueStore;
 	oauth: NodeOAuthClient;
 	oauthSessions: NodeSavedSessionStore;
 	sessions: SessionManager;
 	sso: Verifier;
-	checkRegistration: (did: string) => Promise<RegistrationResult>;
+	checkRegistration: (did: string, cached?: string | null) => Promise<RegistrationResult>;
 	spaces: SpaceRepository;
 	rooms: SpaceRooms;
 	presence: PresenceStore;
@@ -39,42 +39,35 @@ async function init(): Promise<Runtime> {
 	const env: Record<string, string | undefined> = { ...privateEnv };
 	const services = loadServiceConfig(env);
 	const auth = loadAuthConfig(env);
-	const redis = await connectRedis(services);
+	const store = createStore(services);
 	const box = new SecretBox(auth.sessionSecret);
-	const oauthSessions = createSessionStore(redis, box);
+	const oauthSessions = createSessionStore(store, box);
 	const oauth = await createOAuthClient({
 		origin: auth.origin,
 		privateKeyJwk: auth.privateKeyJwk,
-		stateStore: createStateStore(redis, box),
+		stateStore: createStateStore(store, box),
 		sessionStore: oauthSessions,
-		requestLock: createRequestLock(redis)
+		requestLock: createRequestLock(store)
 	});
-	const sessions = new SessionManager(redis, auth.origin.startsWith('https:'));
-	const sso = createSsoVerifier({
-		issuer: env.NAGI_PASSPORT_ISSUER || DEFAULT_PASSPORT_ISSUER,
-		audience: auth.origin,
-		store: createTicketStore(redis)
-	});
-	const checkRegistration = createRegistrationChecker(
-		redis,
-		env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL
-	);
-	const spaces = new SpaceRepository(redis);
-	const rooms = new SpaceRooms(services.livekit);
-	const presence = new PresenceStore(redis);
-	const webhooks = new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret);
 	return {
 		auth,
-		redis,
+		store,
 		oauth,
 		oauthSessions,
-		sessions,
-		sso,
-		checkRegistration,
-		spaces,
-		rooms,
-		presence,
-		webhooks
+		sessions: new SessionManager(store, auth.origin.startsWith('https:')),
+		sso: createSsoVerifier({
+			issuer: env.NAGI_PASSPORT_ISSUER || DEFAULT_PASSPORT_ISSUER,
+			audience: auth.origin,
+			store: createTicketStore(store)
+		}),
+		checkRegistration: createRegistrationChecker(
+			store,
+			env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL
+		),
+		spaces: new SpaceRepository(store),
+		rooms: new SpaceRooms(services.livekit),
+		presence: new PresenceStore(store),
+		webhooks: new WebhookReceiver(services.livekit.apiKey, services.livekit.apiSecret)
 	};
 }
 

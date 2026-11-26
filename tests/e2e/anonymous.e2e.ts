@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { revokeOAuthSession, signIn, withRedis } from './fixtures/session.ts';
+import { signIn } from './fixtures/session.ts';
+import { cleanup } from './fixtures/space.ts';
 
 test.use({ locale: 'ja-JP' });
 
@@ -38,10 +39,5 @@ test('未ログインではタイトルとホストとログインの案内だ�
 	});
 	expect(response.status()).toBe(401);
 
-	await withRedis(async (redis) => {
-		const id = await redis.get(`space:host:${hostDid}`);
-		if (id) await redis.del([`space:${id}`, `space:host:${hostDid}`]);
-		if (id) await redis.zRem('space:live:public', id);
-	});
-	await revokeOAuthSession(hostDid);
+	await cleanup(hostDid);
 });

@@ -1,9 +1,8 @@
 import { createIssuer, generateKeyPair } from '@suibari/nagi-passport/issuer';
-import type { RedisClientType } from 'redis';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { loadServiceConfig } from './config';
 import { createSsoVerifier, createTicketStore, isDidHint, verifyTicket } from './passport';
-import { connectRedis } from './services';
+import { createStore } from './services';
 
 const ISSUER = 'https://nagi-api.example';
 const AUDIENCE = 'https://space.example';
@@ -19,24 +18,19 @@ describe('isDidHint', () => {
 	});
 });
 
-// 単回使用の記録に実際の Redis を使う。INTEGRATION=1 のときだけ動かす。
+// 単回使用の記録に実際の保存先を使う。INTEGRATION=1 のときだけ動かす。
 describe.runIf(process.env.INTEGRATION === '1')('SSOチケットの検証', () => {
-	let redis: RedisClientType;
 	let keys: Awaited<ReturnType<typeof generateKeyPair>>;
 
 	beforeAll(async () => {
-		redis = await connectRedis(loadServiceConfig(process.env));
 		keys = await generateKeyPair('test');
-	});
-	afterAll(async () => {
-		await redis.quit();
 	});
 
 	const verifier = (audience = AUDIENCE) =>
 		createSsoVerifier({
 			issuer: ISSUER,
 			audience,
-			store: createTicketStore(redis),
+			store: createTicketStore(createStore(loadServiceConfig(process.env))),
 			publicJwks: [{ ...keys.publicJwk }],
 			clockToleranceSec: 0
 		});

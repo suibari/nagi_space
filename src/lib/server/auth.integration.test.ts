@@ -1,10 +1,9 @@
 import type { Cookies } from '@sveltejs/kit';
-import type { RedisClientType } from 'redis';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { loadServiceConfig } from './config';
 import { SecretBox } from './crypto';
 import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
-import { connectRedis } from './services';
+import { createStore } from './services';
 import { SESSION_COOKIE, SessionManager } from './session';
 
 function fakeCookies(): Cookies & { jar: Map<string, string> } {
@@ -19,48 +18,43 @@ function fakeCookies(): Cookies & { jar: Map<string, string> } {
 	} as unknown as Cookies & { jar: Map<string, string> };
 }
 
-// 実際の Redis を使う。INTEGRATION=1 のときだけ動かす（npm run test:integration）。
-describe.runIf(process.env.INTEGRATION === '1')('認証の保存（Redis）', () => {
-	let redis: RedisClientType;
+// 実際の保存先（ローカルは PostgREST）を使う。INTEGRATION=1 のときだけ動かす。
+describe.runIf(process.env.INTEGRATION === '1')('認証の保存', () => {
+	const kv = () => createStore(loadServiceConfig(process.env));
 	const box = new SecretBox('integration-secret-that-is-long-enough');
 
-	beforeAll(async () => {
-		redis = await connectRedis(loadServiceConfig(process.env));
-	});
-	afterAll(async () => {
-		await redis.quit();
-	});
-
 	it('OAuth セッションを暗号化して保存し、読み戻せる', async () => {
-		const store = createSessionStore(redis, box);
+		const store = kv();
+		const sessions = createSessionStore(store, box);
 		const sub = `did:plc:test${crypto.randomUUID()}`;
 		const value = { tokenSet: { access_token: 'secret-token' } } as never;
-		await store.set(sub, value);
-		expect(await redis.get(`oauth:session:${sub}`)).not.toContain('secret-token');
-		expect(await store.get(sub)).toEqual(value);
-		await store.del(sub);
-		expect(await store.get(sub)).toBeUndefined();
+		await sessions.set(sub, value);
+		expect(await store.get(`oauth:session:${sub}`)).not.toContain('secret-token');
+		expect(await sessions.get(sub)).toEqual(value);
+		await sessions.del(sub);
+		expect(await sessions.get(sub)).toBeUndefined();
 	});
 
 	it('認可途中の状態には期限を付ける', async () => {
-		const store = createStateStore(redis, box);
+		const store = kv();
+		const states = createStateStore(store, box);
 		const key = crypto.randomUUID();
-		await store.set(key, { iss: 'https://example.com' } as never);
-		expect(await redis.ttl(`oauth:state:${key}`)).toBeGreaterThan(0);
-		await store.del(key);
+		await states.set(key, { iss: 'https://example.com' } as never);
+		expect(await store.ttl(`oauth:state:${key}`)).toBeGreaterThan(0);
+		await states.del(key);
 	});
 
 	it('ロックは同じ名前の処理を順番に実行する', async () => {
-		const lock = createRequestLock(redis);
+		const lock = createRequestLock(kv());
 		const name = crypto.randomUUID();
 		const order: string[] = [];
 		await Promise.all([
 			lock(name, async () => {
 				order.push('a:start');
-				await new Promise((resolve) => setTimeout(resolve, 150));
+				await new Promise((resolve) => setTimeout(resolve, 300));
 				order.push('a:end');
 			}),
-			new Promise((resolve) => setTimeout(resolve, 20)).then(() =>
+			new Promise((resolve) => setTimeout(resolve, 100)).then(() =>
 				lock(name, async () => {
 					order.push('b');
 				})
@@ -70,7 +64,7 @@ describe.runIf(process.env.INTEGRATION === '1')('認証の保存（Redis）', ()
 	});
 
 	it('cookie のセッションを作成・読み取り・破棄できる', async () => {
-		const sessions = new SessionManager(redis, false);
+		const sessions = new SessionManager(kv(), false);
 		const cookies = fakeCookies();
 		await sessions.create(cookies, { did: 'did:plc:alice' });
 		expect(cookies.jar.get(SESSION_COOKIE)).toBeTruthy();
@@ -81,7 +75,7 @@ describe.runIf(process.env.INTEGRATION === '1')('認証の保存（Redis）', ()
 	});
 
 	it('サーバーに無いセッションの cookie は消す', async () => {
-		const sessions = new SessionManager(redis, false);
+		const sessions = new SessionManager(kv(), false);
 		const cookies = fakeCookies();
 		cookies.set(SESSION_COOKIE, 'unknown', { path: '/' });
 		expect(await sessions.read(cookies)).toBeUndefined();
