@@ -58,7 +58,7 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 	const vrm = (await loader.loadAsync(url(manifest.model))).userData.vrm;
 	VRMUtils.rotateVRM0(vrm);
-	// 動き（VRMA）が目線を上書きしないようにし、目線はカメラのそばの点を見る（BOT-05、design.md D9）
+	// 動き（VRMA）が目線を上書きしないようにし、目線はカメラのそばの点を見る（BOT-12）
 	const lookProxy = new VRMLookAtQuaternionProxy(vrm.lookAt);
 	lookProxy.name = 'lookAtQuaternionProxy';
 	vrm.scene.add(lookProxy);
@@ -186,7 +186,7 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 			const list = manifest.motions[category] ?? manifest.motions.neutral;
 			if (!list?.length) return;
 			const path = list[Math.floor(Math.random() * list.length)];
-			// しぐさの途中でも返事の動きに切り替える（BOT-05）
+			// しぐさの途中でも返事の動きに切り替える（BOT-12）
 			busyUntil = Number.POSITIVE_INFINITY;
 			motionUntil = Number.POSITIVE_INFINITY;
 			void play(path, false)
