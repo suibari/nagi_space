@@ -27,10 +27,6 @@ export const variables = defineEnvVars({
 		description: 'Nagi AppView の URL。省略時は本番の AppView',
 		schema: optional
 	},
-	NAGI_PASSPORT_ISSUER: {
-		description: 'SSOチケットの発行者（Nagi AppView）の origin。省略時は本番の AppView',
-		schema: optional
-	},
 	SPACE_MAX_SPEAKERS: {
 		description: 'スピーカーの上限（ホストを含む）。既定 13',
 		schema: optional

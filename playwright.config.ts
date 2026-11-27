@@ -17,9 +17,8 @@ export const e2eEnv = {
 	SPACE_HOST_GRACE_SECONDS: '8',
 	SPACE_MAX_ENTRANTS: '3',
 	SPACE_MAX_SPEAKERS: '2',
-	// 偽の AppView とテスト用の発行者（tests/e2e/fixtures/fake-nagi.mjs）
+	// 偽の AppView（tests/e2e/fixtures/fake-nagi.mjs）
 	NAGI_APPVIEW_URL: 'http://127.0.0.1:4999',
-	NAGI_PASSPORT_ISSUER: 'http://127.0.0.1:4999',
 	// 自宅の space-agent（E2E では偽の convo とつなぐ）との共有の秘密
 	AGENT_SECRET: 'e2e-agent-secret-0123456789abcdef',
 	// botたんの3Dモデルと動き。リポジトリに置かないので、あるときだけ E2E_BOT_ASSETS_DIR で渡す

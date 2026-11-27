@@ -1,6 +1,5 @@
 import * as privateEnv from '$app/env/private';
 import type { NodeOAuthClient, NodeSavedSessionStore } from '@atproto/oauth-client-node';
-import type { Verifier } from '@suibari/nagi-passport/verify';
 import { WebhookReceiver } from 'livekit-server-sdk';
 import { loadAuthConfig, loadServiceConfig, type AuthConfig } from './config';
 import { SecretBox } from './crypto';
@@ -11,7 +10,6 @@ import {
 } from './nagi';
 import { createOAuthClient } from './oauth/client';
 import { createRequestLock, createSessionStore, createStateStore } from './oauth/stores';
-import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { parseAllowlist } from './allowlist';
 import { BotRequests } from './bot/agent';
 import type { R2Config } from './bot/presign';
@@ -34,7 +32,6 @@ export type Runtime = {
 	oauth: NodeOAuthClient;
 	oauthSessions: NodeSavedSessionStore;
 	sessions: SessionManager;
-	sso: Verifier;
 	checkRegistration: (did: string, cached?: string | null) => Promise<RegistrationResult>;
 	spaces: SpaceRepository;
 	rooms: SpaceRooms;
@@ -93,11 +90,6 @@ async function init(): Promise<Runtime> {
 		oauth,
 		oauthSessions,
 		sessions: new SessionManager(store, auth.origin.startsWith('https:')),
-		sso: createSsoVerifier({
-			issuer: env.NAGI_PASSPORT_ISSUER || DEFAULT_PASSPORT_ISSUER,
-			audience: auth.origin,
-			store: createTicketStore(store)
-		}),
 		checkRegistration: createRegistrationChecker(store, appviewUrl),
 		spaces,
 		rooms,
