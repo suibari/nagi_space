@@ -11,6 +11,8 @@ botたんSpace で botたんと二人きりで話しても、botたんはホス�
   - こっそり投稿・CW 付き・ラベル付きの投稿は渡さない。
   - 投稿は会話の間だけ botたんが持ち、本アプリにも botたんの記憶にも保存しない（BOT-07 は変わらない）。
 - **話題から関連する記憶を引く（パブリック・botたんSpace の両方）**：会話の話題に関係する botたん自身の体験（biorhythm）と、botたんが調べて覚えた知識（web_research）を記憶から引き、話に織り込めるようにする。ほかの人の投稿（全肯定した投稿・受け取った返信など）は引かない。記憶は読むだけで、Space の会話は書き込まない（BOT-07 は変わらない）。
+- **いまの様子と日々のまとめ（パブリック・botたんSpace の両方）**：「元気？」「今なにしてた？」と聞かれたら、botたん自身のいまの様子（していること・元気・天気）を踏まえて答える。また、botたんの最近の出来事のまとめ（直近2日）を会話の前提にする。どちらも botたん自身のことだけで、ほかの人の情報は含まない。
+- **待機中の身振りと表情**：botたんが話していない間も、まばたきをし、表情を少しずつ動かし（ときどきほほえむ）、数十秒おきにしぐさ（作り置きの動き）を1つ流す。今は待機の動きを繰り返すだけで、顔が動かない。視差効果を減らす設定では、しぐさは流さない。
 - **沈黙したら botたんから話しかける**：botたんが参加している Space（パブリック・botたんSpace の両方）で、60秒間だれも話さなかったら botたんから話題を振る。話しかけたあとは最低2分あける。人が話し始めたら今までどおり譲る（BOT-04）。
 
 ## Capabilities
@@ -21,7 +23,7 @@ botたんSpace で botたんと二人きりで話しても、botたんはホス�
 
 ### Modified Capabilities
 
-- `bot-tan-presence`：BOT-08（botたんSpace でホストの最近の投稿を踏まえて話す）、BOT-09（沈黙したら botたんから話しかける）、BOT-10（話題から関連する記憶を引く）を加える。
+- `bot-tan-presence`：BOT-05（待機中の身振りと表情を加える）を変え、BOT-08（botたんSpace でホストの最近の投稿を踏まえて話す）、BOT-09（沈黙したら botたんから話しかける）、BOT-10（話題から関連する記憶を引く）、BOT-11（いまの様子と日々のまとめ）を加える。
 
 ## 非対象
 
@@ -32,8 +34,8 @@ botたんSpace で botたんと二人きりで話しても、botたんはホス�
 
 ## 影響
 
-- **本リポジトリ**：space-agent が会話を始めるときにホストの投稿を受け取る口（`/agent/context/[spaceId]`、AGENT_SECRET で守る）、ホストの PDS から投稿を読む処理（`src/lib/server/`）、space-agent（`agent/space_agent/`）。
-- **bot-tan-convo（外部リポジトリ）**：会話を作るときに文脈（ホストの投稿）を受け取る口、使い方ごとの「話しかけ」の指示文、記憶を引くときに知識（web_research）を別枠で引く仕組み、Space 用の使い方 `space` / `space_bot` の `proactive` と `memory_sources` の設定。
+- **本リポジトリ**：3Dモデルの表示（`src/lib/space/avatar.ts`・`BotAvatar.svelte`）、space-agent が会話を始めるときにホストの投稿を受け取る口（`/agent/context/[spaceId]`、AGENT_SECRET で守る）、ホストの PDS から投稿を読む処理（`src/lib/server/`）、space-agent（`agent/space_agent/`）。
+- **bot-tan-convo（外部リポジトリ）**：会話を作るときに文脈（ホストの投稿）を受け取る口、使い方ごとの「話しかけ」の指示文、記憶を引くときに知識（web_research）を別枠で引く仕組み、Space 用の使い方 `space` / `space_bot` の `proactive`・`memory_sources`・`bot_state`・`digest` の設定。
 - **外部サービス（自宅）**：Bot Memory API（biorhythm_server）を、botたんが思い出す必要があると判断したときに検索する（読むだけ）。
 - **外部サービス**：ホストの PDS（`com.atproto.repo.listRecords`、公開・認証不要）を、botたんSpace で botたんが会話を始めるたびに1回読む。
 - **個人情報**：ホストの公開投稿を、botたんSpace の会話の間だけ botたん（自宅の convo）に渡す。保存せず、ログにも本文を出さない。
@@ -47,3 +49,5 @@ botたんSpace で botたんと二人きりで話しても、botたんはホス�
 | 60秒の沈黙で話しかける（間は最低2分） | BOT-09 |
 | 話しかけはパブリック・botたんSpace の両方 | BOT-09 |
 | 記憶はパブリック・botたんSpace の両方で引く。種類は botたん自身の体験と調べた知識だけ | BOT-10 |
+| いまの様子と日々のまとめを入れる | BOT-11 |
+| 待機中の身振りと表情を改善する | BOT-05 |
