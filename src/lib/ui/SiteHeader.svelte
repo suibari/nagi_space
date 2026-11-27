@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
 	import Button from './Button.svelte';
+	import HelpDialog from './HelpDialog.svelte';
 	import { applyTheme, readTheme, type ThemePreference } from './theme.ts';
 
 	let { locale, signedIn }: { locale: Locale; signedIn: boolean } = $props();
@@ -39,6 +40,7 @@
 			<span>Nagi Space</span>
 		</a>
 		<div class="flex items-center gap-1">
+			<HelpDialog {locale} />
 			{#if !signedIn && page.url.pathname !== '/login'}
 				<Button href="/login" variant="ghost" size="sm">{loginLabel}</Button>
 			{/if}

@@ -32,7 +32,7 @@ test('ホストの発話が字幕になり、入室者全員に話者の名前�
 	const listener = await openAs(browser);
 	await join(listener.page, path);
 	await expect(listener.page.getByTestId('captions')).toContainText(
-		'字幕として入室者全員に表示されます'
+		'発話は字幕として、コメントとあわせて入室者全員に表示されます'
 	);
 
 	await speak(host.page);

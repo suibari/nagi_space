@@ -194,6 +194,48 @@ const ja = {
 		endedTimeLimit: '開催時間の上限に達したため、この Space は終了しました。',
 		speaking: '話しています'
 	},
+	help: {
+		open: 'ヘルプ',
+		title: 'Nagi Space の使い方',
+		close: '閉じる',
+		items: [
+			{
+				icon: 'headphones',
+				title: '聴く',
+				body: '一覧から Space を選ぶと、入室してすぐ聴けます。音が出ないときは「タップして音声を聞く」を押してください。'
+			},
+			{
+				icon: 'hand',
+				title: '話す',
+				body: '下の「リクエスト」でホストに発話をリクエストし、承認されるとスピーカーになれます。マイクはいつでもミュートできます。'
+			},
+			{
+				icon: 'smile',
+				title: 'リアクション',
+				body: '「リアクション」から絵文字と、30字までのコメントを送れます。入室している全員に届きます。続けて送りすぎると少し待つ必要があります。'
+			},
+			{
+				icon: 'sparkle',
+				title: 'botたん',
+				body: 'ホストはいつでも全肯定botたんを呼べます。botたんは話した声に返事をします。コメントは読みません。'
+			},
+			{
+				icon: 'captions',
+				title: '字幕とコメント',
+				body: 'ホストとスピーカーの声は字幕になり、コメントとあわせて全員の画面に表示されます。'
+			},
+			{
+				icon: 'flag',
+				title: '通報',
+				body: '参加者のアイコンの旗、または下の「通報」から運営に通報できます。通報は運営にだけ届き、相手には知らされません。'
+			},
+			{
+				icon: 'shield',
+				title: '何も残さない',
+				body: '録音・字幕・コメント・絵文字は保存しません。Space が終わると消えます。'
+			}
+		]
+	},
 	landing: {
 		eyebrow: 'Nagi の音声チャット',
 		title: 'Nagi のみんなと、声でゆるくおしゃべり',
@@ -441,6 +483,48 @@ const en: typeof ja = {
 		banned: 'You cannot join this Space.',
 		endedTimeLimit: 'This Space ended because it reached the time limit.',
 		speaking: 'Speaking'
+	},
+	help: {
+		open: 'Help',
+		title: 'How to use Nagi Space',
+		close: 'Close',
+		items: [
+			{
+				icon: 'headphones',
+				title: 'Listen',
+				body: 'Pick a Space from the list and you can listen right away. If you hear nothing, tap "Tap to hear audio".'
+			},
+			{
+				icon: 'hand',
+				title: 'Speak',
+				body: 'Use "Request" at the bottom to ask the host. Once approved, you become a speaker. You can mute your mic at any time.'
+			},
+			{
+				icon: 'smile',
+				title: 'Reactions',
+				body: 'From "React" you can send emoji and comments of up to 30 characters. Everyone in the Space sees them. If you send too many in a row, you will need to wait a moment.'
+			},
+			{
+				icon: 'sparkle',
+				title: 'bot-tan',
+				body: 'The host can invite the ever-affirming bot-tan at any time. bot-tan replies to what people say out loud. It does not read comments.'
+			},
+			{
+				icon: 'captions',
+				title: 'Captions and comments',
+				body: 'What the host and speakers say becomes captions, shown to everyone together with comments.'
+			},
+			{
+				icon: 'flag',
+				title: 'Report',
+				body: 'Use the flag on a participant or "Report" at the bottom to tell the team. Reports go only to the team; the other person is not told.'
+			},
+			{
+				icon: 'shield',
+				title: 'Nothing is kept',
+				body: 'Audio, captions, comments and emoji are not saved. Everything disappears when the Space ends.'
+			}
+		]
 	},
 	landing: {
 		eyebrow: 'Voice chat for Nagi',

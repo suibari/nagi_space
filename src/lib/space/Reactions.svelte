@@ -211,9 +211,12 @@
 {/if}
 
 <style>
+	/* 中央の段（640px）の幅で流す。広い画面で本文から離れた端に出さない */
 	.reaction-layer {
 		position: fixed;
 		inset-inline: 0;
+		max-inline-size: 640px;
+		margin-inline: auto;
 		inset-block: 56px 80px;
 		z-index: 20;
 		overflow: hidden;
