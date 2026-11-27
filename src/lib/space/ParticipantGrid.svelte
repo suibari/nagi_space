@@ -29,7 +29,7 @@
 			<span class="ring" class:speaking={participant.speaking}>
 				{#if participant.role === 'bot'}
 					<img
-						src="/bot-tan-icon.png"
+						src="/bot-tan-avatar.jpg"
 						alt=""
 						class="bot-icon"
 						style:width="{size}px"
@@ -94,14 +94,11 @@
 			0 0 0 3px var(--accent),
 			0 0 0 7px var(--accent-soft);
 	}
-	/* 元の画像は縦長なので、切らずに円の中へ収める */
+	/* Nagi のプロフィール画像と同じもの（正方形） */
 	.bot-icon {
 		flex: none;
-		box-sizing: border-box;
-		padding: 10%;
 		border-radius: 50%;
-		background: var(--accent-soft);
-		object-fit: contain;
+		object-fit: cover;
 	}
 	.muted-badge {
 		position: absolute;

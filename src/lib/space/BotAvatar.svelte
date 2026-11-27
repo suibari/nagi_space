@@ -94,7 +94,7 @@
 			aria-label={t.bot}
 		></canvas>
 		{#if status === 'fallback'}
-			<img src="/bot-tan-icon.png" alt={t.bot} class="bot-icon" data-testid="bot-icon" />
+			<img src="/bot-tan-avatar.jpg" alt={t.bot} class="bot-icon" data-testid="bot-icon" />
 		{/if}
 		{#if status === 'loading'}
 			<span class="loading"><Spinner label={t.botLoading} /></span>
@@ -119,10 +119,8 @@
 		inline-size: min(60%, 280px);
 		block-size: auto;
 		aspect-ratio: 1;
-		padding: 6%;
 		border-radius: 50%;
-		background: var(--accent-soft);
-		object-fit: contain;
+		object-fit: cover;
 	}
 	.loading {
 		position: absolute;

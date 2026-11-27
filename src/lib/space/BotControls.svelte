@@ -75,11 +75,7 @@
 	<section class="card flex flex-col gap-2 p-4 text-sm" data-testid="bot-controls">
 		{#if left}<p role="alert" data-testid="bot-left">{t.left}</p>{/if}
 		<div class="flex flex-wrap items-center gap-3">
-			<img
-				src="/bot-tan-icon.png"
-				alt=""
-				class="h-10 w-10 flex-none rounded-full bg-accent-soft object-contain p-1"
-			/>
+			<img src="/bot-tan-avatar.jpg" alt="" class="h-10 w-10 flex-none rounded-full object-cover" />
 			<div class="min-w-0 flex-1">
 				<p class="font-semibold text-strong">{t.title}</p>
 				{#if !inRoom && !botState.requested}

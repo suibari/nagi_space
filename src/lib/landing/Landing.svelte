@@ -41,7 +41,7 @@
 				<span class="live-dot" aria-hidden="true"></span>
 			</div>
 			<div class="sample-bot">
-				<img src="/bot-tan-icon.png" alt="" />
+				<img src="/bot-tan-avatar.jpg" alt="" />
 			</div>
 			<ul class="sample-speakers" aria-hidden="true">
 				{#each sampleSpeakers as speaker (speaker.name)}
@@ -181,10 +181,8 @@
 		inline-size: 46%;
 		block-size: auto;
 		aspect-ratio: 1;
-		padding: 5%;
 		border-radius: 50%;
-		background: var(--accent-soft);
-		object-fit: contain;
+		object-fit: cover;
 	}
 	.sample-speakers {
 		display: flex;
