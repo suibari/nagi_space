@@ -11,9 +11,11 @@
 
 - [x] 2.1 SvelteKit（Svelte 5・TypeScript・Tailwind）とVercel adapterでアプリを作成し、Vitest・Playwright・svelte-check・Prettierを設定する（完了の確認：`npm run check`・`npm test`・`npm run build` が通る）
 - [x] 2.2 LiveKit と Redis の接続先を環境変数（`LIVEKIT_URL`・`LIVEKIT_API_KEY`・`LIVEKIT_API_SECRET`・`REDIS_URL`）だけで切り替えられるようにし、ローカル用に Docker の LiveKit（開発モード）と Redis を用意する。`.env.example` とREADMEに設定手順を書く（完了の確認：`npm run test:integration` でローカルの LiveKit の room 作成と Redis の読み書きが通る）
-- [ ] 2.3 【利用者】LiveKit Cloud のプロジェクトを作り、鍵を Vercel の環境変数に設定する（完了の確認：Cloud の値で `npm run test:integration` が通る）
+- [x] 2.3 【利用者】LiveKit Cloud のプロジェクトを作り、鍵を Vercel の環境変数に設定する（完了の確認：Cloud の値で `npm run test:integration` が通る）
+  - 2026-11-27 LiveKit Cloud の値で `npm run test:integration` が通った。
 - [x] 2.4 保存先を自宅DB（PostgREST）に切り替える：`nagi_space` スキーマのマイグレーション、キー・値ストアのインターフェースとPostgREST実装、ローカルのDocker（PostgreSQL・PostgREST）、既存の保存処理とテストの置き換え（完了の確認：Redisへの依存が無くなり、ユニット・統合・E2Eの全テストがローカルのPostgRESTで通る）
-- [ ] 2.5 【利用者】自宅のPostgreSQLに `db/migrations/` を適用し、PostgRESTの公開スキーマに `nagi_space` を加え、Nagi Space用のCloudflare Accessサービストークンを発行して Vercel の環境変数に設定する（完了の確認：本番の値で `npm run test:integration` が通る）
+- [x] 2.5 【利用者】自宅のPostgreSQLに `db/migrations/` を適用し、PostgRESTの公開スキーマに `nagi_space` を加え、Nagi Space用のCloudflare Accessサービストークンを発行して Vercel の環境変数に設定する（完了の確認：本番の値で `npm run test:integration` が通る）
+  - 2026-11-27 本番の値で `npm run test:integration` が通った。
 - [ ] 2.6 【利用者】`scripts/build-bot-assets.mjs` で botたんの3Dモデルと動きをまとめて外部の置き場（R2 など）に置き、Nagi Space の origin からの CORS を許可して、`BOT_ASSETS_BASE_URL` を Vercel の環境変数に設定する（完了の確認：本番の Space で botたんを呼ぶと3Dモデルが表示される）
 
 ## 3. 認証（space-access）

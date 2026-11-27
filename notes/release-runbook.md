@@ -59,7 +59,7 @@
 ### 3-2. 自宅の PostgREST（db.suibari.com）
 
 1. 設定の `db-schemas`（環境変数なら `PGRST_DB_SCHEMAS`）に `nagi_space` を加える（例：`public,nagi_space`）。
-2. PostgREST を再起動するか、`NOTIFY pgrst, 'reload config'; NOTIFY pgrst, 'reload schema';` で読み直させる。
+2. 読み直させる。設定ファイルなら `NOTIFY pgrst, 'reload config';` で足りるが、環境変数（`PGRST_*`）は起動時にしか読まれないので、docker compose ならコンテナを作り直す（`docker compose up -d --force-recreate <PostgREST のサービス>`。`restart` では反映されない）。
 3. `role=nagi_space_api` の JWT を、PostgREST の `jwt-secret` で署名して作る。値は `POSTGREST_JWT` に控える。
 
    ```sh
@@ -71,7 +71,7 @@
 ### 3-3. Cloudflare Access
 
 1. Cloudflare Zero Trust → Access → Service Auth で、Nagi Space 用のサービストークンを作る。Client ID と Client Secret を `CF_ACCESS_CLIENT_ID_DB` / `CF_ACCESS_CLIENT_SECRET_DB` に控える（Secret は作成時にしか表示されない）。
-2. db.suibari.com の Access アプリケーションに、このトークンを許可する「Service Auth」のポリシーを加える。
+2. db.suibari.com の Access アプリケーションに、このトークンを許可するポリシーを加える。Action は「Allow」ではなく「Service Auth」にする（Allow だとログイン画面に送られ、トークンでは通らない）。
 3. 確認（手元から）：
 
    ```sh
