@@ -70,7 +70,7 @@ const ja = {
 		short: {
 			unmute: 'マイク',
 			mute: 'ミュート',
-			emoji: '絵文字',
+			emoji: 'リアクション',
 			request: 'リクエスト',
 			cancel: '取り消す',
 			toListener: '聴衆に戻る',
@@ -138,14 +138,26 @@ const ja = {
 			left: 'botたんとの接続が切れたため、botたんは退出しました。もう一度呼べます。'
 		},
 		captions: {
-			title: '字幕',
-			notice: 'ホストとスピーカーの発話は、字幕として入室者全員に表示されます。',
+			title: '字幕とコメント',
+			notice:
+				'ホストとスピーカーの発話は字幕として、コメントとあわせて入室者全員に表示されます。保存はしません。',
 			paused: '字幕は一時停止中です。',
-			empty: 'まだ字幕はありません。',
+			empty: 'まだ字幕やコメントはありません。',
 			separator: '：'
 		},
+		comment: {
+			label: 'コメント',
+			placeholder: 'ひとことコメント',
+			send: '送る',
+			remaining: (n: number) => `あと${n}字`,
+			tooLong: (n: number) => `${n}字までです`,
+			rateLimited: '少し待ってから送ってください。',
+			failed: 'コメントを送れませんでした。もう一度お試しください。',
+			mark: 'コメント'
+		},
 		emoji: {
-			open: '絵文字',
+			sheet: 'リアクション',
+			open: 'リアクション',
 			search: '絵文字をさがす',
 			favorites: 'お気に入り',
 			recent: '最近使った絵文字',
@@ -306,7 +318,7 @@ const en: typeof ja = {
 		short: {
 			unmute: 'Mic',
 			mute: 'Mute',
-			emoji: 'Emoji',
+			emoji: 'React',
 			request: 'Request',
 			cancel: 'Cancel',
 			toListener: 'Listen',
@@ -374,14 +386,26 @@ const en: typeof ja = {
 			left: 'bot-tan left because the connection was lost. You can invite them again.'
 		},
 		captions: {
-			title: 'Captions',
-			notice: 'What the host and speakers say is shown to everyone as captions.',
+			title: 'Captions and comments',
+			notice:
+				'What the host and speakers say is shown to everyone as captions, along with comments. Nothing is saved.',
 			paused: 'Captions are paused.',
-			empty: 'No captions yet.',
+			empty: 'No captions or comments yet.',
 			separator: ': '
 		},
+		comment: {
+			label: 'Comment',
+			placeholder: 'Say something short',
+			send: 'Send',
+			remaining: (n: number) => `${n} left`,
+			tooLong: (n: number) => `Up to ${n} characters`,
+			rateLimited: 'Please wait a moment before sending.',
+			failed: 'Could not send the comment. Please try again.',
+			mark: 'Comment'
+		},
 		emoji: {
-			open: 'Emoji',
+			sheet: 'Reactions',
+			open: 'Reactions',
 			search: 'Search emoji',
 			favorites: 'Favorites',
 			recent: 'Recently used',

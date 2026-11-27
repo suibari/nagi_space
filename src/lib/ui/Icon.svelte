@@ -13,7 +13,9 @@
 		| 'sparkle'
 		| 'shield'
 		| 'headphones'
-		| 'captions';
+		| 'captions'
+		| 'comment'
+		| 'help';
 	let { name, size = 20 }: { name: Name; size?: number } = $props();
 </script>
 
@@ -65,6 +67,11 @@
 		<path
 			d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"
 		/>
+	{:else if name === 'comment'}
+		<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />
+	{:else if name === 'help'}
+		<circle cx="12" cy="12" r="9" />
+		<path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.9M12 17h.01" />
 	{:else if name === 'captions'}
 		<rect x="3" y="5" width="18" height="14" rx="2" />
 		<path d="M7 15h4M15 15h2M7 11h2M13 11h4" />

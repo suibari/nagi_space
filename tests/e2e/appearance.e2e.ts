@@ -95,7 +95,7 @@ test('幅360pxでも、botたんがいるSpaceを横スクロールせずに使�
 	await createSpace(host.page, 'スマホで見るとても長いタイトルのSpaceでも横にはみ出さないか');
 	await host.page.getByRole('button', { name: 'botたんを呼ぶ' }).click({ timeout: 15000 });
 	await expect(host.page.getByTestId('bot-avatar')).toBeVisible({ timeout: 30000 });
-	await host.page.getByRole('button', { name: '絵文字' }).click();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	await expect(host.page.getByTestId('emoji-picker')).toBeVisible();
 	const overflow = await host.page.evaluate(
 		() => document.documentElement.scrollWidth - document.documentElement.clientWidth

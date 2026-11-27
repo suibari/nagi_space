@@ -65,6 +65,8 @@ export class SpaceConnection {
 	onControl?: (message: { type: string; reason?: string }) => void;
 	/** リアクションを受けたときに呼ぶ（REACT-01） */
 	onReaction?: (message: unknown) => void;
+	/** コメントを受けたときに呼ぶ（COMM-02）。流れる表示と「字幕とコメント」の欄の両方が受ける */
+	readonly commentListeners = new Set<(message: unknown) => void>();
 	/** 字幕（TRANS-01・03）と botたんの動き（BOT-05）を受けたときに呼ぶ */
 	onCaption?: (message: unknown) => void;
 	onBot?: (message: unknown) => void;
@@ -88,8 +90,11 @@ export class SpaceConnection {
 				try {
 					const message = JSON.parse(new TextDecoder().decode(payload));
 					if (fromServer && topic === CONTROL_TOPIC) this.onControl?.(message);
-					else if (fromServer && topic === REACTION_TOPIC) this.onReaction?.(message);
-					else if (fromAgent && topic === CAPTION_TOPIC) this.onCaption?.(message);
+					else if (fromServer && topic === REACTION_TOPIC) {
+						if (message?.type === 'comment')
+							this.commentListeners.forEach((listen) => listen(message));
+						else this.onReaction?.(message);
+					} else if (fromAgent && topic === CAPTION_TOPIC) this.onCaption?.(message);
 					else if (fromAgent && topic === BOT_TOPIC) this.onBot?.(message);
 				} catch {
 					/* 壊れた通知は無視する */

@@ -25,7 +25,7 @@ test('聴衆が送った絵文字は全員の画面に送った人と一緒に�
 	const listener = await openAs(browser);
 	await join(listener.page, path);
 
-	await listener.page.getByRole('button', { name: '絵文字' }).click();
+	await listener.page.getByRole('button', { name: 'リアクション' }).click();
 	await listener.page.getByTestId('emoji-picker').locator('[data-emoji="u:🎉"]').click();
 	const onHost = host.page.locator(`[data-testid="reaction"][data-from="${listener.did}"]`);
 	await expect(onHost).toContainText('🎉', connected);
@@ -46,7 +46,7 @@ test('カスタム絵文字を検索して送れ、検索結果ではUnicode絵�
 	await expect(host.page.getByTestId('connection-state')).toHaveText('接続しました', connected);
 	const listener = await openAs(browser);
 	await join(listener.page, path);
-	await listener.page.getByRole('button', { name: '絵文字' }).click();
+	await listener.page.getByRole('button', { name: 'リアクション' }).click();
 	const picker = listener.page.getByTestId('emoji-picker');
 	await picker.getByLabel('絵文字をさがす').fill('ねこ');
 	const custom = picker.locator(
@@ -86,7 +86,7 @@ test('短時間に送りすぎた分は配られず、少し待つよう表示�
 		host.page.locator(`[data-testid="reaction"][data-from="${listener.did}"]`)
 	).toHaveCount(8, connected);
 
-	await listener.page.getByRole('button', { name: '絵文字' }).click();
+	await listener.page.getByRole('button', { name: 'リアクション' }).click();
 	await listener.page.getByTestId('emoji-picker').locator('[data-emoji="u:👏"]').click();
 	await expect(listener.page.getByText('少し待ってから送ってください。')).toBeVisible();
 	await cleanup(host.did, listener.did);
@@ -141,7 +141,7 @@ test('Nagi のお気に入りの絵文字を、選択の先頭に並べる', asy
 		]),
 		{ ttlSeconds: 300 }
 	);
-	await host.page.getByRole('button', { name: '絵文字' }).click();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	const picker = host.page.getByTestId('emoji-picker');
 	await expect(picker.locator('h4').first()).toHaveText('お気に入り');
 	const first = picker.locator('[data-emoji]').first();

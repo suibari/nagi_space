@@ -71,7 +71,7 @@ test('ホスト・スピーカー・聴衆とbotたんで、作成から終了�
 	await count();
 
 	// 聴衆の絵文字（REACT-01）
-	await listener.page.getByRole('button', { name: '絵文字' }).click();
+	await listener.page.getByRole('button', { name: 'リアクション' }).click();
 	await listener.page.getByTestId('emoji-picker').locator('[data-emoji="u:🎉"]').click();
 	await expect(
 		host.page.locator(`[data-testid="reaction"][data-from="${listener.did}"]`)

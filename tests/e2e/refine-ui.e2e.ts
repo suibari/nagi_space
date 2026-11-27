@@ -170,7 +170,7 @@ test('幅360pxで、下までスクロールしても操作バーが押せ、3D�
 	await host.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 	const bar = host.page.getByTestId('action-bar');
 	await expect(bar).toBeInViewport();
-	await host.page.getByRole('button', { name: '絵文字' }).click();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	await expect(host.page.getByTestId('emoji-picker')).toBeVisible();
 	expect(await overflowX(host.page)).toBeLessThanOrEqual(0);
 	// 絵文字のシートを閉じてから botたんの操作を押す（シートは下の本文を覆う）
@@ -203,7 +203,7 @@ test('絵文字は大きく流れ、流れている間も操作バーは押せ�
 	const host = await openAs(browser);
 	const path = await createSpace(host.page, '大きな絵文字');
 	await join(host.page, path);
-	await host.page.getByRole('button', { name: '絵文字' }).click();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	const picker = host.page.getByTestId('emoji-picker');
 	await picker.locator('[data-emoji="u:🎉"]').click();
 	await picker.locator('[data-emoji="u:👏"]').click();
@@ -214,7 +214,7 @@ test('絵文字は大きく流れ、流れている間も操作バーは押せ�
 	);
 	expect(size).toBeGreaterThanOrEqual(40);
 	// 流れる層は操作を受け付けないので、下のボタンを押せる
-	await host.page.getByRole('button', { name: '絵文字' }).click();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	await expect(picker).toHaveCount(0);
 	await cleanup(host.did);
 });
@@ -225,7 +225,7 @@ test('視差効果を減らす設定では、絵文字は流れずにその場�
 	await host.page.emulateMedia({ reducedMotion: 'reduce' });
 	const path = await createSpace(host.page, '動きを減らす');
 	await join(host.page, path);
-	await host.page.getByRole('button', { name: '絵文字' }).click();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	await host.page.getByTestId('emoji-picker').locator('[data-emoji="u:🎉"]').click();
 	const reaction = host.page.locator('[data-testid="reaction"]').first();
 	await expect(reaction).toBeVisible(connected);

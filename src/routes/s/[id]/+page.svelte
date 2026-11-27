@@ -269,7 +269,7 @@
 							<StageControls {stage} {connection} locale={data.locale} />
 						{/if}
 
-						<Captions {connection} locale={data.locale} />
+						<Captions {connection} locale={data.locale} mutedDids={data.mutedDids} />
 
 						<section aria-labelledby="listeners-heading">
 							<h2 id="listeners-heading" class="section-title">
@@ -320,6 +320,7 @@
 					{connection}
 					locale={data.locale}
 					mutedDids={data.mutedDids}
+					allowComments={data.space.kind === 'public'}
 					bind:open={emojiOpen}
 				/>
 				<ActionBar
