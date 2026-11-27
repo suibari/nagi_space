@@ -248,11 +248,15 @@
 			{/if}
 
 			{#if connection?.state === 'connected' && stage}
-				<div class="mt-5 flex flex-col gap-6">
-					<BotAvatar {connection} base={data.botAssetsBase} locale={data.locale} />
+				<!-- 広い画面では左に3Dモデルと参加者、右に字幕とコメント（LOOK-07、design.md D10） -->
+				<div class="room">
+					<div class="area-bot">
+						<BotAvatar {connection} base={data.botAssetsBase} locale={data.locale} />
+					</div>
 
-					<div class="flex flex-col gap-6" data-testid="participants">
-						<section aria-labelledby="speakers-heading">
+					<!-- 参加者の並びの入れ物はグリッドに溶かす（中の塊をそれぞれの段に置く） -->
+					<div class="contents" data-testid="participants">
+						<section class="area-speakers" aria-labelledby="speakers-heading">
 							<h2 id="speakers-heading" class="section-title">
 								{t.speakers}<span class="count">{onStage.length}</span>
 							</h2>
@@ -266,12 +270,16 @@
 						</section>
 
 						{#if !isHost}
-							<StageControls {stage} {connection} locale={data.locale} />
+							<div class="area-stage">
+								<StageControls {stage} {connection} locale={data.locale} />
+							</div>
 						{/if}
 
-						<Captions {connection} locale={data.locale} mutedDids={data.mutedDids} />
+						<div class="area-captions">
+							<Captions {connection} locale={data.locale} mutedDids={data.mutedDids} />
+						</div>
 
-						<section aria-labelledby="listeners-heading">
+						<section class="area-listeners" aria-labelledby="listeners-heading">
 							<h2 id="listeners-heading" class="section-title">
 								{t.listeners}<span class="count">{audience.length}</span>
 							</h2>
@@ -288,35 +296,37 @@
 						</section>
 					</div>
 
-					{#if reporting && reporting !== 'space'}
-						<div>
-							<p class="mb-2 text-sm text-muted">{t.report.about(reportedName ?? '')}</p>
+					<div class="area-extra">
+						{#if reporting && reporting !== 'space'}
+							<div>
+								<p class="mb-2 text-sm text-muted">{t.report.about(reportedName ?? '')}</p>
+								<ReportForm
+									spaceId={data.space.id}
+									member={reporting}
+									locale={data.locale}
+									onclose={() => (reporting = undefined)}
+								/>
+							</div>
+						{/if}
+
+						{#if isHost}
+							<BotControls
+								spaceId={data.space.id}
+								{connection}
+								locale={data.locale}
+								kind={data.space.kind}
+							/>
+							<StageControls {stage} {connection} locale={data.locale} />
+						{/if}
+
+						{#if reporting === 'space'}
 							<ReportForm
 								spaceId={data.space.id}
-								member={reporting}
 								locale={data.locale}
 								onclose={() => (reporting = undefined)}
 							/>
-						</div>
-					{/if}
-
-					{#if isHost}
-						<BotControls
-							spaceId={data.space.id}
-							{connection}
-							locale={data.locale}
-							kind={data.space.kind}
-						/>
-						<StageControls {stage} {connection} locale={data.locale} />
-					{/if}
-
-					{#if reporting === 'space'}
-						<ReportForm
-							spaceId={data.space.id}
-							locale={data.locale}
-							onclose={() => (reporting = undefined)}
-						/>
-					{/if}
+						{/if}
+					</div>
 				</div>
 
 				<!-- 絵文字はロールにかかわらず送れる（REACT-01） -->
@@ -349,6 +359,72 @@
 		max-inline-size: 640px;
 		margin-inline: auto;
 		padding: 24px 16px calc(112px + env(safe-area-inset-bottom));
+	}
+	.room {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
+		margin-block-start: 20px;
+	}
+	.room > div:empty {
+		display: none;
+	}
+	.area-extra {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+	}
+	.area-extra:empty {
+		display: none;
+	}
+	/* 広い画面は2段組み。右の字幕とコメントは見出しの下にとどめ、画面の高さに合わせて伸ばす（LOOK-07） */
+	@media (min-width: 1024px) {
+		.space-page {
+			max-inline-size: 1200px;
+			padding-inline: 24px;
+		}
+		.room {
+			grid-template-columns: minmax(0, 1fr) 380px;
+			grid-template-areas:
+				'bot captions'
+				'speakers captions'
+				'stage captions'
+				'listeners captions'
+				'extra captions';
+			grid-template-rows: auto auto auto auto 1fr;
+			column-gap: 32px;
+			align-items: start;
+		}
+		.area-bot {
+			grid-area: bot;
+		}
+		.area-speakers {
+			grid-area: speakers;
+		}
+		.area-stage {
+			grid-area: stage;
+		}
+		.area-listeners {
+			grid-area: listeners;
+		}
+		.area-extra {
+			grid-area: extra;
+		}
+		.area-captions {
+			grid-area: captions;
+			position: sticky;
+			inset-block-start: 72px;
+			block-size: calc(100dvh - 72px - 112px);
+		}
+		.area-captions :global([data-testid='captions']) {
+			display: flex;
+			flex-direction: column;
+			block-size: 100%;
+		}
+		.area-captions :global([data-testid='timeline']) {
+			flex: 1;
+			max-block-size: none;
+		}
 	}
 	.status {
 		display: inline-flex;

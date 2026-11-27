@@ -72,7 +72,8 @@
 			id: nextId++,
 			from,
 			...content,
-			x: content.text ? 10 + Math.random() * 50 : 8 + Math.random() * 76,
+			// コメントは幅があるので、画面の端で切れないよう中央寄りに出す
+			x: content.text ? 30 + Math.random() * 40 : 8 + Math.random() * 76,
 			drift: Math.round((Math.random() - 0.5) * 48)
 		};
 		// 表示が終わったら消す。保存はしない（REACT-04・COMM-04）
@@ -227,6 +228,13 @@
 		inset-inline: 0;
 		max-inline-size: 640px;
 		margin-inline: auto;
+	}
+	@media (min-width: 1024px) {
+		.reaction-layer {
+			max-inline-size: 1200px;
+		}
+	}
+	.reaction-layer {
 		inset-block: 56px 80px;
 		z-index: 20;
 		overflow: hidden;

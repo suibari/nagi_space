@@ -179,21 +179,31 @@ test('幅360pxで、下までスクロールしても操作バーが押せ、3D�
 	await cleanup(host.did);
 });
 
-// BOT-05 広い画面
-test('幅1280pxでは、3Dモデルの枠は中央の段の幅いっぱい', async ({ browser }) => {
+// BOT-05 広い画面で表示する / LOOK-07 広い画面で話す
+test('幅1280pxでは、左に3Dモデル、右に字幕とコメントが並び、スクロールしても欄が見える', async ({
+	browser
+}) => {
 	test.setTimeout(90_000);
 	await setBotCapacity(2);
 	const host = await openAs(browser);
-	await host.page.setViewportSize({ width: 1280, height: 900 });
+	await host.page.setViewportSize({ width: 1280, height: 860 });
 	const path = await createSpace(host.page, 'ひろい画面');
 	await join(host.page, path);
 	await host.page.getByRole('button', { name: 'botたんを呼ぶ' }).click(connected);
 	const frame = host.page.getByTestId('bot-avatar');
 	await expect(frame).toBeVisible(slow);
-	const box = await frame.boundingBox();
-	// 中央の段の幅いっぱいで、高さは画面の高さの55%までに収まる
-	expect(Math.round(box!.width)).toBe(640 - 32);
-	expect(Math.round(box!.height)).toBeLessThanOrEqual(Math.round(900 * 0.55) + 1);
+	const captions = host.page.getByTestId('captions');
+	const f = (await frame.boundingBox())!;
+	const c = (await captions.boundingBox())!;
+	// 字幕とコメントの欄は3Dモデルの右に並ぶ
+	expect(c.x).toBeGreaterThanOrEqual(f.x + f.width);
+	expect(c.y).toBeLessThan(f.y + f.height);
+	expect(f.width).toBeGreaterThan(600);
+	expect(Math.round(f.height)).toBeLessThanOrEqual(Math.round(860 * 0.7) + 1);
+	// 下へスクロールしても欄は見えたまま
+	await host.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+	await expect(captions).toBeInViewport();
+	expect(await overflowX(host.page)).toBeLessThanOrEqual(0);
 	await host.page.getByRole('button', { name: 'botたんに抜けてもらう' }).click();
 	await cleanup(host.did);
 });

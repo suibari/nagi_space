@@ -103,6 +103,12 @@
 {/if}
 
 <style>
+	/* 広い画面では左の段の幅いっぱい、画面の高さの70%まで（BOT-05・LOOK-07） */
+	@media (min-width: 1024px) {
+		.stage-frame {
+			max-block-size: 70dvh;
+		}
+	}
 	.stage-frame {
 		position: relative;
 		display: flex;

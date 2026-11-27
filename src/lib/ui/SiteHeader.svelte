@@ -97,6 +97,14 @@
 		margin-inline: auto;
 		padding-inline: 16px;
 	}
+	/* 広い画面では Space画面の2段組み（1200px）と端をそろえる */
+	@media (min-width: 1024px) {
+		.bar,
+		.settings {
+			max-inline-size: 1200px;
+			padding-inline: 24px;
+		}
+	}
 	.bar {
 		display: flex;
 		align-items: center;
