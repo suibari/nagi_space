@@ -26,13 +26,12 @@ set -a; . ./.env.local; set +a; npm run test:integration   # 疎通確認
 
 ローカルでは `http://127.0.0.1:5173` で開いてください（`localhost` は OAuth のループバックとして扱われません）。SvelteKit はビルド時にも環境変数を検証するので、`npm run build` の前にも環境変数を読み込んでください。
 
-本番・Preview では、同じ環境変数に LiveKit Cloud（または自前の LiveKit）と自宅の PostgREST（db.suibari.com）の値を設定します。接続先は環境変数だけで切り替わります。
+本番の手順は [notes/release-runbook.md](notes/release-runbook.md) にまとめています。本番・Preview では、同じ環境変数に LiveKit Cloud（または自前の LiveKit）と自宅の PostgREST（db.suibari.com）の値を設定します。接続先は環境変数だけで切り替わります。
 
-| 変数                                     | 内容                                                                     |
-| ---------------------------------------- | ------------------------------------------------------------------------ |
-| `LIVEKIT_URL`                            | LiveKit の URL（`wss://…` / `ws://…`）                                   |
-| `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | LiveKit の API キーとシークレット                                        |
-| `REDIS_URL`                              | Redis の URL（Upstash は `rediss://default:<パスワード>@<ホスト>:6379`） |
+| 変数                                     | 内容                                   |
+| ---------------------------------------- | -------------------------------------- |
+| `LIVEKIT_URL`                            | LiveKit の URL（`wss://…` / `ws://…`） |
+| `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | LiveKit の API キーとシークレット      |
 
 | コマンド                          | 内容                                                  |
 | --------------------------------- | ----------------------------------------------------- |

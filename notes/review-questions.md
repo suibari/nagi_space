@@ -23,7 +23,7 @@
 - 2.3 LiveKit Cloud のプロジェクトと鍵
 - 2.5 自宅 DB へのマイグレーション（`db/migrations/0001`・`0002`）の適用、PostgREST の設定、Cloudflare Access のトークン
 - 2.6 botたんの3Dモデルと動きを外部の置き場に置く
-- 3.7 実際のアカウントでのログインとシェアの手動確認
+- ~~3.7 ログインの手動確認~~ → ログイン・ログアウトは確認済み（2026-11-27）。シェアは本番で確認
 - そのほか：本物の convo（ブランチ `nagi-space`）と space-agent をつないだ確認、space-agent の自動再起動（systemd）の設定、AppView の環境変数 `PASSPORT_AUDIENCES` への Nagi Space の追加
 
 ## これまでに伝えた判断（2026-11-26 夕方までの報告分）
