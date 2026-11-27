@@ -228,6 +228,6 @@ set -a; . ./.env.production.local; set +a; npm run test:integration
 ## 10. 仕上げ
 
 1. ブランチ `nagi-space-initial` を main に取り込む（Vercel の Production ブランチを main にしておく）。
-2. OpenSpec の主仕様へ同期し、change をアーカイブする（`openspec archive nagi-space-initial`）。
+2. ~~OpenSpec の主仕様へ同期し、change をアーカイブする~~ → 2026-11-27 済み（`openspec/changes/archive/2026-11-27-nagi-space-initial/`）。本番でのシェアの確認は、この手順書の手順9で行う。
 3. 一般公開するときに `SPACE_CREATOR_ALLOWLIST` を空にして再デプロイする。
 4. LiveKit Cloud の使用量を見て、無料枠を超えそうなら design.md「公開前の LiveKit の運用の判断材料」に沿って運用を決める。
