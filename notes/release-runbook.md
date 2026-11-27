@@ -28,7 +28,7 @@
 
 ログインは AT Protocol OAuth だけで完結する。Nagi のリンクから移ったときにハンドル入力を省く場合だけ行う（ACC-01。DID ヒントだけを使い、SSO チケットは使わない。AppView の設定は不要）。
 
-1. `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`）の OpenSpec change `add-nagi-space-sibling` を nagi_client の main に取り込み、デプロイする。
+1. `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`）を nagi_client の main に取り込み（PR #254）、デプロイする。
 
 ## 2. ドメインと Vercel のプロジェクト
 
