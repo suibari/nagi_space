@@ -24,7 +24,7 @@
 - 2.5 自宅 DB へのマイグレーション（`db/migrations/0001`・`0002`）の適用、PostgREST の設定、Cloudflare Access のトークン
 - 2.6 botたんの3Dモデルと動きを外部の置き場に置く
 - ~~3.7 ログインの手動確認~~ → ログイン・ログアウトは確認済み（2026-11-27）。シェアは本番で確認
-- そのほか：本物の convo（ブランチ `nagi-space`）と space-agent をつないだ確認、space-agent の自動再起動（systemd）の設定、AppView の環境変数 `PASSPORT_AUDIENCES` への Nagi Space の追加
+- そのほか：本物の convo（ブランチ `nagi-space`）と space-agent をつないだ確認、space-agent の自動再起動（systemd）の設定
 
 ## これまでに伝えた判断（2026-11-26 夕方までの報告分）
 
@@ -80,7 +80,7 @@
 
 - **Nagi Space の本番ドメインは `https://nagi-space.suibari.com`**（2026-11-27 決定）。
 - nagi_client は「振る舞いを変える前に change で合意」の規約なので、**提案（OpenSpec change `add-nagi-space-sibling`）だけ**を作り、実装はしていない。ユーザーの作業中の変更（main の未コミット）を避けるため、別の作業ディレクトリ `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`、未push）に置いた。
-- Nagi AppView 側はコードの変更が無く、環境変数 `PASSPORT_AUDIENCES` に Nagi Space の origin を加えるだけ（チケットの導線を使うときに必要）。
+- 2026-11-27 利用者と決定：Nagi Space は SSO チケットを使わず、DID ヒントだけにする（change `drop-sso-ticket`）。AppView の `PASSPORT_AUDIENCES` への追加は不要。
 
 ### 作業7（bot-tan-convo）
 

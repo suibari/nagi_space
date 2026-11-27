@@ -1,3 +1,5 @@
+import { redirect } from '@sveltejs/kit';
+import { didHintLogin } from '#lib/server/didHint.ts';
 import { getRuntime } from '#lib/server/runtime.ts';
 import { endedByTimeLimit } from '#lib/server/spaces/limits.ts';
 import { isSpaceId } from '#lib/server/spaces/model.ts';
@@ -5,7 +7,7 @@ import { shareDraftKey } from '#lib/server/share.ts';
 import { initialRole, visibleTo } from './access.ts';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const { spaces, lifecycle, store, mutedBy, botAssetsBase } = await getRuntime();
 	const found = visibleTo(
 		isSpaceId(params.id) ? await spaces.get(params.id) : undefined,
@@ -57,7 +59,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}
 	};
 	// 未ログイン・未登録の閲覧者にはタイトルとホストだけを見せる（ACC-03）
-	if (!locals.did) return { state: 'anonymous' as const, space: summary, og };
+	if (!locals.did) {
+		const login = didHintLogin(url);
+		if (login) redirect(303, login);
+		return { state: 'anonymous' as const, space: summary, og };
+	}
 	if (locals.nagiUser !== 'registered')
 		return { state: 'unregistered' as const, space: summary, og };
 	const role = initialRole(space, locals.did);

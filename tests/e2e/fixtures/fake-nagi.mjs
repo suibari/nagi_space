@@ -1,14 +1,9 @@
-// E2E 専用の偽の Nagi AppView。SSO チケット発行者の公開鍵（テスト専用の鍵）と、
-// 登録確認に使う getProfile と、絵文字の検索・取得を返す。
+// E2E 専用の偽の Nagi AppView。登録確認に使う getProfile と、絵文字の検索・取得を返す。
 //   DID に "unreg" を含む → 未登録（404）
 //   DID に "down" を含む  → AppView の障害（503）
 //   それ以外               → 登録済み（joinedAt あり）
-import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 
-const { publicJwk } = JSON.parse(
-	readFileSync(new URL('./passport-keys.json', import.meta.url), 'utf8')
-);
 const port = Number(process.env.PORT ?? 4999);
 
 function json(res, status, body) {
@@ -18,9 +13,6 @@ function json(res, status, body) {
 
 createServer((req, res) => {
 	const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
-	if (url.pathname === '/.well-known/nagi-passport-jwks.json') {
-		return json(res, 200, { keys: [publicJwk] });
-	}
 	if (url.pathname === '/xrpc/com.suibari.nagi.getProfile') {
 		const actor = url.searchParams.get('actor') ?? '';
 		if (actor.includes('unreg')) return json(res, 404, { error: 'not_found' });
