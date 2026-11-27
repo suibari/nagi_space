@@ -117,9 +117,12 @@
 	}
 	.bot-icon {
 		inline-size: min(60%, 280px);
+		block-size: auto;
 		aspect-ratio: 1;
+		padding: 6%;
 		border-radius: 50%;
-		object-fit: cover;
+		background: var(--accent-soft);
+		object-fit: contain;
 	}
 	.loading {
 		position: absolute;

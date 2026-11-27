@@ -179,9 +179,12 @@
 	}
 	.sample-bot img {
 		inline-size: 46%;
+		block-size: auto;
 		aspect-ratio: 1;
+		padding: 5%;
 		border-radius: 50%;
-		object-fit: cover;
+		background: var(--accent-soft);
+		object-fit: contain;
 	}
 	.sample-speakers {
 		display: flex;

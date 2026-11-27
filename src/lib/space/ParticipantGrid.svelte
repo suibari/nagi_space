@@ -28,7 +28,13 @@
 		<li class="tile" data-role={participant.role} data-speaking={participant.speaking}>
 			<span class="ring" class:speaking={participant.speaking}>
 				{#if participant.role === 'bot'}
-					<img src="/bot-tan-icon.png" alt="" width={size} height={size} class="bot-icon" />
+					<img
+						src="/bot-tan-icon.png"
+						alt=""
+						class="bot-icon"
+						style:width="{size}px"
+						style:height="{size}px"
+					/>
 				{:else}
 					<Avatar src={participant.avatar} name={participant.name} {size} />
 				{/if}
@@ -88,10 +94,14 @@
 			0 0 0 3px var(--accent),
 			0 0 0 7px var(--accent-soft);
 	}
+	/* 元の画像は縦長なので、切らずに円の中へ収める */
 	.bot-icon {
+		flex: none;
+		box-sizing: border-box;
+		padding: 10%;
 		border-radius: 50%;
 		background: var(--accent-soft);
-		object-fit: cover;
+		object-fit: contain;
 	}
 	.muted-badge {
 		position: absolute;
