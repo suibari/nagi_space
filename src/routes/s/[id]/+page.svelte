@@ -301,7 +301,12 @@
 					{/if}
 
 					{#if isHost}
-						<BotControls spaceId={data.space.id} {connection} locale={data.locale} />
+						<BotControls
+							spaceId={data.space.id}
+							{connection}
+							locale={data.locale}
+							kind={data.space.kind}
+						/>
 						<StageControls {stage} {connection} locale={data.locale} />
 					{/if}
 

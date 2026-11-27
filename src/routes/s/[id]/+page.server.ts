@@ -5,7 +5,12 @@ import { endedByTimeLimit } from '#lib/server/spaces/limits.ts';
 import { isSpaceId } from '#lib/server/spaces/model.ts';
 import { shareDraftKey } from '#lib/server/share.ts';
 import { initialRole, visibleTo } from './access.ts';
+import { messages, type Locale } from '#lib/i18n/messages.ts';
 import type { PageServerLoad } from './$types';
+
+/** botたんSpace は保存した名前ではなく、表示中の言語の決まった名前を出す（LIFE-01） */
+const displayTitle = (space: { kind: string; title: string }, locale: Locale) =>
+	space.kind === 'bot' ? messages[locale].space.botSpaceTitle : space.title;
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const { spaces, lifecycle, store, mutedBy, botAssetsBase } = await getRuntime();
@@ -19,7 +24,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		const ended = (await spaces.get(found.id)) ?? found;
 		return {
 			state: 'ended' as const,
-			title: ended.title,
+			title: displayTitle(ended, locals.locale),
 			og:
 				ended.kind === 'public'
 					? {
@@ -49,7 +54,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const summary = {
 		id: space.id,
 		kind: space.kind,
-		title: space.title,
+		title: displayTitle(space, locals.locale),
 		startedAt: space.startedAt,
 		host: {
 			did: space.hostDid,

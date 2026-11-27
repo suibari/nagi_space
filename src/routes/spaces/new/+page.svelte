@@ -56,11 +56,6 @@
 				};
 			}}
 		>
-			<label class="flex flex-col gap-1.5">
-				<span class="text-sm font-semibold">{t.titleLabel}</span>
-				<input name="title" type="text" required bind:value={title} class="field" />
-			</label>
-
 			<fieldset class="flex flex-col gap-2">
 				<legend class="mb-1.5 text-sm font-semibold">{t.kindLabel}</legend>
 				<label class="choice" class:selected={kind === 'public'}>
@@ -78,6 +73,14 @@
 					</span>
 				</label>
 			</fieldset>
+
+			<!-- botたんSpace は名前を入れない（LIFE-01） -->
+			{#if kind === 'public'}
+				<label class="flex flex-col gap-1.5">
+					<span class="text-sm font-semibold">{t.titleLabel}</span>
+					<input name="title" type="text" required bind:value={title} class="field" />
+				</label>
+			{/if}
 
 			<!-- botたんSpace はシェアしない（LIFE-02） -->
 			{#if kind === 'public'}

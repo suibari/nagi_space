@@ -10,7 +10,13 @@ import {
 	validateShareText
 } from '#lib/server/share.ts';
 import { getRuntime } from '#lib/server/runtime.ts';
-import { isSpaceKind, newSpaceId, validateTitle, type Space } from '#lib/server/spaces/model.ts';
+import {
+	BOT_SPACE_TITLE,
+	isSpaceKind,
+	newSpaceId,
+	validateTitle,
+	type Space
+} from '#lib/server/spaces/model.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -37,9 +43,11 @@ export const actions: Actions = {
 			shareText: rawShareText,
 			share: form.get('share') === 'on'
 		};
-		const title = validateTitle(rawTitle);
-		if (!title.ok) return fail(400, { ...echo, error: title.reason });
 		if (!isSpaceKind(kind)) return fail(400, { ...echo, error: 'kind' as const });
+		// botたんSpace はタイトルを入れない（LIFE-01）
+		const title =
+			kind === 'bot' ? { ok: true as const, title: BOT_SPACE_TITLE } : validateTitle(rawTitle);
+		if (!title.ok) return fail(400, { ...echo, error: title.reason });
 		// botたんSpace はシェアしない（LIFE-02）
 		const wantsShare = kind === 'public' && echo.share;
 		const shareText = wantsShare ? validateShareText(rawShareText) : undefined;

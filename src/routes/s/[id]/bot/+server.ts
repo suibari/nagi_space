@@ -47,6 +47,8 @@ export const POST: RequestHandler = async ({ params, locals, request }) => {
 		return new Response(null, { status: 204 });
 	}
 	if (body.action === 'remove') {
+		// botたんSpace では botたんを外さない（BOT-01）
+		if (space.kind === 'bot') error(403, 'bot-tan stays in a bot-tan Space');
 		await botRequests.cancel(space.id);
 		// space-agent の次の同期を待たずに退出させる。会話のセッションは space-agent が閉じる
 		await rooms.removeParticipant(space.id, BOT_IDENTITY);

@@ -58,6 +58,7 @@ const ja = {
 		backToActive: '開催中の Space に戻る'
 	},
 	space: {
+		botSpaceTitle: 'botたんとおしゃべり',
 		backHome: 'トップへ戻る',
 		noListeners: 'まだ聴いている人はいません。',
 		loginLead: 'Nagi のアカウントでログインすると、この Space を聴いたり話したりできます。',
@@ -132,6 +133,7 @@ const ja = {
 			failed: 'botたんを呼べませんでした。もう一度お試しください。',
 			invite: 'botたんを呼ぶ',
 			remove: 'botたんに抜けてもらう',
+			reinvite: 'もう一度呼ぶ',
 			busy: 'botたんは今いっぱいです。空いたら呼べます。',
 			resting: 'botたんは今お休み中です。戻ってきたら呼べます。',
 			joining: 'botたんを呼んでいます…',
@@ -348,6 +350,7 @@ const en: typeof ja = {
 		backToActive: 'Back to your Space'
 	},
 	space: {
+		botSpaceTitle: 'Chat with bot-tan',
 		backHome: 'Back to top',
 		noListeners: 'No listeners yet.',
 		loginLead: 'Log in with your Nagi account to listen and talk in this Space.',
@@ -422,6 +425,7 @@ const en: typeof ja = {
 			failed: 'Could not invite bot-tan. Please try again.',
 			invite: 'Invite bot-tan',
 			remove: 'Ask bot-tan to leave',
+			reinvite: 'Invite again',
 			busy: 'bot-tan is busy right now. You can invite them when they are free.',
 			resting: 'bot-tan is taking a break right now. You can invite them when they are back.',
 			joining: 'Inviting bot-tan…',

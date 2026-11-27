@@ -20,10 +20,12 @@ SPEAKING_ROLES = ("host", "speaker")
 
 
 class CaptionsWorker:
-    def __init__(self, space_id: str, livekit_url: str, token: str, convo: ConvoClient,
-                 log: Callable[[str], None]) -> None:
+    def __init__(self, space_id: str, livekit_url: str, token: str | None, convo: ConvoClient,
+                 log: Callable[[str], None], room: rtc.Room | None = None) -> None:
         self.space_id, self.livekit_url, self.token, self.convo, self.log = space_id, livekit_url, token, convo, log
-        self.room = rtc.Room()
+        # botたんSpace では botたんの接続を共用する（自分では接続も切断もしない。simplify-bot-space D2）
+        self.shared = room is not None
+        self.room = room or rtc.Room()
         self.ws: aiohttp.ClientWebSocketResponse | None = None
         self.streams: dict[str, asyncio.Task] = {}
         self.tasks: set[asyncio.Task] = set()
@@ -39,7 +41,8 @@ class CaptionsWorker:
         self.room.on("track_subscribed", self._on_subscribed)
         self.room.on("participant_metadata_changed", self._on_metadata)
         self.room.on("participant_disconnected", lambda p: self._spawn(self._leave(p.identity)))
-        await connect_safely(self.room, self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
+        if not self.shared:
+            await connect_safely(self.room, self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
         for participant in self.room.remote_participants.values():
             for publication in participant.track_publications.values():
                 self._on_published(publication, participant)
@@ -144,5 +147,6 @@ class CaptionsWorker:
             self.reader.cancel()
         if self.ws is not None:
             await self.ws.close()
-        await self.room.disconnect()
+        if not self.shared:
+            await self.room.disconnect()
         self.log("字幕を止めた")

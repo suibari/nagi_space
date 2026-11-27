@@ -32,8 +32,17 @@ export const POST: RequestHandler = async ({ request }) => {
 			kind: space.kind,
 			startedAt: space.startedAt,
 			bot: wantBot.has(space.id),
-			captionsToken: await agentToken(livekit, space.id, 'captions'),
-			...(wantBot.has(space.id) ? { botToken: await agentToken(livekit, space.id, 'bot') } : {})
+			// botたんSpace は botたん1人で字幕も受け持ち、字幕用の参加者を入れない（TRANS-01・BOT-06）
+			...(space.kind === 'public'
+				? { captionsToken: await agentToken(livekit, space.id, 'captions') }
+				: {}),
+			...(wantBot.has(space.id)
+				? {
+						botToken: await agentToken(livekit, space.id, 'bot', {
+							listen: space.kind === 'bot'
+						})
+					}
+				: {})
 		}))
 	);
 	return json({ livekitUrl: livekit.url, jobs }, { headers: { 'cache-control': 'no-store' } });

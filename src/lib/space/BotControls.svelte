@@ -15,8 +15,15 @@
 	let {
 		spaceId,
 		connection,
-		locale
-	}: { spaceId: string; connection: SpaceConnection; locale: Locale } = $props();
+		locale,
+		kind = 'public'
+	}: {
+		spaceId: string;
+		connection: SpaceConnection;
+		locale: Locale;
+		/** botたんSpace では外す操作を出さず、落ちたときだけ呼び直せる（BOT-01・BOT-06） */
+		kind?: 'public' | 'bot';
+	} = $props();
 	const t = $derived(messages[locale].space.botControls);
 
 	let botState = $state<BotState>();
@@ -91,9 +98,11 @@
 				{/if}
 			</div>
 			{#if inRoom || botState.requested}
-				<Button size="sm" pending={pending === 'remove'} onclick={() => act('remove')}>
-					{t.remove}
-				</Button>
+				{#if kind === 'public'}
+					<Button size="sm" pending={pending === 'remove'} onclick={() => act('remove')}>
+						{t.remove}
+					</Button>
+				{/if}
 			{:else}
 				<Button
 					variant="primary"
@@ -102,7 +111,7 @@
 					disabled={botState.status !== 'available'}
 					onclick={() => act('invite')}
 				>
-					{t.invite}
+					{kind === 'bot' ? t.reinvite : t.invite}
 				</Button>
 			{/if}
 		</div>

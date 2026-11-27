@@ -44,7 +44,8 @@ export type AgentJob = {
 	startedAt: string;
 	/** botたんに参加してほしいか（BOT-01） */
 	bot: boolean;
-	captionsToken: string;
+	/** 字幕用の見えない参加者。botたんSpace では botたんが字幕も受け持つので無い（design.md D1） */
+	captionsToken?: string;
 	botToken?: string;
 };
 
@@ -89,7 +90,9 @@ export async function recordAgentReport(store: KeyValueStore, report: AgentRepor
 export async function agentToken(
 	livekit: ServiceConfig['livekit'],
 	spaceId: string,
-	who: 'captions' | 'bot'
+	who: 'captions' | 'bot',
+	/** botたんSpace では botたんがホストの声も聞く（字幕と共用の接続。simplify-bot-space D1） */
+	options: { listen?: boolean } = {}
 ): Promise<string> {
 	const token = new AccessToken(livekit.apiKey, livekit.apiSecret, {
 		identity: who === 'captions' ? CAPTIONS_IDENTITY : BOT_IDENTITY,
@@ -111,7 +114,7 @@ export async function agentToken(
 			: {
 					room: spaceId,
 					roomJoin: true,
-					canSubscribe: false,
+					canSubscribe: options.listen ?? false,
 					canPublish: true,
 					canPublishSources: [TrackSource.MICROPHONE],
 					canPublishData: true,

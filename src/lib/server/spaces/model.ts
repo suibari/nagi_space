@@ -21,6 +21,9 @@ const segmenter = new Intl.Segmenter('ja', { granularity: 'grapheme' });
 export type TitleResult = { ok: true; title: string } | { ok: false; reason: 'empty' | 'tooLong' };
 
 /** タイトルは必須で、空白だけは受け付けない（LIFE-01）。 */
+/** botたんSpace はタイトルを入れず、開催情報にはこの名前を入れる（LIFE-01）。表示は言語に合わせる */
+export const BOT_SPACE_TITLE = 'botたんとおしゃべり';
+
 export function validateTitle(raw: unknown): TitleResult {
 	const title = typeof raw === 'string' ? raw.replace(/\s+/g, ' ').trim() : '';
 	if (!title) return { ok: false, reason: 'empty' };
