@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { getRuntime } from '#lib/server/runtime.ts';
-import { isDidHint } from '#lib/server/passport.ts';
+import { isDidHint } from '#lib/server/didHint.ts';
 import { safeReturnTo } from '#lib/server/session.ts';
 import type { Actions, PageServerLoad } from './$types';
 

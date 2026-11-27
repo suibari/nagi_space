@@ -34,7 +34,7 @@
 | bot-tan-presence    | BOT-05 3Dモデルの表示                             | `tests/e2e/avatar-nowebgl.e2e.ts`, `tests/e2e/avatar.e2e.ts`, `tests/e2e/integration.e2e.ts`                                                        |
 | bot-tan-presence    | BOT-06 convoの障害                                | `tests/e2e/bot.e2e.ts`・`tests/e2e/space-create.e2e.ts`                                                                                             |
 | bot-tan-presence    | BOT-07 Spaceの会話はbotたんの記憶に残さない       | （テストに要件IDの記載なし）                                                                                                                        |
-| space-access        | ACC-01 AT Protocol OAuthによるログイン            | `tests/e2e/sso.e2e.ts`                                                                                                                              |
+| space-access        | ACC-01 AT Protocol OAuthによるログイン            | `tests/e2e/did-hint.e2e.ts`                                                                                                                         |
 | space-access        | ACC-02 Nagi登録済みの利用者に限る                 | `tests/e2e/registration.e2e.ts`                                                                                                                     |
 | space-access        | ACC-03 ログインしていない閲覧者                   | `tests/e2e/anonymous.e2e.ts`, `tests/e2e/space-create.e2e.ts`                                                                                       |
 | space-access        | ACC-04 セッションの復元とログアウト               | `tests/e2e/session.e2e.ts`                                                                                                                          |

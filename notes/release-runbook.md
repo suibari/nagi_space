@@ -24,12 +24,11 @@
 3. AppView をデプロイする。
 4. 確認：本番公開後の手順 7 で、通報が Discord に届く。これが済むまで Nagi Space の通報は失敗する。
 
-### 1-3. nagi_client と AppView（Nagi からの SSO の導線。任意）
+### 1-3. nagi_client（Nagi からの移動でハンドル入力を省く。任意）
 
-ログインは AT Protocol OAuth だけで完結する。Nagi の画面から Nagi Space へ移るときの SSO の導線を使う場合だけ行う。
+ログインは AT Protocol OAuth だけで完結する。Nagi のリンクから移ったときにハンドル入力を省く場合だけ行う（ACC-01。DID ヒントだけを使い、SSO チケットは使わない。AppView の設定は不要）。
 
-1. `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`）の OpenSpec change `add-nagi-space-sibling` を確認し、合意したら nagi_client 側で実装する（提案だけで、実装はまだ無い）。
-2. AppView の環境変数 `PASSPORT_AUDIENCES` に `https://nagi-space.suibari.com` を加えて再起動する。
+1. `../nagi_client-nagi-space-sso`（ブランチ `nagi-space-sso`）を nagi_client の main に取り込み（PR #254）、デプロイする。
 
 ## 2. ドメインと Vercel のプロジェクト
 
@@ -150,7 +149,7 @@
    | `R2_BUCKET`                                              | `room-bot-tan`                        |
    | `SPACE_CREATOR_ALLOWLIST`                                | 手順 0 で決めた場合だけ（自分の DID） |
 
-   `NAGI_APPVIEW_URL`・`NAGI_PASSPORT_ISSUER`・上限の値（`SPACE_MAX_*` など）は既定のままでよい。
+   `NAGI_APPVIEW_URL`・上限の値（`SPACE_MAX_*` など）は既定のままでよい。
 
 3. 再デプロイする（Deployments → Redeploy）。
 4. 確認：

@@ -1,3 +1,5 @@
+import { redirect } from '@sveltejs/kit';
+import { didHintLogin } from '#lib/server/didHint.ts';
 import { getRuntime } from '#lib/server/runtime.ts';
 import type { Space } from '#lib/server/spaces/model.ts';
 import type { PageServerLoad } from './$types';
@@ -12,7 +14,11 @@ export type LiveSpaceItem = {
 };
 
 /** 開催中のパブリックSpaceの一覧（LIFE-03）。Nagi登録済みの人にだけ出す（ACC-02）。 */
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
+	if (!locals.did) {
+		const login = didHintLogin(url);
+		if (login) redirect(303, login);
+	}
 	if (locals.nagiUser !== 'registered') return { spaces: [] as LiveSpaceItem[] };
 	const { spaces, presence, lifecycle, mutedBy } = await getRuntime();
 	// 自分がミュートしている人がホストの Space は、自分の一覧に出さない（PART-09）
