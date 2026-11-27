@@ -157,6 +157,7 @@ test('幅360pxで、下までスクロールしても操作バーが押せ、3D�
 	await setBotCapacity(2);
 	const host = await openAs(browser);
 	await host.page.setViewportSize({ width: 360, height: 740 });
+
 	const path = await createSpace(host.page, 'せまい画面');
 	await join(host.page, path);
 	await host.page.getByRole('button', { name: 'botたんを呼ぶ' }).click(connected);
@@ -172,6 +173,8 @@ test('幅360pxで、下までスクロールしても操作バーが押せ、3D�
 	await host.page.getByRole('button', { name: '絵文字' }).click();
 	await expect(host.page.getByTestId('emoji-picker')).toBeVisible();
 	expect(await overflowX(host.page)).toBeLessThanOrEqual(0);
+	// 絵文字のシートを閉じてから botたんの操作を押す（シートは下の本文を覆う）
+	await host.page.getByRole('button', { name: '閉じる' }).click();
 	await host.page.getByRole('button', { name: 'botたんに抜けてもらう' }).click();
 	await cleanup(host.did);
 });

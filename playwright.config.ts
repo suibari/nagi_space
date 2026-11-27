@@ -24,7 +24,18 @@ export const e2eEnv = {
 	AGENT_SECRET: 'e2e-agent-secret-0123456789abcdef',
 	// botたんの3Dモデルと動き。リポジトリに置かないので、あるときだけ E2E_BOT_ASSETS_DIR で渡す
 	// （scripts/build-bot-assets.mjs で作ったフォルダ）。無ければ読み込みに失敗してアイコンになる
-	BOT_ASSETS_DIR: process.env.E2E_BOT_ASSETS_DIR ?? 'tests/e2e/fixtures/no-bot-assets'
+	BOT_ASSETS_DIR: process.env.E2E_BOT_ASSETS_DIR ?? 'tests/e2e/fixtures/no-bot-assets',
+	// 本番用のビルドは .env.production.local も読むので、本番にしか無い値は空で上書きして混ぜない
+	BOT_ASSETS_BASE_URL: '',
+	R2_ACCOUNT_ID: '',
+	R2_ACCESS_KEY_ID: '',
+	R2_SECRET_ACCESS_KEY: '',
+	R2_BUCKET: '',
+	R2_PREFIX: '',
+	CF_ACCESS_CLIENT_ID_DB: '',
+	CF_ACCESS_CLIENT_SECRET_DB: '',
+	SPACE_CREATOR_ALLOWLIST: '',
+	DB_SCHEMA: ''
 };
 
 /** 偽の convo（tests/e2e/fixtures/fake_convo.py）の URL */

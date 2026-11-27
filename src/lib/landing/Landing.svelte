@@ -200,8 +200,8 @@
 	}
 	.sample-emoji span {
 		position: absolute;
-		inset-block-end: 72px;
-		font-size: 34px;
+		inset-block-end: 96px;
+		font-size: 36px;
 		opacity: 0;
 		animation: float 3.3s ease-out infinite;
 	}
@@ -222,7 +222,7 @@
 		.sample-emoji span {
 			animation: none;
 			opacity: 1;
-			inset-block-end: 96px;
+			inset-block-end: 120px;
 		}
 	}
 

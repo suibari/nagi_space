@@ -117,6 +117,7 @@
 <style>
 	.choice {
 		display: flex;
+		align-items: flex-start;
 		gap: 12px;
 		padding: 14px 16px;
 		border: 1px solid var(--line);
@@ -125,7 +126,8 @@
 		cursor: pointer;
 	}
 	.choice input {
-		margin-block-start: 3px;
+		flex: none;
+		margin-block-start: 4px;
 		accent-color: var(--accent-strong);
 	}
 	.choice.selected {
