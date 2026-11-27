@@ -43,7 +43,18 @@ export const variables = defineEnvVars({
 	},
 	BOT_ASSETS_BASE_URL: {
 		description:
-			'botたんの3Dモデルと動きの置き場の URL（本番。scripts/build-bot-assets.mjs で作ったものを置く）',
+			'botたんの3Dモデルと動きを公開の置き場から配るときの URL。非公開の R2 から配るなら R2_* を使う',
+		schema: optional
+	},
+	R2_ACCOUNT_ID: {
+		description: 'botたんの3Dモデルを置いた R2 のアカウントID（本番。署名付き URL で配る）',
+		schema: optional
+	},
+	R2_ACCESS_KEY_ID: { description: 'R2 の読み取り用のアクセスキーID', schema: optional },
+	R2_SECRET_ACCESS_KEY: { description: 'R2 の読み取り用のシークレット', schema: optional },
+	R2_BUCKET: { description: 'botたんの3Dモデルを置いた R2 のバケット', schema: optional },
+	R2_PREFIX: {
+		description: 'バケットの中の置き場所（例 nagi-space/。末尾の / まで）。省略時はバケットの直下',
 		schema: optional
 	},
 	BOT_ASSETS_DIR: {

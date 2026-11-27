@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { error, json } from '@sveltejs/kit';
 import { manifestFromDir, resolveInside } from '#lib/server/bot/assets.ts';
+import { isBotAssetPath, presignBotAsset } from '#lib/server/bot/presign.ts';
+import { requireNagiUser } from '#lib/server/nagi.ts';
 import { getRuntime } from '#lib/server/runtime.ts';
 import type { RequestHandler } from './$types';
 
@@ -10,9 +12,24 @@ const TYPES: Record<string, string> = {
 	json: 'application/json'
 };
 
-/** 開発用：BOT_ASSETS_DIR のフォルダから botたんの3Dモデルと動きを配る（本番は BOT_ASSETS_BASE_URL）。 */
-export const GET: RequestHandler = async ({ params }) => {
-	const { botAssetsDir } = await getRuntime();
+/**
+ * botたんの3Dモデルと動き（BOT-05、design.md D7）。本番は非公開の R2 への署名付き URL へ転送し、
+ * 開発は BOT_ASSETS_DIR のフォルダから直接配る。
+ */
+export const GET: RequestHandler = async ({ params, locals }) => {
+	const { botAssetsDir, botAssetsR2 } = await getRuntime();
+	if (botAssetsR2) {
+		// 署名付き URL を誰にでも配らないよう、Space を開ける利用者に限る
+		requireNagiUser(locals);
+		if (!isBotAssetPath(params.path)) error(404, 'Not found');
+		return new Response(null, {
+			status: 302,
+			headers: {
+				location: presignBotAsset(botAssetsR2, params.path),
+				'cache-control': 'private, max-age=1800'
+			}
+		});
+	}
 	if (!botAssetsDir) error(404, 'Not found');
 	if (params.path === 'manifest.json') return json(await manifestFromDir(botAssetsDir));
 	const file = resolveInside(botAssetsDir, params.path);

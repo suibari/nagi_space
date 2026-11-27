@@ -128,7 +128,7 @@ convo（外部リポジトリ、ブランチ `nagi-space`。詳しくは convo �
 
 botたんの VRM（約13MB）と作り置きの VRMA（カテゴリごとに6本、合わせて約16MB）は、このリポジトリに置かない。bot-tan-room も VRM を公開リポジトリに置かず、非公開の置き場（R2）から配っている。
 
-- **置き場**：本番は外部の置き場（`BOT_ASSETS_BASE_URL`。R2 などに `scripts/build-bot-assets.mjs` で作ったフォルダを置き、Nagi Space の origin からの CORS を許可する）。開発はローカルのフォルダ（`BOT_ASSETS_DIR`）をアプリの `/bot-assets/` から配る。どちらも無ければ3Dを出さずアイコンにする。
+- **置き場**：本番は bot-tan-room と同じ非公開の R2 に `scripts/build-bot-assets.mjs` で作ったフォルダを置く。ブラウザはアプリの `/bot-assets/` を読み、アプリはログイン中の Nagi ユーザーにだけ、R2 の署名付き URL（1時間単位でそろえて2時間有効）へ転送する（`R2_*`）。R2 の CORS には Nagi Space の origin を加える。公開の置き場を使う場合は `BOT_ASSETS_BASE_URL` も使える。開発はローカルのフォルダ（`BOT_ASSETS_DIR`）を `/bot-assets/` から直接配る。どれも無ければ3Dを出さずアイコンにする（2026-11-27、モデルを非公開に保つため公開の置き場から変更）。
 - **動き**：space-agent が convo の返事に付く「動きのカテゴリ」（`motion` イベント）を `nagi-space.bot` で送り、ブラウザはそのカテゴリの作り置きの動きを1回流す。返事が無いときは待機の動きを順に流す。
 - **口の動き**：ブラウザが受け取った botたんの音声トラックの音量から作る（VRM の `aa` の表情）。
 - **読み込み**：three.js と three-vrm は botたんが参加したときだけ読み込む（最初の画面を重くしない）。WebGL が使えなければアイコンにする（BOT-05）。

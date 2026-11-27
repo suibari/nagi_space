@@ -14,6 +14,7 @@ import { createRequestLock, createSessionStore, createStateStore } from './oauth
 import { DEFAULT_PASSPORT_ISSUER, createSsoVerifier, createTicketStore } from './passport';
 import { parseAllowlist } from './allowlist';
 import { BotRequests } from './bot/agent';
+import type { R2Config } from './bot/presign';
 import type { ServiceConfig } from './config';
 import { createFavoritesLoader } from './emoji';
 import { createMuteChecker } from './mutes';
@@ -48,6 +49,7 @@ export type Runtime = {
 	/** botたんの3Dモデルと動きの置き場（BOT-05）。無ければ3Dを出さずアイコンにする */
 	botAssetsBase: string | undefined;
 	botAssetsDir: string | undefined;
+	botAssetsR2: R2Config | undefined;
 	botRequests: BotRequests;
 	livekit: ServiceConfig['livekit'];
 	emojiFavorites: (did: string) => Promise<import('#lib/emoji/types.ts').EmojiChoice[]>;
@@ -70,6 +72,16 @@ async function init(): Promise<Runtime> {
 		requestLock: createRequestLock(store)
 	});
 	const appviewUrl = env.NAGI_APPVIEW_URL || DEFAULT_NAGI_APPVIEW_URL;
+	const botAssetsR2: R2Config | undefined =
+		env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY && env.R2_BUCKET
+			? {
+					accountId: env.R2_ACCOUNT_ID,
+					accessKeyId: env.R2_ACCESS_KEY_ID,
+					secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+					bucket: env.R2_BUCKET,
+					prefix: env.R2_PREFIX ?? ''
+				}
+			: undefined;
 	const spaces = new SpaceRepository(store);
 	const presence = new PresenceStore(store);
 	const limits = loadLimits(env);
@@ -97,8 +109,10 @@ async function init(): Promise<Runtime> {
 		creatorAllowlist: parseAllowlist(env.SPACE_CREATOR_ALLOWLIST),
 		appviewUrl,
 		agentSecret: env.AGENT_SECRET || undefined,
-		botAssetsBase: env.BOT_ASSETS_BASE_URL || (env.BOT_ASSETS_DIR ? '/bot-assets' : undefined),
+		botAssetsBase:
+			env.BOT_ASSETS_BASE_URL || (botAssetsR2 || env.BOT_ASSETS_DIR ? '/bot-assets' : undefined),
 		botAssetsDir: env.BOT_ASSETS_DIR || undefined,
+		botAssetsR2,
 		botRequests: new BotRequests(store),
 		livekit: services.livekit,
 		emojiFavorites: createFavoritesLoader(store, (did) => oauth.restore(did), appviewUrl)
