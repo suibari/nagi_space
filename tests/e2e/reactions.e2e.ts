@@ -89,6 +89,8 @@ test('短時間に送りすぎた分は配られず、少し待つよう表示�
 	await listener.page.getByRole('button', { name: 'リアクション' }).click();
 	await listener.page.getByTestId('emoji-picker').locator('[data-emoji="u:👏"]').click();
 	await expect(listener.page.getByText('少し待ってから送ってください。')).toBeVisible();
+	// 送れなかったときはシートを開いたままにする（REACT-01）
+	await expect(listener.page.getByTestId('emoji-picker')).toBeVisible();
 	await cleanup(host.did, listener.did);
 });
 

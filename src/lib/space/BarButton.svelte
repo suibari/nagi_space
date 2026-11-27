@@ -11,6 +11,7 @@
 		tone = 'default',
 		disabled = false,
 		expanded,
+		id,
 		onclick,
 		icon
 	}: {
@@ -21,6 +22,7 @@
 		tone?: 'default' | 'accent' | 'danger';
 		disabled?: boolean;
 		expanded?: boolean;
+		id?: string;
 		onclick: () => void;
 		icon: Snippet;
 	} = $props();
@@ -35,6 +37,7 @@
 	aria-label={label}
 	aria-busy={pending ? 'true' : undefined}
 	aria-expanded={expanded}
+	{id}
 	disabled={disabled || pending}
 	{onclick}
 >

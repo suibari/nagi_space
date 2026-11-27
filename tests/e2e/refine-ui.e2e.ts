@@ -206,6 +206,10 @@ test('絵文字は大きく流れ、流れている間も操作バーは押せ�
 	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	const picker = host.page.getByTestId('emoji-picker');
 	await picker.locator('[data-emoji="u:🎉"]').click();
+	// 送れたらシートが閉じ、フォーカスは「リアクション」に戻る（REACT-01）
+	await expect(picker).toHaveCount(0, connected);
+	await expect(host.page.getByRole('button', { name: 'リアクション' })).toBeFocused();
+	await host.page.getByRole('button', { name: 'リアクション' }).click();
 	await picker.locator('[data-emoji="u:👏"]').click();
 	const reaction = host.page.locator('[data-testid="reaction"]').first();
 	await expect(reaction).toBeVisible(connected);
@@ -215,7 +219,7 @@ test('絵文字は大きく流れ、流れている間も操作バーは押せ�
 	expect(size).toBeGreaterThanOrEqual(40);
 	// 流れる層は操作を受け付けないので、下のボタンを押せる
 	await host.page.getByRole('button', { name: 'リアクション' }).click();
-	await expect(picker).toHaveCount(0);
+	await expect(picker).toBeVisible();
 	await cleanup(host.did);
 });
 

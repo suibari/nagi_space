@@ -77,6 +77,7 @@
 		{/if}
 
 		<BarButton
+			id="reaction-toggle"
 			label={t.emoji.open}
 			short={t.short.emoji}
 			active={emojiOpen}

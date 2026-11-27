@@ -98,6 +98,12 @@
 		};
 	});
 
+	/** 送れたらシートを閉じ、自分の送ったものが流れるのを見せる（REACT-01・COMM-01） */
+	function closeAfterSent() {
+		open = false;
+		document.getElementById('reaction-toggle')?.focus();
+	}
+
 	async function sendComment(event: SubmitEvent) {
 		event.preventDefault();
 		if (!canSend) return;
@@ -110,7 +116,10 @@
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ text: draft })
 			}).catch(() => undefined);
-			if (response?.ok) draft = '';
+			if (response?.ok) {
+				draft = '';
+				closeAfterSent();
+			}
 			commentLimited = response?.status === 429;
 			commentFailed = !response?.ok && !commentLimited;
 		} finally {
@@ -130,6 +139,7 @@
 			}).catch(() => undefined);
 			limited = response?.status === 429;
 			failed = !response?.ok && !limited;
+			if (response?.ok) closeAfterSent();
 		} finally {
 			sending = undefined;
 		}

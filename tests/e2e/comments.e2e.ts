@@ -52,7 +52,10 @@ test('聴衆のコメントは、ホストと別の聴衆の画面に流れ、�
 		await expect(line).toContainText('コメント');
 	}
 	await expect(host.page.getByTestId('captions')).toContainText('字幕とコメント');
-	// 送ったら入力欄は空になる
+	// 送れたらシートが閉じ、フォーカスは「リアクション」に戻る。開き直すと入力欄は空
+	await expect(listener.page.getByTestId('comment-form')).toHaveCount(0);
+	await expect(listener.page.getByRole('button', { name: 'リアクション' })).toBeFocused();
+	await listener.page.getByRole('button', { name: 'リアクション' }).click();
 	await expect(listener.page.getByLabel('コメント', { exact: true })).toHaveValue('');
 	await cleanup(host.did, listener.did, other.did);
 });
@@ -96,6 +99,9 @@ test('コメントは10秒に3件までで、4件目は拒否される', async (
 	await host.page.getByLabel('コメント', { exact: true }).fill('まだ送る');
 	await host.page.getByTestId('comment-form').getByRole('button', { name: '送る' }).click();
 	await expect(host.page.getByText('少し待ってから送ってください。')).toBeVisible();
+	// 送れなかったときはシートを開いたまま、文面を残す（COMM-01）
+	await expect(host.page.getByTestId('comment-form')).toBeVisible();
+	await expect(host.page.getByLabel('コメント', { exact: true })).toHaveValue('まだ送る');
 	await cleanup(host.did);
 });
 
