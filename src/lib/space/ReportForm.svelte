@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
+	import Button from '#lib/ui/Button.svelte';
 
 	const REASONS = ['spam', 'harassment', 'sensitive', 'botResponse', 'other'] as const;
 
@@ -29,36 +30,32 @@
 	}
 </script>
 
-<section class="card mt-2 p-3 text-sm" data-testid="report-form">
+<section class="card flex flex-col gap-3 p-4 text-sm" data-testid="report-form">
 	{#if result === 'sent'}
 		<p role="status">{t.sent}</p>
-		<button type="button" class="mt-1 underline" onclick={onclose}>{t.cancel}</button>
+		<Button size="sm" class="self-start" onclick={onclose}>{t.close}</Button>
 	{:else}
-		<h3 class="font-bold">{t.title}</h3>
-		<p class="mt-1">{t.lead}</p>
-		<form class="mt-2 flex flex-col gap-2" onsubmit={submit}>
+		<div>
+			<h3 class="font-bold text-strong">{t.title}</h3>
+			<p class="mt-1 text-muted">{t.lead}</p>
+		</div>
+		<form class="flex flex-col gap-3" onsubmit={submit}>
 			<label class="flex flex-col gap-1">
-				<span>{t.reason}</span>
-				<select bind:value={reason} class="rounded-sm border border-line-strong px-2 py-1">
+				<span class="font-medium">{t.reason}</span>
+				<select bind:value={reason} class="field">
 					{#each REASONS as value (value)}
 						<option {value}>{t.reasons[value]}</option>
 					{/each}
 				</select>
 			</label>
 			<label class="flex flex-col gap-1">
-				<span>{t.comment}</span>
-				<textarea
-					bind:value={comment}
-					rows="2"
-					maxlength="1000"
-					class="rounded-sm border border-line-strong px-2 py-1"></textarea>
+				<span class="font-medium">{t.comment}</span>
+				<textarea bind:value={comment} rows="3" maxlength="1000" class="field"></textarea>
 			</label>
 			{#if result}<p role="alert" class="text-danger">{t[result]}</p>{/if}
-			<div class="flex gap-2">
-				<button type="submit" class="btn-primary px-3 py-1" disabled={busy}>
-					{t.submit}
-				</button>
-				<button type="button" class="underline" onclick={onclose}>{t.cancel}</button>
+			<div class="flex flex-wrap gap-2">
+				<Button type="submit" variant="primary" size="sm" pending={busy}>{t.submit}</Button>
+				<Button size="sm" onclick={onclose}>{t.cancel}</Button>
 			</div>
 		</form>
 	{/if}

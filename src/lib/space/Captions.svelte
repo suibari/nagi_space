@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
+	import Icon from '#lib/ui/Icon.svelte';
 	import type { SpaceConnection } from './room.svelte.ts';
 
 	const KEEP = 200;
@@ -34,19 +35,30 @@
 	});
 </script>
 
-<section class="mt-6" data-testid="captions">
-	<h2 class="font-bold">{t.title}</h2>
-	<p class="text-xs">{t.notice}</p>
-	{#if paused}<p class="mt-1 text-sm" role="status" data-testid="captions-paused">
-			{t.paused}
-		</p>{/if}
-	<div bind:this={box} class="card mt-2 max-h-48 overflow-y-auto p-2 text-sm" aria-live="polite">
+<section class="card p-4" data-testid="captions">
+	<div class="flex items-center gap-2">
+		<span class="text-accent-strong"><Icon name="captions" size={18} /></span>
+		<h2 class="font-bold text-strong">{t.title}</h2>
+		{#if paused}<span
+				class="ml-auto rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted"
+				role="status"
+				data-testid="captions-paused"
+			>
+				{t.paused}
+			</span>{/if}
+	</div>
+	<div
+		bind:this={box}
+		class="mt-3 flex max-h-44 flex-col gap-1.5 overflow-y-auto text-sm"
+		aria-live="polite"
+	>
 		{#each lines as line (line.id)}
 			<p data-testid="caption-line" data-speaker={line.speaker}>
-				<span class="font-medium">{line.name}</span>{t.separator}{line.text}
+				<span class="font-semibold text-strong">{line.name}</span>{t.separator}{line.text}
 			</p>
 		{:else}
-			<p class="text-xs">{t.empty}</p>
+			<p class="text-muted">{t.empty}</p>
 		{/each}
 	</div>
+	<p class="mt-3 text-xs text-muted">{t.notice}</p>
 </section>

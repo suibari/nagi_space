@@ -1,227 +1,186 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	/**
+	 * 本文に出す発話の案内とホストの操作（PART-03〜06）。発話のリクエスト・取り消し・聴衆に戻る
+	 * は下の操作バー（ActionBar）に置く。
+	 */
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
+	import Avatar from '#lib/ui/Avatar.svelte';
+	import Button from '#lib/ui/Button.svelte';
 	import type { SpaceConnection } from './room.svelte.ts';
-
-	type StageState = {
-		role: 'host' | 'speaker' | 'listener';
-		requested: boolean;
-		offer: 'approved' | 'invited' | null;
-		requests: Array<{ did: string; name: string }>;
-	};
+	import type { StageModel } from './stage.svelte.ts';
 
 	let {
-		spaceId,
+		stage,
 		connection,
 		locale
-	}: { spaceId: string; connection: SpaceConnection; locale: Locale } = $props();
+	}: { stage: StageModel; connection: SpaceConnection; locale: Locale } = $props();
 	const t = $derived(messages[locale].space.stage);
 
-	let stageState = $state<StageState>();
 	let inviteAccepted = $state(false);
 	let micDenied = $state(false);
-	let error = $state<string>();
-	let busy = $state(false);
+	let micChecking = $state(false);
 	let confirmKick = $state<string>();
-
-	async function refresh() {
-		const response = await fetch(`/s/${spaceId}/stage`);
-		if (response.ok) stageState = (await response.json()) as StageState;
-	}
-
-	async function act(action: string, target?: string) {
-		busy = true;
-		error = undefined;
-		try {
-			const response = await fetch(`/s/${spaceId}/stage`, {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ action, target })
-			});
-			if (!response.ok) {
-				const body = (await response.json().catch(() => ({}))) as { error?: string };
-				error = body.error === 'speakersFull' ? t.speakersFull : t.failed;
-			}
-		} finally {
-			busy = false;
-			await refresh();
-		}
-	}
 
 	/** 字幕の案内を見せたあとでマイクの許可を求め、許可されたら受け入れる（PART-03・TRANS-02）。 */
 	async function allowMicAndAccept() {
 		micDenied = false;
+		micChecking = true;
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 			stream.getTracks().forEach((track) => track.stop());
 		} catch {
 			micDenied = true;
 			return;
+		} finally {
+			micChecking = false;
 		}
-		await act('accept');
+		await stage.act('accept');
 		inviteAccepted = false;
 	}
-
-	onMount(() => {
-		void refresh();
-		const previous = connection.onControl;
-		connection.onControl = (message) => {
-			previous?.(message);
-			void refresh();
-		};
-		return () => (connection.onControl = previous);
-	});
-
-	// サーバーがロールを変えたら状態を取り直す
-	$effect(() => {
-		void connection.localRole;
-		void refresh();
-	});
 
 	// botたんはモデレーションの対象にしない（招待・除外は botたんの操作で行う）
 	const participants = $derived(
 		connection.participants.filter((p) => !p.isLocal && p.role !== 'bot')
 	);
+	const current = $derived(stage.state);
 	const showMicStep = $derived(
-		stageState?.offer === 'approved' || (stageState?.offer === 'invited' && inviteAccepted)
+		current?.offer === 'approved' || (current?.offer === 'invited' && inviteAccepted)
 	);
 </script>
 
-{#if stageState}
-	<section class="mt-4 flex flex-col gap-2 text-sm" data-testid="stage">
-		{#if stageState.role === 'listener'}
+{#if current}
+	<section class="flex flex-col gap-3 text-sm" data-testid="stage">
+		{#if current.role === 'listener'}
 			{#if showMicStep}
-				<div data-testid="mic-step">
+				<div class="card flex flex-col gap-3 p-4" data-testid="mic-step">
 					<p>{t.transcriptionNotice}</p>
-					<button
-						type="button"
-						class="btn-primary mt-1"
-						disabled={busy}
+					<Button
+						variant="primary"
+						class="self-start"
+						pending={micChecking || stage.isPending('accept')}
 						onclick={allowMicAndAccept}
 					>
 						{t.allowMic}
-					</button>
-					{#if micDenied}<p role="alert" class="mt-1 text-danger">{t.micDenied}</p>{/if}
+					</Button>
+					{#if micDenied}<p role="alert" class="text-danger">{t.micDenied}</p>{/if}
 				</div>
-			{:else if stageState.offer === 'invited'}
-				<div data-testid="invited">
-					<p>{t.invited}</p>
-					<button type="button" class="underline" onclick={() => (inviteAccepted = true)}>
-						{t.acceptInvite}
-					</button>
-					<button
-						type="button"
-						class="ml-2 underline"
-						disabled={busy}
-						onclick={() => act('decline')}
-					>
-						{t.declineInvite}
-					</button>
-				</div>
-			{:else if stageState.requested}
-				<p>{t.requested}</p>
-				<button
-					type="button"
-					class="self-start underline"
-					disabled={busy}
-					onclick={() => act('cancel')}
-				>
-					{t.cancel}
-				</button>
-			{:else}
-				<button type="button" class="btn self-start" disabled={busy} onclick={() => act('request')}>
-					{t.request}
-				</button>
-			{/if}
-		{:else if stageState.role === 'speaker'}
-			<button type="button" class="btn self-start" disabled={busy} onclick={() => act('leave')}>
-				{t.leave}
-			</button>
-		{:else}
-			<h3 class="font-bold">{t.requests}</h3>
-			<ul class="flex flex-col gap-1" data-testid="requests">
-				{#each stageState.requests as request (request.did)}
-					<li data-did={request.did}>
-						{request.name}
-						<button
-							type="button"
-							class="ml-2 underline"
-							disabled={busy}
-							onclick={() => act('approve', request.did)}
+			{:else if current.offer === 'invited'}
+				<div class="card flex flex-col gap-3 p-4" data-testid="invited">
+					<p class="font-semibold text-strong">{t.invited}</p>
+					<div class="flex flex-wrap gap-2">
+						<Button variant="primary" size="sm" onclick={() => (inviteAccepted = true)}>
+							{t.acceptInvite}
+						</Button>
+						<Button
+							size="sm"
+							pending={stage.isPending('decline')}
+							onclick={() => stage.act('decline')}
 						>
-							{t.approve}
-						</button>
-					</li>
-				{/each}
-			</ul>
-			<ul class="flex flex-col gap-1" data-testid="host-participants">
-				{#each participants as participant (participant.identity)}
-					<li data-did={participant.identity}>
-						{participant.name}
-						{#if participant.role === 'listener'}
-							<button
-								type="button"
-								class="ml-2 underline"
-								disabled={busy}
-								onclick={() => act('invite', participant.identity)}
-							>
-								{t.invite}
-							</button>
-						{:else if participant.role === 'speaker'}
-							{#if participant.micOn}
-								<button
-									type="button"
-									class="ml-2 underline"
-									disabled={busy}
-									onclick={() => act('mute', participant.identity)}
+							{t.declineInvite}
+						</Button>
+					</div>
+				</div>
+			{:else if current.requested}
+				<p class="text-muted" role="status">{t.requested}</p>
+			{/if}
+		{:else if current.role === 'host'}
+			<div class="card flex flex-col gap-4 p-4">
+				<div>
+					<h3 class="font-bold text-strong">{t.requests}</h3>
+					<ul class="mt-2 flex flex-col gap-2" data-testid="requests">
+						{#each current.requests as request (request.did)}
+							<li class="flex items-center justify-between gap-2" data-did={request.did}>
+								<span class="min-w-0 truncate">{request.name}</span>
+								<Button
+									variant="primary"
+									size="sm"
+									pending={stage.isPending('approve', request.did)}
+									onclick={() => stage.act('approve', request.did)}
 								>
-									{t.mute}
-								</button>
-							{/if}
-							<button
-								type="button"
-								class="ml-2 underline"
-								disabled={busy}
-								onclick={() => act('revoke', participant.identity)}
-							>
-								{t.revoke}
-							</button>
-						{/if}
-						{#if confirmKick === participant.identity}
-							<span class="ml-2" data-testid="kick-confirm">
-								{t.kickConfirm}
-								<button
-									type="button"
-									class="ml-1 underline"
-									disabled={busy}
-									onclick={async () => {
-										await act('kick', participant.identity);
-										confirmKick = undefined;
-									}}
-								>
-									{t.kick}
-								</button>
-								<button
-									type="button"
-									class="ml-1 underline"
-									onclick={() => (confirmKick = undefined)}
-								>
-									{t.kickCancel}
-								</button>
-							</span>
+									{t.approve}
+								</Button>
+							</li>
 						{:else}
-							<button
-								type="button"
-								class="ml-2 underline"
-								onclick={() => (confirmKick = participant.identity)}
-							>
-								{t.kick}
-							</button>
-						{/if}
-					</li>
-				{/each}
-			</ul>
+							<li class="text-muted">{t.noRequests}</li>
+						{/each}
+					</ul>
+				</div>
+				{#if participants.length}
+					<div>
+						<h3 class="font-bold text-strong">{t.manage}</h3>
+						<ul class="mt-2 flex flex-col gap-2" data-testid="host-participants">
+							{#each participants as participant (participant.identity)}
+								<li class="flex flex-col gap-2" data-did={participant.identity}>
+									<div class="flex flex-wrap items-center gap-2">
+										<Avatar src={participant.avatar} name={participant.name} size={28} />
+										<span class="min-w-0 flex-1 truncate">{participant.name}</span>
+										{#if participant.role === 'listener'}
+											<Button
+												size="sm"
+												pending={stage.isPending('invite', participant.identity)}
+												onclick={() => stage.act('invite', participant.identity)}
+											>
+												{t.invite}
+											</Button>
+										{:else if participant.role === 'speaker'}
+											{#if participant.micOn}
+												<Button
+													size="sm"
+													pending={stage.isPending('mute', participant.identity)}
+													onclick={() => stage.act('mute', participant.identity)}
+												>
+													{t.mute}
+												</Button>
+											{/if}
+											<Button
+												size="sm"
+												pending={stage.isPending('revoke', participant.identity)}
+												onclick={() => stage.act('revoke', participant.identity)}
+											>
+												{t.revoke}
+											</Button>
+										{/if}
+										{#if confirmKick !== participant.identity}
+											<Button
+												variant="ghost"
+												size="sm"
+												onclick={() => (confirmKick = participant.identity)}
+											>
+												{t.kick}
+											</Button>
+										{/if}
+									</div>
+									{#if confirmKick === participant.identity}
+										<div
+											class="flex flex-wrap items-center gap-2 rounded-md bg-danger-soft p-3"
+											data-testid="kick-confirm"
+										>
+											<span class="w-full">{t.kickConfirm}</span>
+											<Button
+												variant="danger"
+												size="sm"
+												pending={stage.isPending('kick', participant.identity)}
+												onclick={async () => {
+													await stage.act('kick', participant.identity);
+													confirmKick = undefined;
+												}}
+											>
+												{t.kick}
+											</Button>
+											<Button size="sm" onclick={() => (confirmKick = undefined)}>
+												{t.kickCancel}
+											</Button>
+										</div>
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
+			</div>
 		{/if}
-		{#if error}<p role="alert" class="text-danger" data-testid="stage-error">{error}</p>{/if}
+		{#if stage.error}<p role="alert" class="text-danger" data-testid="stage-error">
+				{stage.error}
+			</p>{/if}
 	</section>
 {/if}

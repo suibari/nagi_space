@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { enhance } from '$app/forms';
 	import { messages } from '#lib/i18n/messages.ts';
+	import Button from '#lib/ui/Button.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -18,6 +20,7 @@
 	let share = $state(initial.share);
 	let shareText = $state(initial.shareText);
 	let shareTextEdited = $state(initial.shareText !== '');
+	let pending = $state(false);
 
 	// 本文を編集するまでは、タイトルに合わせた初期値にする（編集できる。LIFE-04）
 	const defaultShareText = $derived(t.shareDefault(title.trim()));
@@ -30,62 +33,71 @@
 	<title>{t.title} | Nagi Space</title>
 </svelte:head>
 
-<main class="mx-auto max-w-xl px-4 py-12">
-	<h1 class="text-2xl font-bold">{t.title}</h1>
+<main class="mx-auto max-w-xl px-4 py-10">
+	<h1 class="text-xl font-bold text-strong">{t.title}</h1>
 
 	{#if !data.canCreate}
-		<p class="mt-6" data-testid="not-allowed">{t.notAllowed}</p>
+		<p class="card mt-6 p-5" data-testid="not-allowed">{t.notAllowed}</p>
 	{:else if data.activeSpaceId}
-		<section class="mt-6" data-testid="active-space">
+		<section class="card mt-6 flex flex-col items-start gap-3 p-5" data-testid="active-space">
 			<p>{t.active}</p>
-			<a href="/s/{data.activeSpaceId}" class="mt-2 inline-block underline">{t.backToActive}</a>
+			<Button variant="primary" href="/s/{data.activeSpaceId}">{t.backToActive}</Button>
 		</section>
 	{:else}
-		<form method="POST" class="mt-6 flex flex-col gap-4">
-			<label class="flex flex-col gap-1">
-				<span class="text-sm font-medium">{t.titleLabel}</span>
-				<input
-					name="title"
-					type="text"
-					required
-					bind:value={title}
-					class="rounded-md border border-line-strong px-3 py-2"
-				/>
+		<!-- 画面が切り替わるまでスピナーを出し、二重に作らない（LOOK-08） -->
+		<form
+			method="POST"
+			class="mt-6 flex flex-col gap-6"
+			use:enhance={() => {
+				pending = true;
+				return async ({ update }) => {
+					await update({ reset: false });
+					pending = false;
+				};
+			}}
+		>
+			<label class="flex flex-col gap-1.5">
+				<span class="text-sm font-semibold">{t.titleLabel}</span>
+				<input name="title" type="text" required bind:value={title} class="field" />
 			</label>
+
 			<fieldset class="flex flex-col gap-2">
-				<legend class="text-sm font-medium">{t.kindLabel}</legend>
-				<label class="flex gap-2">
+				<legend class="mb-1.5 text-sm font-semibold">{t.kindLabel}</legend>
+				<label class="choice" class:selected={kind === 'public'}>
 					<input type="radio" name="kind" value="public" bind:group={kind} />
 					<span>
-						<span class="font-medium">{t.kindPublic}</span><br /><small>{t.kindPublicHint}</small>
+						<span class="block font-semibold text-strong">{t.kindPublic}</span>
+						<span class="block text-sm text-muted">{t.kindPublicHint}</span>
 					</span>
 				</label>
-				<label class="flex gap-2">
+				<label class="choice" class:selected={kind === 'bot'}>
 					<input type="radio" name="kind" value="bot" bind:group={kind} />
 					<span>
-						<span class="font-medium">{t.kindBot}</span><br /><small>{t.kindBotHint}</small>
+						<span class="block font-semibold text-strong">{t.kindBot}</span>
+						<span class="block text-sm text-muted">{t.kindBotHint}</span>
 					</span>
 				</label>
 			</fieldset>
 
 			<!-- botたんSpace はシェアしない（LIFE-02） -->
 			{#if kind === 'public'}
-				<fieldset class="flex flex-col gap-2">
-					<label class="flex gap-2">
+				<fieldset class="flex flex-col gap-3">
+					<label class="choice" class:selected={share}>
 						<input type="checkbox" name="share" bind:checked={share} />
 						<span>
-							<span class="font-medium">{t.share}</span><br /><small>{t.shareHint}</small>
+							<span class="block font-semibold text-strong">{t.share}</span>
+							<span class="block text-sm text-muted">{t.shareHint}</span>
 						</span>
 					</label>
 					{#if share}
-						<label class="flex flex-col gap-1">
-							<span class="text-sm font-medium">{t.shareTextLabel}</span>
+						<label class="flex flex-col gap-1.5">
+							<span class="text-sm font-semibold">{t.shareTextLabel}</span>
 							<textarea
 								name="shareText"
 								rows="3"
 								bind:value={shareText}
 								oninput={() => (shareTextEdited = true)}
-								class="rounded-md border border-line-strong px-3 py-2"></textarea>
+								class="field"></textarea>
 						</label>
 					{/if}
 				</fieldset>
@@ -94,9 +106,30 @@
 			{#if form?.error}
 				<p role="alert" class="text-sm text-danger">{t.errors[form.error]}</p>
 			{/if}
-			<button type="submit" class="btn-primary">
-				{t.submit}
-			</button>
+			<div class="flex flex-wrap gap-2">
+				<Button type="submit" variant="primary" size="lg" {pending}>{t.submit}</Button>
+				<Button href="/" size="lg">{t.cancel}</Button>
+			</div>
 		</form>
 	{/if}
 </main>
+
+<style>
+	.choice {
+		display: flex;
+		gap: 12px;
+		padding: 14px 16px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-bubble);
+		background: var(--surface-1);
+		cursor: pointer;
+	}
+	.choice input {
+		margin-block-start: 3px;
+		accent-color: var(--accent-strong);
+	}
+	.choice.selected {
+		border-color: var(--accent-strong);
+		background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface-1));
+	}
+</style>

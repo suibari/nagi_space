@@ -31,10 +31,10 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	const manifest = (await (await fetch(url('manifest.json'))).json()) as BotManifest;
 
 	const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 	const scene = new THREE.Scene();
-	const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 20);
-	camera.position.set(0, 1.3, 2.4);
+	// 縦長の枠に上半身（胸から上）が収まる位置（design.md D4）
+	const camera = new THREE.PerspectiveCamera(30, 0.8, 0.1, 20);
+	camera.position.set(0, 1.3, 1.75);
 	camera.lookAt(0, 1.2, 0);
 	scene.add(new THREE.AmbientLight(0xffffff, 1.6));
 	const light = new THREE.DirectionalLight(0xffffff, 1.4);
@@ -82,8 +82,18 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	let mouth = 0;
 	const clock = new THREE.Clock();
 	let frame = 0;
+	// 大きな画面でも描画の大きさは 1280×1600 までに抑える（design.md D4）
+	const MAX_W = 1280;
+	const MAX_H = 1600;
 	function resize() {
 		const { clientWidth, clientHeight } = canvas;
+		const ratio = Math.min(
+			window.devicePixelRatio,
+			2,
+			MAX_W / Math.max(clientWidth, 1),
+			MAX_H / Math.max(clientHeight, 1)
+		);
+		renderer.setPixelRatio(ratio);
 		renderer.setSize(clientWidth, clientHeight, false);
 		camera.aspect = clientWidth / Math.max(clientHeight, 1);
 		camera.updateProjectionMatrix();
@@ -97,11 +107,16 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 			busyUntil = Number.POSITIVE_INFINITY;
 			void nextIdle().catch(() => undefined);
 		}
-		renderer.render(scene, camera);
+		if (onScreen) renderer.render(scene, camera);
 		frame = requestAnimationFrame(tick);
 	}
+	// 画面の外へスクロールしている間は描かない（見えないタブでは requestAnimationFrame 自体が止まる）
+	let onScreen = true;
+	const visibility = new IntersectionObserver(([entry]) => (onScreen = entry.isIntersecting));
+	visibility.observe(canvas);
+	const sizing = new ResizeObserver(resize);
+	sizing.observe(canvas);
 	resize();
-	window.addEventListener('resize', resize);
 	await nextIdle().catch(() => undefined);
 	tick();
 
@@ -120,7 +135,8 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 		},
 		dispose() {
 			cancelAnimationFrame(frame);
-			window.removeEventListener('resize', resize);
+			visibility.disconnect();
+			sizing.disconnect();
 			VRMUtils.deepDispose(vrm.scene);
 			renderer.dispose();
 		}

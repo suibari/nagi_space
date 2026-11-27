@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
+	import Spinner from '#lib/ui/Spinner.svelte';
 	import { loadRecent, pushRecent } from './recent.ts';
 	import { choiceKey, type CustomEmoji, type EmojiChoice } from './types.ts';
 	import {
@@ -9,7 +10,16 @@
 		type UnicodeEmoji
 	} from './unicodeSearch.ts';
 
-	let { locale, onpick }: { locale: Locale; onpick: (choice: EmojiChoice) => void } = $props();
+	let {
+		locale,
+		onpick,
+		pendingKey
+	}: {
+		locale: Locale;
+		onpick: (choice: EmojiChoice) => void;
+		/** 送っている絵文字（スピナーを重ねる。LOOK-08） */
+		pendingKey?: string;
+	} = $props();
 	const t = $derived(messages[locale].space.emoji);
 
 	let query = $state('');
@@ -54,12 +64,21 @@
 {#snippet emojiButton(choice: EmojiChoice, label: string)}
 	<button
 		type="button"
-		class="flex h-10 w-10 items-center justify-center rounded-md text-2xl hover:bg-surface-2"
+		class="relative flex h-11 w-11 items-center justify-center rounded-md text-2xl hover:bg-surface-2 disabled:cursor-progress"
 		title={label}
 		aria-label={label}
+		aria-busy={pendingKey === choiceKey(choice) ? 'true' : undefined}
+		disabled={pendingKey !== undefined}
 		data-emoji={choiceKey(choice)}
 		onclick={() => pick(choice)}
 	>
+		{#if pendingKey === choiceKey(choice)}
+			<span
+				class="absolute inset-0 flex items-center justify-center rounded-md bg-overlay text-accent-strong"
+			>
+				<Spinner size="sm" decorative />
+			</span>
+		{/if}
 		{#if choice.kind === 'unicode'}
 			{choice.emoji}
 		{:else}
@@ -70,7 +89,7 @@
 
 {#snippet group(title: string, choices: EmojiChoice[])}
 	{#if choices.length}
-		<h4 class="mt-2 text-xs font-medium">{title}</h4>
+		<h4 class="mt-3 mb-1 text-xs font-semibold text-muted">{title}</h4>
 		<div class="flex flex-wrap">
 			{#each choices as choice (choiceKey(choice))}
 				{@render emojiButton(
@@ -82,15 +101,15 @@
 	{/if}
 {/snippet}
 
-<section class="card w-full max-w-sm p-2" data-testid="emoji-picker">
+<section class="w-full" data-testid="emoji-picker">
 	<input
 		type="search"
 		bind:value={query}
 		placeholder={t.search}
 		aria-label={t.search}
-		class="w-full rounded-md border border-line-strong px-2 py-1"
+		class="field"
 	/>
-	<div class="mt-1 max-h-60 overflow-y-auto">
+	<div class="mt-2 max-h-[40dvh] overflow-y-auto">
 		{#if query.trim()}
 			{@render group(
 				t.custom,

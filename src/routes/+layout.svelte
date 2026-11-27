@@ -36,5 +36,5 @@
 	<meta name="description" content={og.description} />
 </svelte:head>
 
-<SiteHeader locale={data.locale} />
+<SiteHeader locale={data.locale} signedIn={!!data.did} />
 {@render children()}

@@ -26,7 +26,18 @@ export type ParticipantView = {
 	speaking: boolean;
 	micOn: boolean;
 	isLocal: boolean;
+	/** Nagi のプロフィールのアイコン（LOOK-07）。古い形の参加者情報には無い */
+	avatar?: string;
 };
+
+function avatarOf(participant: Participant): string | undefined {
+	try {
+		const avatar = JSON.parse(participant.metadata ?? '{}').avatar;
+		return typeof avatar === 'string' && avatar.startsWith('https://') ? avatar : undefined;
+	} catch {
+		return undefined;
+	}
+}
 
 function roleOf(participant: Participant): Role {
 	try {
@@ -173,7 +184,8 @@ export class SpaceConnection {
 			role: roleOf(participant),
 			speaking: participant.isSpeaking,
 			micOn: participant.isMicrophoneEnabled,
-			isLocal: participant === this.#room.localParticipant
+			isLocal: participant === this.#room.localParticipant,
+			avatar: avatarOf(participant)
 		}));
 	}
 }

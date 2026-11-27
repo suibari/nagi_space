@@ -30,6 +30,8 @@ createServer((req, res) => {
 				did: actor,
 				handle: `${actor.slice(-6)}.test`,
 				displayName: `テスト${actor.slice(-4)}`,
+				// "pic" を含む利用者だけアイコンを持つ（LOOK-07 のアイコンと頭文字の確認用）
+				...(actor.includes('pic') ? { avatar: 'https://avatar.test/pic.png' } : {}),
 				joinedAt: '2026-01-01T00:00:00.000Z'
 			}
 		});

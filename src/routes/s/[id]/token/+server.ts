@@ -27,6 +27,6 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 		return json({ error: decision.reason }, { status: decision.reason === 'banned' ? 403 : 409 });
 	}
 	const name = locals.profile?.displayName || locals.profile?.handle || did;
-	const token = await rooms.issueToken({ space, did, name, role });
+	const token = await rooms.issueToken({ space, did, name, role, avatar: locals.profile?.avatar });
 	return json({ url: rooms.url, token, role }, { headers: { 'cache-control': 'no-store' } });
 };

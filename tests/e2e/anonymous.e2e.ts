@@ -26,7 +26,7 @@ test('未ログインではタイトルとホストとログインの案内だ�
 	});
 	await page.goto(path);
 	await expect(page.getByTestId('space-title')).toHaveText('だれでもどうぞ');
-	await expect(page.getByText(/^ホスト: /)).toBeVisible();
+	await expect(page.getByTestId('space-host')).toContainText('ホスト');
 	await expect(page.getByRole('link', { name: 'ログインして参加する' })).toHaveAttribute(
 		'href',
 		`/login?returnTo=${encodeURIComponent(path)}`

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
+	import Spinner from '#lib/ui/Spinner.svelte';
 	import type { Avatar } from './avatar.ts';
 	import type { SpaceConnection } from './room.svelte.ts';
 
@@ -79,20 +80,53 @@
 </script>
 
 {#if connection.botPresent}
+	<!-- 画面の主役として、中央の段の幅いっぱいに出す（BOT-05） -->
 	<section
-		class="mt-4 flex flex-col items-center"
+		class="stage-frame"
 		data-testid="bot-avatar"
 		data-state={status}
 		data-motion={lastMotion}
 	>
 		<canvas
 			bind:this={canvas}
-			class="aspect-square w-full max-w-xs"
+			class="h-full w-full"
 			class:hidden={status === 'fallback'}
 			aria-label={t.bot}
 		></canvas>
 		{#if status === 'fallback'}
-			<img src="/bot-tan-icon.png" alt={t.bot} class="h-32 w-32" data-testid="bot-icon" />
+			<img src="/bot-tan-icon.png" alt={t.bot} class="bot-icon" data-testid="bot-icon" />
+		{/if}
+		{#if status === 'loading'}
+			<span class="loading"><Spinner label={t.botLoading} /></span>
 		{/if}
 	</section>
 {/if}
+
+<style>
+	.stage-frame {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		inline-size: 100%;
+		aspect-ratio: 4 / 5;
+		max-block-size: 55dvh;
+		overflow: hidden;
+		border-radius: var(--radius-bubble);
+		background: var(--surface-2);
+	}
+	.bot-icon {
+		inline-size: min(60%, 280px);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+	.loading {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--accent-strong);
+	}
+</style>

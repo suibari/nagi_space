@@ -1,6 +1,9 @@
 export type Locale = 'ja' | 'en';
 
 const ja = {
+	common: {
+		busy: '処理中'
+	},
 	settings: {
 		open: '表示の設定',
 		theme: 'テーマ',
@@ -16,6 +19,8 @@ const ja = {
 		handleLabel: 'ハンドル',
 		handlePlaceholder: 'example.bsky.social',
 		submit: 'ログイン',
+		noAccount: 'Nagi のアカウントをお持ちでないかたは',
+		openNagi: 'Nagi へ',
 		errors: {
 			handle: 'ハンドルを入力してください。',
 			authorize: 'このハンドルではログインを始められませんでした。綴りを確かめてください。',
@@ -32,6 +37,7 @@ const ja = {
 		kindBot: 'botたんSpace',
 		kindBotHint: 'あなたと botたんだけで話します。ほかの人には見えません。',
 		submit: '開始する',
+		cancel: 'キャンセル',
 		share: 'Nagi にシェアする',
 		shareHint: 'あなたの Nagi に、この Space のリンクカード付きで投稿します。',
 		shareTextLabel: '投稿する文章',
@@ -52,6 +58,26 @@ const ja = {
 		backToActive: '開催中の Space に戻る'
 	},
 	space: {
+		backHome: 'トップへ戻る',
+		noListeners: 'まだ聴いている人はいません。',
+		loginLead: 'Nagi のアカウントでログインすると、この Space を聴いたり話したりできます。',
+		botLoading: 'botたんを読み込んでいます',
+		micMuted: 'マイクはオフ',
+		speakers: 'スピーカー',
+		listeners: '聴いている人',
+		actions: 'Space の操作',
+		micFailed: 'マイクを切り替えられませんでした。もう一度お試しください。',
+		short: {
+			unmute: 'マイク',
+			mute: 'ミュート',
+			emoji: '絵文字',
+			request: 'リクエスト',
+			cancel: '取り消す',
+			toListener: '聴衆に戻る',
+			report: '通報',
+			leave: '退室',
+			end: '終了'
+		},
 		host: 'ホスト',
 		speaker: 'スピーカー',
 		listener: '聴衆',
@@ -81,6 +107,8 @@ const ja = {
 			micDenied: 'スピーカーになるには、マイクの許可が必要です。',
 			leave: '聴衆に戻る',
 			requests: '発話のリクエスト',
+			noRequests: 'いまリクエストはありません。',
+			manage: '参加者の管理',
 			approve: '承認する',
 			invite: '招待する',
 			revoke: '聴衆に戻す',
@@ -99,6 +127,9 @@ const ja = {
 		removed: 'ホストによって退室させられました。この Space には入り直せません。',
 		bot: 'botたん',
 		botControls: {
+			title: 'botたん',
+			hint: 'ホストはいつでも会話に呼べます。',
+			failed: 'botたんを呼べませんでした。もう一度お試しください。',
 			invite: 'botたんを呼ぶ',
 			remove: 'botたんに抜けてもらう',
 			busy: 'botたんは今いっぱいです。空いたら呼べます。',
@@ -122,11 +153,13 @@ const ja = {
 			unicode: '絵文字',
 			none: '見つかりませんでした',
 			close: '閉じる',
-			rateLimited: '少し待ってから送ってください。'
+			rateLimited: '少し待ってから送ってください。',
+			failed: '送れませんでした。もう一度お試しください。'
 		},
 		report: {
 			space: 'この Space を通報',
 			member: '通報',
+			about: (name: string) => `${name} さんを通報します`,
 			title: '運営に通報する',
 			lead: '通報は運営にだけ届き、相手には知らされません。音声や字幕は送られません。',
 			reason: '理由',
@@ -141,12 +174,50 @@ const ja = {
 			submit: '送信する',
 			cancel: 'やめる',
 			sent: '通報を送りました。',
+			close: '閉じる',
 			failed: '通報を送れませんでした。もう一度お試しください。',
 			rateLimited: '短い時間に送りすぎました。しばらくしてからお試しください。'
 		},
 		banned: 'この Space には入れません。',
 		endedTimeLimit: '開催時間の上限に達したため、この Space は終了しました。',
 		speaking: '話しています'
+	},
+	landing: {
+		eyebrow: 'Nagi の音声チャット',
+		title: 'Nagi のみんなと、声でゆるくおしゃべり',
+		lead: 'Nagi Space は、Nagi の利用者が集まって話したり聴いたりできる音声チャットです。聴くだけでも、絵文字を送るだけでも大丈夫。全肯定botたんも会話に呼べます。',
+		start: 'Nagi のアカウントではじめる',
+		noAccount: 'Nagi のアカウントをお持ちでないかたは',
+		openNagi: 'Nagi へ',
+		featuresTitle: 'できること',
+		features: [
+			{
+				title: '声で集まる',
+				body: 'ホストが Space を開くと、Nagi の利用者なら誰でも入れます。話したい人はリクエストして、ホストが承認するとスピーカーになれます。'
+			},
+			{
+				title: '聴くだけ、絵文字だけでも',
+				body: 'マイクを使わずに聴いていられます。気持ちは絵文字で届けられます。'
+			},
+			{
+				title: 'botたんを呼べる',
+				body: 'ホストはいつでも全肯定botたんを会話に呼べます。botたんは3Dで登場して、みんなの話に答えます。'
+			}
+		],
+		safetyTitle: '安心して使えるように',
+		safety: [
+			{
+				title: 'Nagi の利用者だけ',
+				body: 'Nagi のアカウントでログインした人だけが入れます。'
+			},
+			{
+				title: '何も残さない',
+				body: '話した内容は字幕で表示されますが、録音も字幕も保存しません。Space が終わると消えます。'
+			}
+		],
+		closing: 'さっそく Space をのぞいてみませんか？',
+		sampleTitle: '金曜の夜のおしゃべり',
+		sampleAlt: 'Space の画面の見本'
 	},
 	home: {
 		loginLink: 'ログイン',
@@ -166,6 +237,9 @@ const ja = {
 };
 
 const en: typeof ja = {
+	common: {
+		busy: 'Working'
+	},
 	settings: {
 		open: 'Display settings',
 		theme: 'Theme',
@@ -181,6 +255,8 @@ const en: typeof ja = {
 		handleLabel: 'Handle',
 		handlePlaceholder: 'example.bsky.social',
 		submit: 'Log in',
+		noAccount: "Don't have a Nagi account?",
+		openNagi: 'Go to Nagi',
 		errors: {
 			handle: 'Enter your handle.',
 			authorize: 'Could not start logging in with this handle. Check the spelling.',
@@ -197,6 +273,7 @@ const en: typeof ja = {
 		kindBot: 'bot-tan Space',
 		kindBotHint: 'Just you and bot-tan. Nobody else can see it.',
 		submit: 'Start',
+		cancel: 'Cancel',
 		share: 'Share to Nagi',
 		shareHint: 'Posts to your Nagi with a link card to this Space.',
 		shareTextLabel: 'Post text',
@@ -217,6 +294,26 @@ const en: typeof ja = {
 		backToActive: 'Back to your Space'
 	},
 	space: {
+		backHome: 'Back to top',
+		noListeners: 'No listeners yet.',
+		loginLead: 'Log in with your Nagi account to listen and talk in this Space.',
+		botLoading: 'Loading bot-tan',
+		micMuted: 'Mic off',
+		speakers: 'Speakers',
+		listeners: 'Listeners',
+		actions: 'Space actions',
+		micFailed: 'Could not switch the microphone. Please try again.',
+		short: {
+			unmute: 'Mic',
+			mute: 'Mute',
+			emoji: 'Emoji',
+			request: 'Request',
+			cancel: 'Cancel',
+			toListener: 'Listen',
+			report: 'Report',
+			leave: 'Leave',
+			end: 'End'
+		},
 		host: 'Host',
 		speaker: 'Speaker',
 		listener: 'Listener',
@@ -246,6 +343,8 @@ const en: typeof ja = {
 			micDenied: 'You need to allow the mic to speak.',
 			leave: 'Back to listening',
 			requests: 'Requests to speak',
+			noRequests: 'No requests right now.',
+			manage: 'Manage participants',
 			approve: 'Approve',
 			invite: 'Invite',
 			revoke: 'Move to listeners',
@@ -264,6 +363,9 @@ const en: typeof ja = {
 		removed: 'The host removed you from this Space. You cannot rejoin it.',
 		bot: 'bot-tan',
 		botControls: {
+			title: 'bot-tan',
+			hint: 'The host can invite bot-tan into the conversation at any time.',
+			failed: 'Could not invite bot-tan. Please try again.',
 			invite: 'Invite bot-tan',
 			remove: 'Ask bot-tan to leave',
 			busy: 'bot-tan is busy right now. You can invite them when they are free.',
@@ -287,11 +389,13 @@ const en: typeof ja = {
 			unicode: 'Emoji',
 			none: 'No results',
 			close: 'Close',
-			rateLimited: 'Please wait a moment before sending more.'
+			rateLimited: 'Please wait a moment before sending more.',
+			failed: 'Could not send. Please try again.'
 		},
 		report: {
 			space: 'Report this Space',
 			member: 'Report',
+			about: (name: string) => `Report ${name}`,
 			title: 'Report to the Nagi team',
 			lead: 'Reports go only to the team and are not shared with the other person. No audio or captions are sent.',
 			reason: 'Reason',
@@ -306,12 +410,50 @@ const en: typeof ja = {
 			submit: 'Send',
 			cancel: 'Cancel',
 			sent: 'Report sent.',
+			close: 'Close',
 			failed: 'Could not send the report. Please try again.',
 			rateLimited: 'Too many reports. Please try again later.'
 		},
 		banned: 'You cannot join this Space.',
 		endedTimeLimit: 'This Space ended because it reached the time limit.',
 		speaking: 'Speaking'
+	},
+	landing: {
+		eyebrow: 'Voice chat for Nagi',
+		title: 'Hang out and talk with the Nagi community',
+		lead: 'Nagi Space is a voice chat where Nagi users gather to talk and listen. You can just listen, or join in with emoji. The ever-affirming bot-tan can join the conversation too.',
+		start: 'Get started with your Nagi account',
+		noAccount: "Don't have a Nagi account?",
+		openNagi: 'Go to Nagi',
+		featuresTitle: 'What you can do',
+		features: [
+			{
+				title: 'Gather by voice',
+				body: 'When a host opens a Space, any Nagi user can come in. Ask to speak, and once the host approves, you become a speaker.'
+			},
+			{
+				title: 'Just listen, or send emoji',
+				body: 'Listen without a microphone, and share how you feel with emoji.'
+			},
+			{
+				title: 'Invite bot-tan',
+				body: 'The host can invite the ever-affirming bot-tan at any time. bot-tan appears in 3D and responds to everyone.'
+			}
+		],
+		safetyTitle: 'Made to feel safe',
+		safety: [
+			{
+				title: 'Nagi users only',
+				body: 'Only people who log in with a Nagi account can come in.'
+			},
+			{
+				title: 'Nothing is kept',
+				body: 'What people say appears as captions, but no audio or captions are saved. Everything disappears when the Space ends.'
+			}
+		],
+		closing: 'Why not drop into a Space?',
+		sampleTitle: 'Friday night chat',
+		sampleAlt: 'A sample of the Space screen'
 	},
 	home: {
 		loginLink: 'Log in',

@@ -22,6 +22,25 @@ export function grantsFor(role: Role, room: string) {
 	};
 }
 
+/**
+ * 参加者情報（metadata）。ロールと、画面に並べるための Nagi のプロフィールのアイコン（公開の情報）。
+ * 本アプリには保存せず、room が終われば消える（design.md D6）。
+ */
+export function participantMetadata(role: Role, avatar?: string): string {
+	const safe = avatar && /^https:\/\//.test(avatar) ? avatar : undefined;
+	return JSON.stringify(safe ? { role, avatar: safe } : { role });
+}
+
+/** 今の参加者情報のアイコンを残したまま、ロールだけを書き換える。 */
+export function withRole(metadata: string | undefined, role: Role): string {
+	try {
+		const avatar = JSON.parse(metadata ?? '{}').avatar;
+		return participantMetadata(role, typeof avatar === 'string' ? avatar : undefined);
+	} catch {
+		return participantMetadata(role);
+	}
+}
+
 /** サーバーから画面へ送る制御の通知の topic。利用者が書いた内容は載せない（design.md D8）。 */
 export const CONTROL_TOPIC = 'nagi-space.control';
 
@@ -63,8 +82,10 @@ export class SpaceRooms {
 	async setRole(spaceId: string, identity: string, role: Role): Promise<void> {
 		const { canPublish, canPublishSources, canSubscribe, canPublishData, canUpdateOwnMetadata } =
 			grantsFor(role, spaceId);
+		// metadata は丸ごと置き換わるので、アイコンを残して書き直す（design.md D6）
+		const current = await this.rooms.getParticipant(spaceId, identity).catch(() => undefined);
 		await this.rooms.updateParticipant(spaceId, identity, {
-			metadata: JSON.stringify({ role }),
+			metadata: withRole(current?.metadata, role),
 			permission: {
 				canPublish,
 				canPublishSources,
@@ -124,11 +145,12 @@ export class SpaceRooms {
 		did: string;
 		name: string;
 		role: Role;
+		avatar?: string;
 	}): Promise<string> {
 		const token = new AccessToken(this.config.apiKey, this.config.apiSecret, {
 			identity: input.did,
 			name: input.name,
-			metadata: JSON.stringify({ role: input.role }),
+			metadata: participantMetadata(input.role, input.avatar),
 			ttl: TOKEN_TTL_SECONDS
 		});
 		token.addGrant(grantsFor(input.role, input.space.id));

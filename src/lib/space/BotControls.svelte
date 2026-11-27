@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { messages, type Locale } from '#lib/i18n/messages.ts';
+	import Button from '#lib/ui/Button.svelte';
 	import type { SpaceConnection } from './room.svelte.ts';
 
 	const POLL_MS = 5000;
@@ -20,7 +21,8 @@
 
 	let botState = $state<BotState>();
 	let left = $state(false);
-	let busy = $state(false);
+	let pending = $state<'invite' | 'remove'>();
+	let failure = $state<string>();
 
 	async function refresh() {
 		const response = await fetch(`/s/${spaceId}/bot`).catch(() => undefined);
@@ -28,15 +30,24 @@
 	}
 
 	async function act(action: 'invite' | 'remove') {
-		busy = true;
+		pending = action;
 		left = false;
-		await fetch(`/s/${spaceId}/bot`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ action })
-		}).catch(() => undefined);
-		busy = false;
-		await refresh();
+		failure = undefined;
+		try {
+			const response = await fetch(`/s/${spaceId}/bot`, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ action })
+			}).catch(() => undefined);
+			if (!response?.ok) {
+				const body = (await response?.json().catch(() => ({}))) as { error?: string } | undefined;
+				failure =
+					body?.error === 'botBusy' ? t.busy : body?.error === 'botResting' ? t.resting : t.failed;
+			}
+			await refresh();
+		} finally {
+			pending = undefined;
+		}
 	}
 
 	onMount(() => {
@@ -61,27 +72,40 @@
 </script>
 
 {#if botState}
-	<section class="mt-4 text-sm" data-testid="bot-controls">
+	<section class="card flex flex-col gap-2 p-4 text-sm" data-testid="bot-controls">
 		{#if left}<p role="alert" data-testid="bot-left">{t.left}</p>{/if}
-		{#if inRoom || botState.requested}
-			{#if !inRoom}<p data-testid="bot-joining">{t.joining}</p>{/if}
-			<button type="button" class="btn" disabled={busy} onclick={() => act('remove')}>
-				{t.remove}
-			</button>
-		{:else}
-			<button
-				type="button"
-				class="btn"
-				disabled={busy || botState.status !== 'available'}
-				onclick={() => act('invite')}
-			>
-				{t.invite}
-			</button>
-			{#if botState.status === 'busy'}
-				<p class="mt-1" data-testid="bot-busy">{t.busy}</p>
-			{:else if botState.status === 'resting'}
-				<p class="mt-1" data-testid="bot-resting">{t.resting}</p>
+		<div class="flex flex-wrap items-center gap-3">
+			<img src="/bot-tan-icon.png" alt="" class="h-10 w-10 rounded-full bg-accent-soft" />
+			<div class="min-w-0 flex-1">
+				<p class="font-semibold text-strong">{t.title}</p>
+				{#if !inRoom && !botState.requested}
+					{#if botState.status === 'busy'}
+						<p class="text-muted" data-testid="bot-busy">{t.busy}</p>
+					{:else if botState.status === 'resting'}
+						<p class="text-muted" data-testid="bot-resting">{t.resting}</p>
+					{:else}
+						<p class="text-muted">{t.hint}</p>
+					{/if}
+				{:else if !inRoom}
+					<p class="text-muted" data-testid="bot-joining">{t.joining}</p>
+				{/if}
+			</div>
+			{#if inRoom || botState.requested}
+				<Button size="sm" pending={pending === 'remove'} onclick={() => act('remove')}>
+					{t.remove}
+				</Button>
+			{:else}
+				<Button
+					variant="primary"
+					size="sm"
+					pending={pending === 'invite'}
+					disabled={botState.status !== 'available'}
+					onclick={() => act('invite')}
+				>
+					{t.invite}
+				</Button>
 			{/if}
-		{/if}
+		</div>
+		{#if failure}<p role="alert" class="text-danger" data-testid="bot-failed">{failure}</p>{/if}
 	</section>
 {/if}
