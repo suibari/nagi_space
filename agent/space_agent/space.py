@@ -9,6 +9,7 @@ import contextlib
 import time
 from typing import Awaitable, Callable
 
+from .barge import BargeGate
 from .bot import BotWorker
 from .captions import CaptionsWorker
 from .convo import ConvoClient
@@ -111,7 +112,7 @@ class SpaceWorker:
         if self.captions is None:
             return
         self.captions.on_transcript = bot.hear if bot else None
-        self.captions.on_speech_start = bot.interrupt if bot else None
+        self.captions.barge = BargeGate(bot.pause, bot.interrupt, bot.resume) if bot else None
 
     async def stop(self) -> None:
         if self.task is not None and self.task is not asyncio.current_task():

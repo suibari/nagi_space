@@ -5,6 +5,10 @@
  */
 import { createIdlePlanner } from './idlePlanner';
 
+/** 目線の揺らぎの幅（カメラのまわり、メートル）と、大きくそらす割合。convo の web/static/avatar.js と同じ */
+const GAZE_SMALL: [number, number] = [0.12, 0.06];
+const GAZE_AWAY: [number, number] = [0.45, 0.2];
+const GAZE_AWAY_CHANCE = 0.2;
 /** しぐさに使う作り置きの動きのカテゴリ */
 const GESTURE_CATEGORIES = ['neutral', 'greeting', 'happy'];
 /** 声がこの大きさを下回って、この時間たったら「話していない」 */
@@ -32,7 +36,7 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	const THREE = await import('three');
 	const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
 	const { VRMLoaderPlugin, VRMUtils } = await import('@pixiv/three-vrm');
-	const { VRMAnimationLoaderPlugin, createVRMAnimationClip } =
+	const { VRMAnimationLoaderPlugin, VRMLookAtQuaternionProxy, createVRMAnimationClip } =
 		await import('@pixiv/three-vrm-animation');
 
 	const url = (path: string) => `${base.replace(/\/$/, '')}/${path}`;
@@ -54,6 +58,16 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 	const vrm = (await loader.loadAsync(url(manifest.model))).userData.vrm;
 	VRMUtils.rotateVRM0(vrm);
+	// 動き（VRMA）が目線を上書きしないようにし、目線はカメラのそばの点を見る（BOT-05、design.md D9）
+	const lookProxy = new VRMLookAtQuaternionProxy(vrm.lookAt);
+	lookProxy.name = 'lookAtQuaternionProxy';
+	vrm.scene.add(lookProxy);
+	const gaze = new THREE.Object3D();
+	scene.add(gaze);
+	if (vrm.lookAt) vrm.lookAt.target = gaze;
+	const gazeAim = new THREE.Vector3();
+	const gazeNow = new THREE.Vector3();
+	let gazeAt = 0;
 	scene.add(vrm.scene);
 
 	const mixer = new THREE.AnimationMixer(vrm.scene);
@@ -104,6 +118,17 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 			.then((duration) => (busyUntil = motionUntil = performance.now() + duration * 1000))
 			.catch(() => (busyUntil = motionUntil = 0));
 	}
+	// 目線：1.5〜4秒ごとにカメラのまわりの少し違う点を見て、ときどき大きくそらしてすぐ戻す（convo の画面と同じ）
+	function updateGaze(dt: number, now: number) {
+		if (now > gazeAt) {
+			const away = Math.random() < GAZE_AWAY_CHANCE;
+			const [x, y] = away ? GAZE_AWAY : GAZE_SMALL;
+			gazeAim.set((Math.random() * 2 - 1) * x, (Math.random() * 2 - 1) * y, 0);
+			gazeAt = now + (away ? 0.8 + Math.random() * 0.6 : 1.5 + Math.random() * 2.5);
+		}
+		gazeNow.lerp(gazeAim, 1 - Math.exp(-10 * dt)); // 目はすばやく動く
+		gaze.position.copy(camera.position).add(gazeNow);
+	}
 	const clock = new THREE.Clock();
 	let frame = 0;
 	// 大きな画面でも描画の大きさは 1280×1600 までに抑える（design.md D4）
@@ -137,6 +162,7 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 		expressions?.setValue('happy', idle.happy);
 		expressions?.setValue('relaxed', idle.relaxed);
 		if (idle.gesture) playGesture();
+		updateGaze(delta, clock.elapsedTime);
 		vrm.update(delta);
 		if (performance.now() > busyUntil) {
 			busyUntil = Number.POSITIVE_INFINITY;

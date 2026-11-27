@@ -152,13 +152,13 @@ test('botたんとconvoの接続が切れたら、botたんは退出しホスト
 	await cleanup(host.did, listener.did);
 });
 
-// BOT-04 botたんの返事中にスピーカーが話す（偽の convo は割り込みを数える）
-test('スピーカーが話し始めるたびに、botたんの返事を止める合図を送る', async ({ browser }) => {
+// BOT-04 botたんの返事中にスピーカーが話す（偽の convo は「いったん止める」と「止める」を数える）
+test('スピーカーの声がしたらいったん止め、1秒続いたら止める合図を送る', async ({ browser }) => {
 	test.setTimeout(90_000);
 	await setBotCapacity(2);
-	const before = (
-		(await (await fetch(`${FAKE_CONVO_URL}/test/texts`)).json()) as { interrupts: number }
-	).interrupts;
+	type Counts = { interrupts: number; pauses: number };
+	const counts = async () => (await (await fetch(`${FAKE_CONVO_URL}/test/texts`)).json()) as Counts;
+	const before = await counts();
 	const host = await openAs(browser);
 	await createSpace(host.page, 'わりこみ');
 	await expect(host.page.getByTestId('connection-state')).toHaveText('接続しました', connected);
@@ -167,14 +167,11 @@ test('スピーカーが話し始めるたびに、botたんの返事を止め�
 		slow
 	);
 	await speak(host.page);
+	// 偽の字幕は「1秒続いた声」として知らせるので、いったん止めてから止める
+	await expect.poll(async () => (await counts()).pauses, slow).toBeGreaterThan(before.pauses);
 	await expect
-		.poll(
-			async () =>
-				((await (await fetch(`${FAKE_CONVO_URL}/test/texts`)).json()) as { interrupts: number })
-					.interrupts,
-			slow
-		)
-		.toBeGreaterThan(before);
+		.poll(async () => (await counts()).interrupts, slow)
+		.toBeGreaterThan(before.interrupts);
 	await cleanup(host.did);
 });
 

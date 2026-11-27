@@ -13,6 +13,7 @@ class Config:
     convo_login: str          # convo の allowed_logins にある名前（Tailscale-User-Login として送る）
     sync_interval_s: float = 3.0
     health_port: int = 0      # 0 なら死活確認の口を開かない
+    barge_confirm_ms: int = 1000  # botたんの返事を止めるには、声がこれだけ続く必要がある（BOT-04）
 
     @staticmethod
     def from_env() -> "Config":
@@ -29,4 +30,5 @@ class Config:
             convo_login=need("CONVO_LOGIN"),
             sync_interval_s=float(os.environ.get("SYNC_INTERVAL_S", "3")),
             health_port=int(os.environ.get("AGENT_HEALTH_PORT", "0")),
+            barge_confirm_ms=int(os.environ.get("BARGE_CONFIRM_MS", "1000")),
         )

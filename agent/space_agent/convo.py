@@ -16,9 +16,10 @@ class Capacity:
 
 
 class ConvoClient:
-    def __init__(self, session: aiohttp.ClientSession, url: str, login: str) -> None:
+    def __init__(self, session: aiohttp.ClientSession, url: str, login: str, confirm_ms: int = 1000) -> None:
         self.http = session
         self.url = url
+        self.confirm_ms = confirm_ms
         # convo は tailscale serve が付けるヘッダで利用者を確かめる。同じマシンから直接つなぐので自分で付ける
         self.headers = {"Tailscale-User-Login": login}
 
@@ -56,5 +57,6 @@ class ConvoClient:
         """字幕だけのつなぎ。話者ごとの声を送り、話し始めと文字起こしを受け取る。"""
         ws = await self.http.ws_connect(f"{self.url.replace('http', 'ws', 1)}/v1/transcribe/ws",
                                         headers=self.headers, heartbeat=20)
-        await ws.send_str(json.dumps({"type": "hello", "v": 1, "audio_in": {"rate": 16000}}))
+        await ws.send_str(json.dumps({"type": "hello", "v": 1, "audio_in": {"rate": 16000},
+                                      "confirm_ms": self.confirm_ms}))
         return ws

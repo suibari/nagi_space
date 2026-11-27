@@ -23,6 +23,12 @@ class FakeBot:
     async def interrupt(self):
         pass
 
+    async def pause(self):
+        pass
+
+    async def resume(self):
+        pass
+
 
 class FakeCaptions:
     made = []
@@ -30,7 +36,7 @@ class FakeCaptions:
     def __init__(self, space_id, url, token, convo, log, room=None):
         self.token, self.room = token, room
         self.started = self.stopped = self.closed = False
-        self.on_transcript = self.on_speech_start = None
+        self.on_transcript = self.barge = None
         FakeCaptions.made.append(self)
 
     async def start(self):

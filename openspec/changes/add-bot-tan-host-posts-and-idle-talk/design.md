@@ -63,6 +63,17 @@ convo にはすでに、いまの様子を聞かれたときだけ Bot Memory AP
 - 視差効果を減らす設定（`prefers-reduced-motion: reduce`）では、しぐさだけを止める。
 - ヘッドレスのブラウザでは WebGL が使えないので、見た目は手動で確かめる。計画の関数は単体テストで確かめる。
 
+### D8. 割り込みの二段構え（BOT-04）
+
+- convo の字幕だけのつなぎに、声が合わせて1秒続いたとき（`speech.confirmed`）と発話の区切り（`speech.end`）の知らせを足す（convo の変更。1秒は hello の `confirm_ms` で変えられる）。
+- space-agent は、`speech.start` で botたんに「いったん止める」（`control: pause`）、`speech.confirmed` で「止める」（`control: interrupt`）、確定しないまま `speech.end` で「続ける」（`control: resume`）を送る。何人かが同時に話したときは、確定していない人が全員終わってから続ける。
+- convo は `pause` のあと4秒指示が無ければ、自分で続きを話す（space-agent が落ちても黙ったままにしない）。
+- 1秒は space-agent の環境変数（`BARGE_CONFIRM_MS`、既定 1000）で変えられる。
+
+### D9. 目線（BOT-05）
+
+convo の画面（`web/static/avatar.js` の `updateGaze`）と同じく、`VRMLookAtQuaternionProxy` を足して動き（VRMA）が目線を上書きしないようにし、`vrm.lookAt.target` をカメラのそばの点にする。1.5〜4秒ごとにカメラのまわりの少し違う点を見て、ときどき大きくそらして0.8〜1.4秒で戻す。目はすばやく追う。カメラを使わないので、見ている人の顔は追わない。
+
 ### D7. パブリックSpace では投稿を渡さないことを二重に守る
 
 Nagi Space の口（D1）がパブリックSpace では空を返し、convo の `space` は `accept_context` を持たないので、渡しても使わない。

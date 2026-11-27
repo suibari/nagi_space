@@ -50,6 +50,18 @@ class BotWorker:
         if self.ws is not None and not self.ws.closed:
             await self.ws.send_str(json.dumps({"type": "input.text", "text": f"{name}: {text}"}, ensure_ascii=False))
 
+    async def pause(self) -> None:
+        """声がした。続くか分かるまで、いったん止める（BOT-04）。"""
+        await self._control("pause")
+
+    async def resume(self) -> None:
+        """声は続かなかった（相づちや物音）。続きを話す。"""
+        await self._control("resume")
+
+    async def _control(self, action: str) -> None:
+        if self.ws is not None and not self.ws.closed:
+            await self.ws.send_str(json.dumps({"type": "control", "action": action}))
+
     async def interrupt(self) -> None:
         """人間が話し始めたら、botたんは話すのをやめる（BOT-04）。"""
         if self.ws is not None and not self.ws.closed:

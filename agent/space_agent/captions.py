@@ -12,6 +12,7 @@ import aiohttp
 from livekit import rtc
 
 from . import protocol
+from .barge import BargeGate
 from .convo import ConvoClient
 from .rtc import connect_safely
 
@@ -32,7 +33,7 @@ class CaptionsWorker:
         self.reader: asyncio.Task | None = None
         # botたんへ渡す口（botたんが参加しているときだけ space.py が入れる）
         self.on_transcript: Callable[[str, str], Awaitable[None]] | None = None
-        self.on_speech_start: Callable[[], Awaitable[None]] | None = None
+        self.barge: BargeGate | None = None  # 割り込みの二段構え（botたんが参加しているときだけ。BOT-04）
         self.closed = False
 
     async def start(self) -> None:
@@ -120,8 +121,11 @@ class CaptionsWorker:
                         reliable=True, topic=protocol.CAPTION_TOPIC)
                     if self.on_transcript:
                         await self.on_transcript(name, event.get("text", ""))
-                elif kind == "speech.start" and self.on_speech_start:
-                    await self.on_speech_start()
+                elif kind in ("speech.start", "speech.confirmed", "speech.end") and self.barge \
+                        and isinstance(event.get("speaker"), str):
+                    gate, speaker = self.barge, event["speaker"]
+                    await (gate.start(speaker) if kind == "speech.start" else
+                           gate.confirmed(speaker) if kind == "speech.confirmed" else gate.end(speaker))
                 elif kind in ("captions.paused", "captions.resumed"):
                     await self.room.local_participant.publish_data(
                         protocol.captions_state(kind == "captions.paused"), reliable=True,

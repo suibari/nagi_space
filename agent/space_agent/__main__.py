@@ -106,7 +106,7 @@ async def main() -> None:
     faulthandler.register(signal.SIGUSR1, all_threads=True)
     cfg = Config.from_env()
     async with aiohttp.ClientSession() as http:
-        agent = Agent(cfg, http, ConvoClient(http, cfg.convo_url, cfg.convo_login))
+        agent = Agent(cfg, http, ConvoClient(http, cfg.convo_url, cfg.convo_login, cfg.barge_confirm_ms))
         runner = await serve_health(agent, cfg.health_port) if cfg.health_port else None
         log(f"space-agent を始めた（{cfg.space_api_url}）")
         try:

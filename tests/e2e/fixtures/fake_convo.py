@@ -1,6 +1,7 @@
 """E2E 専用の偽の bot-tan-convo（space-agent が使う口だけ）。本物は GPU と人物設定が要るため。
 
-- /v1/transcribe/ws：話者ごとの声を数え、音のあった1秒ごとに speech.start と文字起こしを返す
+- /v1/transcribe/ws：話者ごとの声を数え、音のあった1秒ごとに speech.start・speech.confirmed・文字起こし・
+  speech.end を返す（1秒続いた声として扱う。割り込みの二段構え BOT-04）
   （Chrome の偽のマイクは1秒ごとに短く鳴るだけなので、無音の部分も含めて数える）
 - /v1/sessions/{sid}/ws：文字（input.text）を受けたら、短い返事の声と動きと字幕を返す
 - POST /test/capacity：botたんの空きを変える（会話が増えても減っても、空きはこの数のまま）。
@@ -17,7 +18,7 @@ import struct
 from aiohttp import WSMsgType, web
 
 PORT = int(os.environ.get("PORT", "8799"))
-state = {"down": False, "free": 2, "sessions": {}, "transcribers": 0, "last_text": {}, "conversations": set(), "interrupts": 0, "transcribe_ws": set()}
+state = {"down": False, "free": 2, "sessions": {}, "transcribers": 0, "last_text": {}, "conversations": set(), "interrupts": 0, "pauses": 0, "transcribe_ws": set()}
 
 
 def tone(seconds: float, rate: int = 24000) -> bytes:
@@ -71,6 +72,8 @@ async def conversation(request):
             await ws.send_bytes(bytes([0x11, len(utt)]) + utt + tone(0.4))
             await ws.send_str(json.dumps({"type": "reply.end", "utt": f"r{n}", "interrupted": False,
                                           "text": "うんうん、すてきだね！"}, ensure_ascii=False))
+        elif data.get("type") == "control" and data.get("action") == "pause":
+            state["pauses"] += 1
         elif data.get("type") == "control" and data.get("action") == "interrupt":
             state["interrupts"] += 1
             await ws.send_str(json.dumps({"type": "audio.flush", "utt": f"r{n}"}))
@@ -103,8 +106,10 @@ async def transcribe(request):
                 if not heard.pop(speaker, False):
                     continue  # 無音だけの1秒（マイクを切っているとき）は文字にしない
                 await ws.send_str(json.dumps({"type": "speech.start", "speaker": speaker}))
+                await ws.send_str(json.dumps({"type": "speech.confirmed", "speaker": speaker}))
                 await ws.send_str(json.dumps({"type": "transcript", "speaker": speaker,
                                               "text": "テストの発話です"}, ensure_ascii=False))
+                await ws.send_str(json.dumps({"type": "speech.end", "speaker": speaker}))
     finally:
         state["transcribers"] -= 1
         state["transcribe_ws"].discard(ws)
@@ -127,7 +132,8 @@ async def drop(_request):
 
 
 async def last_text(request):
-    return web.json_response({"texts": list(state["last_text"].values()), "interrupts": state["interrupts"]})
+    return web.json_response({"texts": list(state["last_text"].values()), "interrupts": state["interrupts"],
+                              "pauses": state["pauses"]})
 
 
 async def pause(request):
