@@ -16,7 +16,8 @@
 - [x] 2.4 保存先を自宅DB（PostgREST）に切り替える：`nagi_space` スキーマのマイグレーション、キー・値ストアのインターフェースとPostgREST実装、ローカルのDocker（PostgreSQL・PostgREST）、既存の保存処理とテストの置き換え（完了の確認：Redisへの依存が無くなり、ユニット・統合・E2Eの全テストがローカルのPostgRESTで通る）
 - [x] 2.5 【利用者】自宅のPostgreSQLに `db/migrations/` を適用し、PostgRESTの公開スキーマに `nagi_space` を加え、Nagi Space用のCloudflare Accessサービストークンを発行して Vercel の環境変数に設定する（完了の確認：本番の値で `npm run test:integration` が通る）
   - 2026-11-27 本番の値で `npm run test:integration` が通った。
-- [ ] 2.6 【利用者】`scripts/build-bot-assets.mjs` で botたんの3Dモデルと動きをまとめて非公開の R2 に置き、R2 の CORS に Nagi Space の origin を加えて、読み取り用の鍵（`R2_*`）を Vercel の環境変数に設定する（完了の確認：本番の Space で botたんを呼ぶと3Dモデルが表示される）
+- [x] 2.6 【利用者】`scripts/build-bot-assets.mjs` で botたんの3Dモデルと動きをまとめて非公開の R2 に置き、R2 の CORS に Nagi Space の origin を加えて、読み取り用の鍵（`R2_*`）を Vercel の環境変数に設定する（完了の確認：本番の Space で botたんを呼ぶと3Dモデルが表示される）
+  - 2026-11-27 利用者が確認：本番の Space で botたんを呼ぶと3Dモデルが表示された（モデルは bot-tan-room と共用し、R2 の直下に `manifest.json`・`motions/` を置いた）。
 
 ## 3. 認証（space-access）
 
