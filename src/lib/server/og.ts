@@ -1,6 +1,7 @@
 import { Resvg } from '@resvg/resvg-js';
-import { readFile } from 'node:fs/promises';
 import satori from 'satori';
+// Vercel の関数からは static/ を読めないため、ビルド時に埋め込む
+import iconSvg from '../../../static/icons/icon.svg?raw';
 
 /**
  * OGP の画像（LOOK-04）。Nagi（nagi_client の api/_ogp.ts）と同じく、画像に載る文字だけを
@@ -51,11 +52,7 @@ async function fallbackFont() {
 	return fallback;
 }
 
-let iconDataUrl: string | undefined;
-async function icon(): Promise<string> {
-	iconDataUrl ??= `data:image/svg+xml;base64,${(await readFile('static/icons/icon.svg')).toString('base64')}`;
-	return iconDataUrl;
-}
+const iconDataUrl = `data:image/svg+xml;base64,${Buffer.from(iconSvg).toString('base64')}`;
 
 type Node = { type: string; props: Record<string, unknown> };
 const el = (
@@ -105,7 +102,7 @@ export async function renderOg(space?: OgSpace): Promise<Response> {
 		[
 			el('div', { display: 'flex', alignItems: 'center', gap: '20px' }, [
 				el('img', { width: '88px', height: '88px' }, undefined, {
-					src: await icon(),
+					src: iconDataUrl,
 					width: 88,
 					height: 88
 				}),
