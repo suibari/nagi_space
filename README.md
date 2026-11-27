@@ -62,7 +62,7 @@ SPACE_API_URL=https://<Nagi Space の origin> \
 AGENT_SECRET=<Nagi Space と同じ値> \
 CONVO_URL=http://127.0.0.1:8771 \
 CONVO_LOGIN=<convo の allowed_logins にある名前> \
-AGENT_HEALTH_PORT=8798 \
+AGENT_HEALTH_PORT=8797 \
 .venv/bin/python -m space_agent
 ```
 

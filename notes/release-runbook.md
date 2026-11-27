@@ -181,7 +181,7 @@ set -a; . ./.env.production.local; set +a; npm run test:integration
    AGENT_SECRET=<手順 6-1 と同じ値>
    CONVO_URL=http://127.0.0.1:8771
    CONVO_LOGIN=<convo の allowed_logins にある名前>
-   AGENT_HEALTH_PORT=8798
+   AGENT_HEALTH_PORT=8797
    ```
 
 3. `~/.config/systemd/user/nagi-space-agent.service` を作る。
@@ -210,7 +210,7 @@ set -a; . ./.env.production.local; set +a; npm run test:integration
    loginctl enable-linger suibari   # ログインしていなくても動かし続ける
    ```
 
-5. 確認：`curl -s http://127.0.0.1:8798/health` が返り、`journalctl --user -u nagi-space-agent -f` にエラーが出続けていない。Space の作成画面で botたんSpace を選んでも「お休み中」が出ない。
+5. 確認：`curl -s http://127.0.0.1:8797/health` が返り、`journalctl --user -u nagi-space-agent -f` にエラーが出続けていない。Space の作成画面で botたんSpace を選んでも「お休み中」が出ない。
 
 ## 9. 本番での通し確認
 
