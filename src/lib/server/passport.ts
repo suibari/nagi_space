@@ -40,10 +40,3 @@ export async function verifyTicket(
 		return undefined;
 	}
 }
-
-const DID_PATTERN = /^did:(plc:[a-z2-7]{24}|web:[a-zA-Z0-9.%-]+)$/;
-
-/** 署名の無い ?did= ヒントの形だけを確かめる。認証には使わない。 */
-export function isDidHint(value: string | null): value is string {
-	return value !== null && DID_PATTERN.test(value);
-}

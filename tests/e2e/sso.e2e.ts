@@ -47,8 +47,3 @@ test('無効・再提示のチケットではログイン画面へ戻り、戻�
 		expect(location.searchParams.get('returnTo')).toBe('/s/abc');
 	}
 });
-
-test('DIDのヒントが付いたログイン画面は認可画面へ進む', async ({ request }) => {
-	const response = await request.get(`/login?did=${DID}`, { maxRedirects: 0 });
-	expect(authorizeLocation(response).href).toMatch(/\/oauth\/authorize\?/);
-});

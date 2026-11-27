@@ -1,22 +1,12 @@
 import { createIssuer, generateKeyPair } from '@suibari/nagi-passport/issuer';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadServiceConfig } from './config';
-import { createSsoVerifier, createTicketStore, isDidHint, verifyTicket } from './passport';
+import { createSsoVerifier, createTicketStore, verifyTicket } from './passport';
 import { createStore } from './services';
 
 const ISSUER = 'https://nagi-api.example';
 const AUDIENCE = 'https://space.example';
 const DID = 'did:plc:abcdefghijklmnopqrstuvwx';
-
-describe('isDidHint', () => {
-	it('did:plc と did:web の形だけを受け付ける', () => {
-		expect(isDidHint(DID)).toBe(true);
-		expect(isDidHint('did:web:example.com')).toBe(true);
-		expect(isDidHint('did:plc:short')).toBe(false);
-		expect(isDidHint('alice.bsky.social')).toBe(false);
-		expect(isDidHint(null)).toBe(false);
-	});
-});
 
 // 単回使用の記録に実際の保存先を使う。INTEGRATION=1 のときだけ動かす。
 describe.runIf(process.env.INTEGRATION === '1')('SSOチケットの検証', () => {
