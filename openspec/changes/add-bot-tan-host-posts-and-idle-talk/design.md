@@ -42,7 +42,14 @@
 - `space` と `space_bot` に `proactive = { idle_s = 60, min_gap_s = 120 }` を設定する。`space_bot` だけ `accept_context = true`。
 - 会話の「最後に話した時刻」は、字幕から届く文字と botたんの返事で更新されるので、Space でもそのまま使える。
 
-### D4. パブリックSpace では投稿を渡さないことを二重に守る
+### D4. 記憶は体験と知識を別枠で引く（BOT-10）
+
+- convo の記憶の引き方（`Recall`）は、botたんが「思い出す必要がある」と判断したときだけ、つなぎの言葉を話しながら Bot Memory API の `/memory/search` を引く。Space 用の使い方の `memory_sources` を `["biorhythm", "web_research"]` にして有効にする。
+- ただし今の `Recall` は種類をまとめて直近 `recall_days` 日に絞って引く。bot-tan-youtuber の実測（2026-09-02）では、知識（web_research）は件数の多いほかの種類に押し出されて上位に出てこなかった。また知識は日付で絞ると古いものが引けない。そこで convo の `Recall` を、`web_research` が含まれるときは「体験（直近 recall_days 日、従来どおり）」と「知識（日付で絞らない、1件）」の2回に分けて引くように変える。
+- ほかの利用者の投稿の種類（`*_affirmed_post`・`*_received_reply`・リアクション・`youtube_live_comment`）は設定に入れない。convo の個人向けの使い方で「取り違えやすい」と判断した理由と、パブリックSpace でほかの人の投稿を場に持ち出さないためである。
+- Bot Memory API の用途（`purpose`）は今の `live_reply` のまま。届かないとき（5秒）は記憶なしで返事をする（今の `Recall` の振る舞い）。
+
+### D5. パブリックSpace では投稿を渡さないことを二重に守る
 
 Nagi Space の口（D1）がパブリックSpace では空を返し、convo の `space` は `accept_context` を持たないので、渡しても使わない。
 
@@ -50,6 +57,7 @@ Nagi Space の口（D1）がパブリックSpace では空を返し、convo の 
 
 - [botたんが投稿の内容を取り違えて決めつける] → 文脈の前置きで「決めつけない」と指示し、7日・20件に絞る。
 - [ホストが投稿に触れられたくない] → botたんSpace はホストが自分で始める二人きりの場で、公開の投稿だけを使う。こっそり・CW・ラベル付きは除く。困る声があれば、Space 開始時に切れる設定を別の change で検討する。
+- [記憶の体験を、目の前の相手の話と取り違える] → 体験は botたん自身の行動だけに絞り、知識は別枠で1件に限る。
 - [沈黙の話しかけがうるさい] → 60秒・2分あける。人が話せばすぐ譲る。
 - [PDS が遅い] → 3秒で諦めて投稿なしで始める。botたんの参加は待たせない。
 
