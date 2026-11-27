@@ -31,8 +31,9 @@ class ConvoClient:
                         captions_free=max(0, h["max_transcribe"] - h["transcribers"]),
                         captions_max=h["max_transcribe"])
 
-    async def create_session(self, profile: str, key: str) -> str:
-        async with self.http.post(f"{self.url}/v1/sessions", json={"profile": profile, "key": key},
+    async def create_session(self, profile: str, key: str, context: str = "") -> str:
+        body = {"profile": profile, "key": key, **({"context": context} if context else {})}
+        async with self.http.post(f"{self.url}/v1/sessions", json=body,
                                   headers=self.headers) as r:
             if r.status not in (200, 201):
                 raise RuntimeError(f"convo の会話を作れない（{r.status}）")

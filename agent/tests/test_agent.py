@@ -8,7 +8,7 @@ class FakeWorker:
     started: list[str] = []
     stopped: list[str] = []
 
-    def __init__(self, job, url, convo, log):
+    def __init__(self, job, url, convo, log, context=None):
         self.id = job["spaceId"]
         self.alive = True
         self.bot_token = None

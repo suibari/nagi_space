@@ -15,6 +15,7 @@ from aiohttp import web
 
 from .config import Config
 from .convo import Capacity, ConvoClient
+from .context import ContextClient
 from .space import SpaceWorker
 
 
@@ -26,6 +27,7 @@ class Agent:
     def __init__(self, cfg: Config, http: aiohttp.ClientSession, convo: ConvoClient,
                  worker_factory=SpaceWorker) -> None:
         self.cfg, self.http, self.convo, self.worker_factory = cfg, http, convo, worker_factory
+        self.contexts = ContextClient(http, cfg.space_api_url, cfg.agent_secret, log) if http is not None else None
         self.workers: dict[str, SpaceWorker] = {}
         self.stopping: set[asyncio.Task] = set()
         self.last_sync_ok = 0.0
@@ -63,7 +65,8 @@ class Agent:
             if worker is None:
                 if len(self.workers) >= captions_max:
                     continue
-                worker = self.worker_factory(job, body["livekitUrl"], self.convo, log)
+                worker = self.worker_factory(job, body["livekitUrl"], self.convo, log,
+                                             self.contexts.for_space if self.contexts else None)
                 self.workers[job["spaceId"]] = worker
                 worker.launch()
             worker.desire(job.get("botToken") if job.get("bot") else None)

@@ -2,21 +2,21 @@
 
 ## 1. convo の変更【外部：bot-tan-convo】
 
-- [ ] 1.1 bot-tan-convo の作業用ブランチで、`POST /v1/sessions` に `context` を足し、使い方の `accept_context` が真のときだけ人物設定の後ろに足す（design.md D3）（完了の確認：convo の pytest で、`accept_context` の有無で文脈が足される・足されないこと、4,000字を超えると 400 になることが通る）
-- [ ] 1.2 話しかけの指示文を使い方ごとに設定できるようにし（`idle_nudge`）、`space` と `space_bot` に Space 用の指示文と `proactive = { idle_s = 60, min_gap_s = 120 }` を設定する。`space_bot` だけ `accept_context = true`（完了の確認：convo の pytest で、使い方の指示文で話しかけること、60秒の沈黙で話しかけて2分は次をしないことが通る）
+- [x] 1.1 bot-tan-convo の作業用ブランチで、`POST /v1/sessions` に `context` を足し、使い方の `accept_context` が真のときだけ人物設定の後ろに足す（design.md D3）（完了の確認：convo の pytest で、`accept_context` の有無で文脈が足される・足されないこと、4,000字を超えると 400 になることが通る）
+- [x] 1.2 話しかけの指示文を使い方ごとに設定できるようにし（`idle_nudge`）、`space` と `space_bot` に Space 用の指示文と `proactive = { idle_s = 60, min_gap_s = 120 }` を設定する。`space_bot` だけ `accept_context = true`（完了の確認：convo の pytest で、使い方の指示文で話しかけること、60秒の沈黙で話しかけて2分は次をしないことが通る）
 
-- [ ] 1.3 記憶の引き方（`Recall`）を、`web_research` が含まれるときは体験（直近 `recall_days` 日）と知識（日付で絞らない・1件）の2回に分けて引くように変え、`space` と `space_bot` の `memory_sources` を `["biorhythm", "web_research"]` にする（design.md D4）（完了の確認：convo の pytest で、知識が別枠で1件入ること、ほかの人の投稿の種類を引かないこと、Bot Memory API に届かないと記憶なしで返事をすることが通る）
+- [x] 1.3 記憶の引き方（`Recall`）を、`web_research` が含まれるときは体験（直近 `recall_days` 日）と知識（日付で絞らない・1件）の2回に分けて引くように変え、`space` と `space_bot` の `memory_sources` を `["biorhythm", "web_research"]` にする（design.md D4）（完了の確認：convo の pytest で、知識が別枠で1件入ること、ほかの人の投稿の種類を引かないこと、Bot Memory API に届かないと記憶なしで返事をすることが通る）
 
-- [ ] 1.4 `space` と `space_bot` に `bot_state = true`・`digest = true` を設定する（BOT-11、design.md D5）（完了の確認：convo の pytest で、Space 用の使い方で様子を聞くと `/bot/presence` が引かれ、会話の開始で日々のまとめが人物設定に足されることが通る）
+- [x] 1.4 `space` と `space_bot` に `bot_state = true`・`digest = true` を設定する（BOT-11、design.md D5）（完了の確認：convo の pytest で、Space 用の使い方で様子を聞くと `/bot/presence` が引かれ、会話の開始で日々のまとめが人物設定に足されることが通る）
 
 ## 2. Nagi Space（BOT-08、design.md D1・D2・D7）
 
-- [ ] 2.1 ホストの PDS から投稿を読み、直近7日・こっそり／CW／ラベル付きを除いて最大20件に整える処理を作る。本文はログに出さない（完了の確認：単体テストで、7日より古い・こっそり・CW・ラベル付きが除かれ、20件・200字に切られ、PDS が失敗・遅いと空になることが通る）
-- [ ] 2.2 `GET /agent/context/[spaceId]` を作る（AGENT_SECRET で守る。botたんSpace だけ投稿を返し、パブリックSpace は空）（完了の確認：E2E で、秘密が無いと 401、パブリックSpace は空、botたんSpace は偽の PDS の投稿が整えて返ることが通る）
+- [x] 2.1 ホストの PDS から投稿を読み、直近7日・こっそり／CW／ラベル付きを除いて最大20件に整える処理を作る。本文はログに出さない（完了の確認：単体テストで、7日より古い・こっそり・CW・ラベル付きが除かれ、20件・200字に切られ、PDS が失敗・遅いと空になることが通る）
+- [x] 2.2 `GET /agent/context/[spaceId]` を作る（AGENT_SECRET で守る。botたんSpace だけ投稿を返し、パブリックSpace は空）（完了の確認：E2E で、秘密が無いと 401、パブリックSpace は空、ホストの DID を解決できない botたんSpace も空で botたんが参加することが通る。botたんSpace で PDS の投稿が整えて返ることは単体テスト（`contextForSpace`）で確かめる。E2E の偽のホストの DID は PLC で解決できないため）
 
 ## 3. space-agent（BOT-08）
 
-- [ ] 3.1 botたんの会話を作るときに `/agent/context` を読み、convo の会話の作成に `context` として渡す。読めなければ渡さずに作る（完了の確認：E2E で、botたんSpace では偽の convo が文脈を受け取り、パブリックSpace では受け取らないこと、`/agent/context` が失敗しても botたんが参加することが通る）
+- [x] 3.1 botたんの会話を作るときに `/agent/context` を読み、convo の会話の作成に `context` として渡す。読めなければ渡さずに作る（完了の確認：space-agent の pytest で、botたんSpace では convo の会話の作成に文脈が入り、パブリックSpace と文脈が空のときは入らないこと、`/agent/context` が失敗すると空になり本文をログに出さないことが通る。E2E で、文脈が空でも botたんが参加することが通る）
 
 ## 4. 待機中の身振りと表情（BOT-05、design.md D6）
 

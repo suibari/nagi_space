@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Callable
+from typing import Awaitable, Callable
 
 import aiohttp
 from livekit import rtc
@@ -18,9 +18,9 @@ FRAME_SAMPLES = TTS_RATE // 50  # 20ms
 
 class BotWorker:
     def __init__(self, space_id: str, kind: str, livekit_url: str, token: str, convo: ConvoClient,
-                 log: Callable[[str], None]) -> None:
+                 log: Callable[[str], None], context: Callable[[str], Awaitable[str]] | None = None) -> None:
         self.space_id, self.kind, self.livekit_url, self.token = space_id, kind, livekit_url, token
-        self.convo, self.log = convo, log
+        self.convo, self.log, self.context = convo, log, context
         self.room = rtc.Room()
         self.source = rtc.AudioSource(TTS_RATE, 1)
         self.sid: str | None = None
@@ -31,7 +31,12 @@ class BotWorker:
 
     async def start(self) -> None:
         # パブリックSpace は何人かで話す場、botたんSpace は二人きりの場（convo の使い方）
-        self.sid = await self.convo.create_session("space_bot" if self.kind == "bot" else "space", self.space_id)
+        # botたんSpace ではホストの最近の投稿を文脈として渡す（BOT-08。パブリックSpace では Nagi Space が空を返す）
+        context = await self.context(self.space_id) if self.context and self.kind == "bot" else ""
+        if context:
+            self.log(f"ホストの最近の投稿を渡す（{context.count(chr(10) + '- ')} 件）")
+        self.sid = await self.convo.create_session("space_bot" if self.kind == "bot" else "space", self.space_id,
+                                                   context)
         self.ws = await self.convo.conversation(self.sid)
         await connect_safely(self.room, self.livekit_url, self.token, rtc.RoomOptions(auto_subscribe=False))
         track = rtc.LocalAudioTrack.create_audio_track("bot-tan", self.source)

@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import time
-from typing import Callable
+from typing import Awaitable, Callable
 
 from .bot import BotWorker
 from .captions import CaptionsWorker
@@ -17,11 +17,13 @@ BOT_RETRY_AFTER_S = 30.0  # botたんの接続に失敗したら、しばらく�
 
 
 class SpaceWorker:
-    def __init__(self, job: dict, livekit_url: str, convo: ConvoClient, log: Callable[[str], None]) -> None:
+    def __init__(self, job: dict, livekit_url: str, convo: ConvoClient, log: Callable[[str], None],
+                 context: Callable[[str], Awaitable[str]] | None = None) -> None:
         self.id = job["spaceId"]
         self.kind = job["kind"]
         self.livekit_url = livekit_url
         self.convo = convo
+        self.context = context
         self.log = lambda m: log(f"[{self.id}] {m}")
         self.captions = CaptionsWorker(self.id, livekit_url, job["captionsToken"], convo, self.log)
         self.bot: BotWorker | None = None
@@ -68,7 +70,7 @@ class SpaceWorker:
             self.bot = None
             self._wire(None)
         if token and self.bot is None and time.monotonic() - self.bot_failed_at >= BOT_RETRY_AFTER_S:
-            bot = BotWorker(self.id, self.kind, self.livekit_url, token, self.convo, self.log)
+            bot = BotWorker(self.id, self.kind, self.livekit_url, token, self.convo, self.log, self.context)
             try:
                 await bot.start()
             except Exception as e:
