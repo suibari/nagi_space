@@ -1,7 +1,15 @@
 /**
  * botたんの3Dモデル（BOT-05）。three.js と three-vrm は botたんが参加したときだけ読み込む。
  * 待機の動きを繰り返し、返事の動きのカテゴリを受けたらその動きを1回流す。口は声の大きさで動かす。
+ * 話していない間も、まばたき・表情の変化・ときどきのしぐさを流す（idlePlanner）。
  */
+import { createIdlePlanner } from './idlePlanner';
+
+/** しぐさに使う作り置きの動きのカテゴリ */
+const GESTURE_CATEGORIES = ['neutral', 'greeting', 'happy'];
+/** 声がこの大きさを下回って、この時間たったら「話していない」 */
+const SPEAKING_LEVEL = 0.05;
+const SPEAKING_HOLD_MS = 600;
 export type BotManifest = { model: string; idle: string[]; motions: Record<string, string[]> };
 
 export type Avatar = {
@@ -80,6 +88,22 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	}
 
 	let mouth = 0;
+	let lastVoiceAt = Number.NEGATIVE_INFINITY;
+	/** 返事の動きかしぐさを流し終える時刻（待機の動きは含めない） */
+	let motionUntil = 0;
+	const planner = createIdlePlanner({
+		reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+	});
+	function playGesture() {
+		const pool = GESTURE_CATEGORIES.flatMap((category) => manifest.motions[category] ?? []);
+		if (!pool.length) return;
+		const path = pool[Math.floor(Math.random() * pool.length)];
+		busyUntil = Number.POSITIVE_INFINITY;
+		motionUntil = Number.POSITIVE_INFINITY;
+		void play(path, false)
+			.then((duration) => (busyUntil = motionUntil = performance.now() + duration * 1000))
+			.catch(() => (busyUntil = motionUntil = 0));
+	}
 	const clock = new THREE.Clock();
 	let frame = 0;
 	// 大きな画面でも描画の大きさは 1280×1600 までに抑える（design.md D4）
@@ -101,7 +125,18 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 	function tick() {
 		const delta = clock.getDelta();
 		mixer.update(delta);
-		vrm.expressionManager?.setValue('aa', mouth);
+		const nowMs = performance.now();
+		const idle = planner({
+			now: clock.elapsedTime,
+			speaking: nowMs - lastVoiceAt < SPEAKING_HOLD_MS,
+			moving: nowMs < motionUntil
+		});
+		const expressions = vrm.expressionManager;
+		expressions?.setValue('aa', mouth);
+		expressions?.setValue('blink', idle.blink);
+		expressions?.setValue('happy', idle.happy);
+		expressions?.setValue('relaxed', idle.relaxed);
+		if (idle.gesture) playGesture();
 		vrm.update(delta);
 		if (performance.now() > busyUntil) {
 			busyUntil = Number.POSITIVE_INFINITY;
@@ -125,13 +160,16 @@ export async function createAvatar(canvas: HTMLCanvasElement, base: string): Pro
 			const list = manifest.motions[category] ?? manifest.motions.neutral;
 			if (!list?.length) return;
 			const path = list[Math.floor(Math.random() * list.length)];
+			// しぐさの途中でも返事の動きに切り替える（BOT-05）
 			busyUntil = Number.POSITIVE_INFINITY;
+			motionUntil = Number.POSITIVE_INFINITY;
 			void play(path, false)
-				.then((duration) => (busyUntil = performance.now() + duration * 1000))
-				.catch(() => (busyUntil = 0));
+				.then((duration) => (busyUntil = motionUntil = performance.now() + duration * 1000))
+				.catch(() => (busyUntil = motionUntil = 0));
 		},
 		setMouth(level) {
 			mouth = Math.max(0, Math.min(1, level));
+			if (mouth > SPEAKING_LEVEL) lastVoiceAt = performance.now();
 		},
 		dispose() {
 			cancelAnimationFrame(frame);
