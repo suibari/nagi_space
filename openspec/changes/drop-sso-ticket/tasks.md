@@ -12,4 +12,5 @@
 
 ## 3. nagi_client（外部リポジトリ。ブランチ `nagi-space-sso`）
 
-- [ ] 3.1 change `add-nagi-space-sibling` を、DID ヒントは姉妹アプリすべて・チケットはお部屋だけ、の規則に直す（完了の確認：nagi_client で `openspec validate --all --strict` が通る）
+- [x] 3.1 change `add-nagi-space-sibling` を、DID ヒントは姉妹アプリすべて・チケットはお部屋だけ、の規則に直す（完了の確認：nagi_client で `openspec validate --all --strict` が通る）
+  - 2026-11-27 nagi_client のブランチ `nagi-space-sso` に入れた（aa806c8。未push）。実装と `src/lib/sso/links.test.ts` も含む。
