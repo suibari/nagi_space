@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { loadServiceConfig } from '../config';
 import { createStore } from '../services';
 import { DEFAULT_LIMITS } from './limits';
@@ -9,6 +9,11 @@ import { PresenceStore } from './presence';
 import { SpaceRepository } from './repository';
 
 describe.runIf(process.env.INTEGRATION === '1')('SpaceLifecycle', () => {
+	// 本番の保存先でも流すので、終えた Space の開催情報も残さない
+	const created: string[] = [];
+	afterAll(async () => {
+		await createStore(loadServiceConfig(process.env)).del(...created.map((id) => `space:${id}`));
+	});
 	const setup = (now: { value: Date }) => {
 		const store = createStore(loadServiceConfig(process.env));
 		const spaces = new SpaceRepository(store);
@@ -28,8 +33,10 @@ describe.runIf(process.env.INTEGRATION === '1')('SpaceLifecycle', () => {
 	};
 	const makeSpace = (startedAt: Date): Space => {
 		const hostDid = `did:plc:life${crypto.randomUUID()}`;
+		const id = newSpaceId();
+		created.push(id);
 		return {
-			id: newSpaceId(),
+			id,
 			kind: 'public',
 			hostDid,
 			host: { did: hostDid, handle: 'h.test' },

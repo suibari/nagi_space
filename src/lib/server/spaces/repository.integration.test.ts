@@ -1,11 +1,11 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadServiceConfig } from '../config';
 import { createStore } from '../services';
 import type { KeyValueStore } from '../store/types';
 import { newSpaceId, type Space } from './model';
 import { SpaceRepository } from './repository';
 
-const makeSpace = (hostDid: string, kind: Space['kind'] = 'public'): Space => ({
+const baseSpace = (hostDid: string, kind: Space['kind']): Space => ({
 	id: newSpaceId(),
 	kind,
 	hostDid,
@@ -18,10 +18,24 @@ describe.runIf(process.env.INTEGRATION === '1')('SpaceRepository', () => {
 	let store: KeyValueStore;
 	let repo: SpaceRepository;
 	const host = () => `did:plc:repo${crypto.randomUUID()}`;
+	// 本番の保存先でも流すので、作った Space を一覧に残さない
+	const created: string[] = [];
+	const makeSpace = (hostDid: string, kind: Space['kind'] = 'public') => {
+		const space = baseSpace(hostDid, kind);
+		created.push(space.id);
+		return space;
+	};
 
 	beforeAll(() => {
 		store = createStore(loadServiceConfig(process.env));
 		repo = new SpaceRepository(store);
+	});
+
+	afterAll(async () => {
+		for (const id of created) {
+			await repo.end(id);
+			await store.del(`space:${id}`);
+		}
 	});
 
 	it('1人が同時に開催できるのは1つまで（LIFE-01）', async () => {
