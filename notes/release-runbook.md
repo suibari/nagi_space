@@ -162,7 +162,7 @@
 手元で `.env.production.local` に手順 3〜6 の値を書き、実行する。テスト用のキーを本番の保存先に書いて消す。
 
 ```sh
-set -a; . ./.env.production.local; set +a; npm run test:integration
+(set -a; . ./.env.production.local; set +a; npm run test:integration)   # 括弧で囲み、本番の値を今の端末に残さない
 ```
 
 ## 8. space-agent を自宅で常駐させる
