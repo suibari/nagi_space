@@ -102,7 +102,7 @@
 
    出力：`bot-tan.vrm`、`motions/<カテゴリ>/*.vrma`、`manifest.json`。
 
-2. バケットの中の `nagi-space/` に、出力をフォルダごとアップロードする（例：`nagi-space/manifest.json`、`nagi-space/motions/happy/…`）。直下の `bot-tan.vrm` は bot-tan-room が使うので上書きしない。
+2. バケットの直下に `manifest.json` と `motions/` をフォルダごとアップロードする。`bot-tan.vrm` は bot-tan-room と共用するので、アップロードせず直下の既存のものを使う（直下にほかのアプリの `manifest.json`・`motions/` が無いことを先に確かめる）。
 3. R2 → Manage API Tokens で、このバケットだけを読める「Object Read only」のトークンを作り、Access Key ID と Secret Access Key を控える。
 4. バケットの CORS ポリシーに Nagi Space の origin を**加える**。既存のアプリの origin は消さない。
 
@@ -148,7 +148,6 @@
    | `R2_ACCOUNT_ID`                                          | Cloudflare のアカウントID             |
    | `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`              | 手順 5-3                              |
    | `R2_BUCKET`                                              | `room-bot-tan`                        |
-   | `R2_PREFIX`                                              | `nagi-space/`（末尾の `/` まで）      |
    | `SPACE_CREATOR_ALLOWLIST`                                | 手順 0 で決めた場合だけ（自分の DID） |
 
    `NAGI_APPVIEW_URL`・`NAGI_PASSPORT_ISSUER`・上限の値（`SPACE_MAX_*` など）は既定のままでよい。
